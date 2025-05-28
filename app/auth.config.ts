@@ -53,19 +53,10 @@ export const authConfig = {
     },
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnStore = nextUrl.pathname.startsWith("/store");
       const isOnLogin = nextUrl.pathname.startsWith("/login");
 
-      if (isOnLogin) {
-        if (isLoggedIn) {
-          return Response.redirect(new URL("/store", nextUrl));
-        }
-        return true;
-      }
-
-      if (isOnStore) {
-        if (isLoggedIn) return true;
-        return false;
+      if (isOnLogin && isLoggedIn) {
+        return Response.redirect(new URL("/", nextUrl));
       }
 
       return true;

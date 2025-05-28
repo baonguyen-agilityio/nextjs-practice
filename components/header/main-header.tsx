@@ -1,5 +1,4 @@
 import Logo from "../icons/logo";
-import { CartButton } from "./cart-button";
 import { NavItems } from "./nav-items";
 import { MobileMenu } from "./mobile-menu";
 import { siteConfig } from "@/config/site";
@@ -30,9 +29,6 @@ export function Header() {
           </div>
           <div className="flex items-center gap-4">
             <NavItems />
-            <div className="hidden md:block">
-              <CartButton />
-            </div>
             <MobileMenu />
           </div>
         </div>
