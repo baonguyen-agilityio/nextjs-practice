@@ -19,8 +19,11 @@ describe("Footer", () => {
     const links = screen.getAllByRole("link");
     const socialLinks = links.slice(0, siteConfig.socialLinks.length);
     socialLinks.forEach((link, i) => {
-      expect(link).toHaveAttribute("href", siteConfig.socialLinks[i].href);
-      expect(link).toHaveAttribute("target", "_blank");
+      const socialLink = siteConfig.socialLinks[i];
+      if (socialLink) {
+        expect(link).toHaveAttribute("href", socialLink.href);
+        expect(link).toHaveAttribute("target", "_blank");
+      }
     });
   });
 

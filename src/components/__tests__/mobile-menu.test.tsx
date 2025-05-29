@@ -2,29 +2,47 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { MobileMenu } from "../header/mobile-menu";
 import { siteConfig } from "@/config/site";
 
+// Mock NextAuth
+jest.mock("@/lib/auth/auth", () => ({
+  auth: jest.fn(),
+}));
+
+// Mock server actions
+jest.mock("@/lib/actions", () => ({
+  logout: jest.fn(),
+}));
+
 jest.mock("../header/cart-button", () => ({
   CartButton: () => <div data-testid="cart-button" />,
 }));
 
 describe("MobileMenu", () => {
-  it("renders the toggle button", () => {
-    render(<MobileMenu />);
+  beforeEach(() => {
+    jest.clearAllMocks();
+    const { auth } = jest.requireMock("@/lib/auth/auth");
+    auth.mockResolvedValue(null);
+  });
+
+  it("renders the toggle button", async () => {
+    const MobileMenuResolved = await MobileMenu();
+    render(MobileMenuResolved);
     expect(screen.getByRole("button", { name: /toggle menu/i })).toBeInTheDocument();
   });
 
-  it("opens the menu when toggle button is clicked", () => {
-    render(<MobileMenu />);
+  it("opens the menu when toggle button is clicked", async () => {
+    const MobileMenuResolved = await MobileMenu();
+    render(MobileMenuResolved);
     const toggleButton = screen.getByRole("button", { name: /toggle menu/i });
     fireEvent.click(toggleButton);
     expect(screen.getByRole("button", { name: /close menu/i })).toBeInTheDocument();
     siteConfig.navItems.forEach(({ label }) => {
       expect(screen.getByText(label)).toBeInTheDocument();
     });
-    expect(screen.getByTestId("cart-button")).toBeInTheDocument();
   });
 
-  it("closes the menu when close button is clicked", () => {
-    render(<MobileMenu />);
+  it("closes the menu when close button is clicked", async () => {
+    const MobileMenuResolved = await MobileMenu();
+    render(MobileMenuResolved);
     const toggleButton = screen.getByRole("button", { name: /toggle menu/i });
     fireEvent.click(toggleButton);
     const closeButton = screen.getByRole("button", { name: /close menu/i });

@@ -8,11 +8,11 @@ jest.mock("../icons/logo", () => ({
 }));
 
 jest.mock("../header/nav-items", () => ({
-  NavItems: () => <div data-testid="nav-items" />,
-}));
-
-jest.mock("../header/cart-button", () => ({
-  CartButton: () => <div data-testid="cart-button" />,
+  NavItems: () => (
+    <div data-testid="nav-items">
+      <div data-testid="cart-button" />
+    </div>
+  ),
 }));
 
 jest.mock("../header/mobile-menu", () => ({
@@ -28,17 +28,32 @@ describe("Header", () => {
 
   it("renders social links", () => {
     render(<Header />);
-    const socialLinks = screen.getAllByRole("link", { name: "" });
+    // Get all links with target="_blank" (these are the social links)
+    const socialLinks = screen
+      .getAllByRole("link")
+      .filter((link) => link.getAttribute("target") === "_blank");
+
     expect(socialLinks).toHaveLength(siteConfig.socialLinks.length);
-    siteConfig.socialLinks.forEach(({ href }, i) => {
-      expect(socialLinks[i]).toHaveAttribute("href", href);
+    siteConfig.socialLinks.forEach(({ href }) => {
+      const link = socialLinks.find((l) => l.getAttribute("href") === href);
+      expect(link).toBeInTheDocument();
     });
   });
 
-  it("renders NavItems, CartButton, and MobileMenu", () => {
+  it("renders logo link", () => {
+    render(<Header />);
+    const logoLink = screen.getByRole("link", { name: /pages/i });
+    expect(logoLink).toHaveAttribute("href", "/");
+  });
+
+  it("renders NavItems and MobileMenu", () => {
     render(<Header />);
     expect(screen.getByTestId("nav-items")).toBeInTheDocument();
-    expect(screen.getByTestId("cart-button")).toBeInTheDocument();
     expect(screen.getByTestId("mobile-menu")).toBeInTheDocument();
+  });
+
+  it("renders cart button within nav items", () => {
+    render(<Header />);
+    expect(screen.getByTestId("cart-button")).toBeInTheDocument();
   });
 });

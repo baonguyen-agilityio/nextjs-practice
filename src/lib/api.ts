@@ -1,4 +1,4 @@
-import { auth } from "@/app/auth";
+import { auth } from "@/lib/auth/auth";
 
 const strapiBaseURL = process.env.STRAPI_URL || "http://localhost:1337";
 

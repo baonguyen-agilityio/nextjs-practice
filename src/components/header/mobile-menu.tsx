@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
+import { logout } from "@/lib/actions";
 import { CartButton } from "./cart-button";
-import { logout } from "@/app/lib/actions";
+import { auth } from "@/lib/auth/auth";
 import { MobileMenuToggle } from "./mobile-menu-toggle"; // client component
-import { auth } from "@/app/auth";
 
 export async function MobileMenu() {
   const session = await auth();

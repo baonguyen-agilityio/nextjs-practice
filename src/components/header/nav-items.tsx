@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
-import { logout } from "@/app/lib/actions";
+import { logout } from "@/lib/actions";
 import { CartButton } from "./cart-button";
-import { auth } from "@/app/auth";
+import { auth } from "@/lib/auth/auth";
 
 export async function NavItems() {
   const session = await auth();

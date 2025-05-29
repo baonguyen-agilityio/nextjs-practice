@@ -1,6 +1,7 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { useState } from "react";
+import type { ReactNode } from "react";
 
 export function MobileMenuToggle({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);

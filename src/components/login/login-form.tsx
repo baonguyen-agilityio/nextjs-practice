@@ -2,7 +2,7 @@
 
 import { FormInput } from "@/components/ui/form-input";
 import { useActionState, useState } from "react";
-import { authenticate } from "@/app/lib/actions";
+import { authenticate } from "@/lib/actions";
 import { useSearchParams } from "next/navigation";
 
 export default function LoginForm() {
