@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="bg-darkblue text-white pt-8 pb-4">
+    <footer className="bg-background text-primary pt-8 pb-4">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex flex-col md:flex-row md:justify-between gap-8 pb-8">
           <div>
@@ -18,7 +18,7 @@ export function Footer() {
                   target="_blank"
                   key={href}
                   href={href}
-                  className="border border-accent w-10 h-10 flex items-center justify-center hover:bg-accent hover:text-darkblue transition-colors"
+                  className="border border-accent w-10 h-10 flex items-center justify-center hover:bg-accent hover:text-primary-foreground transition-colors"
                 >
                   <Icon />
                 </Link>
@@ -30,17 +30,17 @@ export function Footer() {
             <div className="space-y-2 text-lg">
               <div>
                 <span className="font-semibold">Address: </span>
-                <span className="font-inter text-lightblue">
+                <span className="font-inter text-secondary">
                   24A Kingston St, Los Vegas NC 28202, USA.
                 </span>
               </div>
               <div>
                 <span className="font-semibold">Mail: </span>
-                <span className="font-inter text-lightblue">support@doctors.com</span>
+                <span className="font-inter text-secondary">support@doctors.com</span>
               </div>
               <div>
                 <span className="font-semibold">Phone: </span>
-                <span className="font-inter text-lightblue">(+22) 123 - 4567 - 900</span>
+                <span className="font-inter text-secondary">(+22) 123 - 4567 - 900</span>
               </div>
             </div>
           </div>

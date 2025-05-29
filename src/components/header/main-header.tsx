@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export function Header() {
   return (
-    <header className="bg-darkblue text-white">
+    <header className="text-primary bg-background">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center gap-6">
@@ -20,9 +20,9 @@ export function Header() {
                   target="_blank"
                   key={href}
                   href={href}
-                  className="bg-primary p-2 w-10 h-10 flex items-center justify-center"
+                  className="bg-foreground p-2 w-10 h-10 flex items-center justify-center"
                 >
-                  <Icon color="darkblue" />
+                  <Icon color="#1B3764" />
                 </Link>
               ))}
             </div>

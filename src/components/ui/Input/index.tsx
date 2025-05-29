@@ -1,4 +1,4 @@
-interface FormInputProps {
+interface InputProps {
   id: string;
   name: string;
   label: string;
@@ -8,15 +8,7 @@ interface FormInputProps {
   required?: boolean;
 }
 
-export function FormInput({
-  id,
-  name,
-  label,
-  type,
-  value,
-  onChange,
-  required = false,
-}: FormInputProps) {
+export function Input({ id, name, label, type, value, onChange, required = false }: InputProps) {
   return (
     <div>
       <label htmlFor={id} className="block text-sm font-medium">

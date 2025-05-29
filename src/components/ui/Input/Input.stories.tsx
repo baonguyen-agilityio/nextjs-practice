@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { FormInput } from "./form-input";
+import { Input } from ".";
 
-const meta: Meta<typeof FormInput> = {
-  title: "Components/FormInput",
-  component: FormInput,
+const meta: Meta<typeof Input> = {
+  title: "Components/Input",
+  component: Input,
   tags: ["autodocs"],
   argTypes: {
     type: {
@@ -18,7 +18,7 @@ const meta: Meta<typeof FormInput> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof FormInput>;
+type Story = StoryObj<typeof Input>;
 
 export const Text: Story = {
   args: {

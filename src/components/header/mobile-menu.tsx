@@ -12,7 +12,11 @@ export async function MobileMenu() {
     <MobileMenuToggle>
       <nav className="flex flex-col items-center gap-6 mt-8">
         {siteConfig.navItems.map(({ href, label }) => (
-          <Link key={href} href={href} className="text-xl hover:text-accent transition-colors">
+          <Link
+            key={href}
+            href={href}
+            className="text-xl hover:text-accent transition-colors font-inter"
+          >
             {label}
           </Link>
         ))}

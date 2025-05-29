@@ -8,10 +8,10 @@ export function CartButton({ count = 1 }: { count?: number }) {
       <span
         className="
           absolute -top-3 -right-3
-          bg-accent text-darkblue
+          bg-accent text-primary-foreground
           rounded-full
           w-5 h-5 flex items-center justify-center
-          font-bold text-xs font-inter
+          font-bold text-[10px] font-inter
           shadow
         "
       >

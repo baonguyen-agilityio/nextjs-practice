@@ -16,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html suppressHydrationWarning lang="en">
+    <html suppressHydrationWarning lang="en" className="myTheme">
       <body className={`${fontCardo.variable} ${fontInter.variable} font-cardo`}>
         <Providers>
           <Header />
