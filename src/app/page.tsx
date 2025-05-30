@@ -1,4 +1,6 @@
 import BookCard from "@/components/ui/BookCard";
+import Pagination from "@/components/ui/Pagination";
+import { getBooks } from "@/lib/api/book";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,64 +10,12 @@ export const metadata: Metadata = {
   description: "Discover amazing books and articles at Pages, your premier online bookstore.",
 };
 
-const featuredBooks = [
-  {
-    id: 1,
-    title: "Atomic One's",
-    author: "John Smith",
-    price: 29.99,
-    originalPrice: 39.99,
-    image: "/api/placeholder/240/320",
-  },
-  {
-    id: 2,
-    title: "Atomic One's",
-    author: "John Smith",
-    price: 29.99,
-    originalPrice: 39.99,
-    image: "/api/placeholder/240/320",
-  },
-  {
-    id: 3,
-    title: "Atomic One's",
-    author: "John Smith",
-    price: 29.99,
-    originalPrice: 39.99,
-    image: "/api/placeholder/240/320",
-  },
-  {
-    id: 4,
-    title: "The Dark Light",
-    author: "Jane Doe",
-    price: 24.99,
-    originalPrice: 34.99,
-    image: "/api/placeholder/240/320",
-  },
-  {
-    id: 5,
-    title: "The Dark Light",
-    author: "Jane Doe",
-    price: 24.99,
-    originalPrice: 34.99,
-    image: "/api/placeholder/240/320",
-  },
-  {
-    id: 6,
-    title: "The Dark Light",
-    author: "Jane Doe",
-    price: 24.99,
-    originalPrice: 34.99,
-    image: "/api/placeholder/240/320",
-  },
-];
-
 const articles = [
   {
     id: 1,
     title: "The newest effective offers the best writers",
     excerpt:
       "Discover the latest offerings from our most talented authors and find your next great read.",
-    image: "/api/placeholder/300/200",
     date: "Jan 01, 2024",
     readTime: "5 min read",
   },
@@ -74,7 +24,6 @@ const articles = [
     title: "Achieve dreams faster using our exclusive guide",
     excerpt:
       "Unlock your potential with our comprehensive guide to personal development and success.",
-    image: "/api/placeholder/300/200",
     date: "Dec 28, 2023",
     readTime: "8 min read",
   },
@@ -83,13 +32,23 @@ const articles = [
     title: "The newest effective offers the best writers",
     excerpt:
       "Stay ahead with cutting-edge insights from industry-leading authors and thought leaders.",
-    image: "/api/placeholder/300/200",
     date: "Dec 25, 2023",
     readTime: "6 min read",
   },
 ];
 
-export default function Home() {
+interface SearchParamsProps {
+  searchParams?: {
+    page?: string;
+    query?: string;
+  };
+}
+
+export default async function Home({ searchParams }: SearchParamsProps) {
+  const search = await searchParams;
+  const currentPage = Number(search?.page) || 1;
+  const { data, meta } = await getBooks(currentPage);
+
   return (
     <main className="min-h-screen">
       <section className="bg-background text-white py-16">
@@ -104,11 +63,18 @@ export default function Home() {
 
       <section className="py-16">
         <div className="container mx-auto px-4 max-w-7xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredBooks.map((book) => (
-              <BookCard key={book.id} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            {data.map((book: any) => (
+              <BookCard
+                key={book.id}
+                title={book.title}
+                price={book.price}
+                description={book.description}
+                image={`${process.env.STRAPI_URL}${book.image.url}`}
+              />
             ))}
           </div>
+          <Pagination total={meta.pagination.pageCount} page={currentPage} />
         </div>
       </section>
 
@@ -122,7 +88,7 @@ export default function Home() {
               <article key={article.id} className="group cursor-pointer">
                 <div className="aspect-video relative mb-4 rounded-lg overflow-hidden">
                   <Image
-                    src={article.image}
+                    src="/significant.png"
                     alt={article.title}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-300"

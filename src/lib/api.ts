@@ -2,33 +2,40 @@ import { auth } from "@/lib/auth/auth";
 
 const strapiBaseURL = process.env.STRAPI_URL || "http://localhost:1337";
 
-export async function fetchFromStrapi(endpoint: string, options: RequestInit = {}) {
-  const session = await auth();
+type FetchOptions = RequestInit & {
+  auth?: boolean;
+};
 
-  if (!session?.jwt) {
-    throw new Error("No authentication token found");
-  }
+export async function fetchFromStrapi(endpoint: string, options: FetchOptions = {}) {
+  const { auth: requiresAuth = true, ...restOptions } = options;
 
-  const defaultOptions = {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${session.jwt}`,
-    },
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...(restOptions.headers as Record<string, string>),
   };
 
+  if (requiresAuth) {
+    const session = await auth();
+    if (!session?.jwt) {
+      throw new Error("No authentication token found");
+    }
+    headers["Authorization"] = `Bearer ${session.jwt}`;
+  }
+
   const response = await fetch(`${strapiBaseURL}/api${endpoint}`, {
-    ...options,
-    ...defaultOptions,
-    headers: {
-      ...defaultOptions.headers,
-      ...options.headers,
-    },
+    ...restOptions,
+    headers,
   });
 
-  const data = await response.json();
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error("Invalid JSON response from Strapi");
+  }
 
   if (!response.ok) {
-    throw new Error(data.error?.message || "An error occurred");
+    throw new Error(data?.error?.message || response.statusText || "Request failed");
   }
 
   return data;
