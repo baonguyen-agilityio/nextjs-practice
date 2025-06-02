@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import { MobileMenu } from "../header/mobile-menu";
+import { MobileMenu } from "../layouts/Header/MobileMenu";
 import { siteConfig } from "@/config/site";
 
 // Mock NextAuth
@@ -12,7 +12,7 @@ jest.mock("@/lib/actions", () => ({
   logout: jest.fn(),
 }));
 
-jest.mock("../header/cart-button", () => ({
+jest.mock("../layouts/Header/CartButton", () => ({
   CartButton: () => <div data-testid="cart-button" />,
 }));
 

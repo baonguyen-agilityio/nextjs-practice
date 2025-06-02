@@ -21,10 +21,13 @@ export default function Pagination({ total, page }: Props) {
   return (
     <HeroPagination
       classNames={{
-        cursor: "bg-background text-white",
+        cursor: "bg-primary text-white font-inter",
+        item: "font-inter",
       }}
       total={total}
       page={page}
+      showControls
+      disableCursorAnimation
       onChange={onChange}
     />
   );

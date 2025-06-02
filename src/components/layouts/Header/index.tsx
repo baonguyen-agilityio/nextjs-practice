@@ -1,12 +1,12 @@
-import Logo from "../icons/logo";
-import { NavItems } from "./nav-items";
-import { MobileMenu } from "./mobile-menu";
+import Logo from "../../icons/logo";
+import { NavItems } from "./NavItems";
+import { MobileMenu } from "./MobileMenu";
 import { siteConfig } from "@/config/site";
 import Link from "next/link";
 
 export function Header() {
   return (
-    <header className="text-primary bg-background">
+    <header className="text-white bg-primary">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center gap-6">
@@ -20,7 +20,7 @@ export function Header() {
                   target="_blank"
                   key={href}
                   href={href}
-                  className="bg-foreground p-2 w-10 h-10 flex items-center justify-center"
+                  className="bg-white p-2 w-10 h-10 flex items-center justify-center"
                 >
                   <Icon color="#1B3764" />
                 </Link>

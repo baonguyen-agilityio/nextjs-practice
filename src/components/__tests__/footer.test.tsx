@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { Footer } from "../footer";
+import { Footer } from "../layouts/Footer";
 import { siteConfig } from "@/config/site";
 
 jest.mock("../icons/logo", () => ({

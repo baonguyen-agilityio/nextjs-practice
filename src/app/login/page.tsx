@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import LoginForm from "@/components/login/login-form";
+import LoginForm from "@/components/features/login/login-form";
 import Logo from "@/components/icons/logo";
 
 export const metadata: Metadata = {
@@ -26,7 +26,7 @@ export default function LoginPage() {
         <div className="flex flex-col items-center">
           <div className="flex items-center gap-2 mb-2">
             <Logo />
-            <span className="font-inter font-bold text-3xl">Pages</span>
+            <span className="font-inter text-primary font-bold text-3xl">Pages</span>
           </div>
           <h2 className="text-xl text-gray-600">Please log in to continue</h2>
         </div>

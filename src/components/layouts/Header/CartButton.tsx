@@ -1,5 +1,5 @@
 import Link from "next/link";
-import CartIcon from "../icons/cart-icon";
+import CartIcon from "../../icons/cart-icon";
 
 export function CartButton({ count = 1 }: { count?: number }) {
   return (
@@ -8,7 +8,7 @@ export function CartButton({ count = 1 }: { count?: number }) {
       <span
         className="
           absolute -top-3 -right-3
-          bg-accent text-primary-foreground
+          bg-secondary text-primary
           rounded-full
           w-5 h-5 flex items-center justify-center
           font-bold text-[10px] font-inter

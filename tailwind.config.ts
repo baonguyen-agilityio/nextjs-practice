@@ -43,21 +43,21 @@ export default {
   plugins: [
     heroui({
       addCommonColors: true,
+      layout: {
+        radius: {
+          large: "0px",
+        },
+        borderWidth: {
+          medium: "1px",
+        },
+      },
       themes: {
         myTheme: {
-          extend: "light",
           colors: {
-            background: "#1B3764",
-            foreground: "#ffffff",
-            default: "#FFCA42",
-            primary: {
-              DEFAULT: "#ffffff",
-              foreground: "#1B3764",
-            },
-            secondary: {
-              DEFAULT: "#B4C7E7",
-            },
-            focus: "#F182F6",
+            default: "#ffffff",
+            primary: "#1B3764",
+            secondary: "#FFCA42",
+            background: "#F6F8FC",
           },
         },
       },

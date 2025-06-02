@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { CartButton } from "../header/cart-button";
+import { CartButton } from "../layouts/Header/CartButton";
 
 jest.mock("../icons/cart-icon", () => ({
   __esModule: true,

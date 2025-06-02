@@ -51,10 +51,10 @@ export default async function Home({ searchParams }: SearchParamsProps) {
 
   return (
     <main className="min-h-screen">
-      <section className="bg-background text-white py-16">
+      <section className="bg-primary text-white py-16">
         <div className="container mx-auto px-4 max-w-7xl text-center">
           <h1 className="text-5xl md:text-5xl mb-4">My Store</h1>
-          <p className="text-lg md:text-xl text-secondary max-w-2xl mx-auto font-inter">
+          <p className="text-lg md:text-xl text-white max-w-2xl mx-auto font-inter">
             Looking for your next great read? Look no further than our expert recommendations and
             curated collections.
           </p>
@@ -71,10 +71,13 @@ export default async function Home({ searchParams }: SearchParamsProps) {
                 price={book.price}
                 description={book.description}
                 image={`${process.env.STRAPI_URL}${book.image.url}`}
+                href={`/books/${book.slug}`}
               />
             ))}
           </div>
-          <Pagination total={meta.pagination.pageCount} page={currentPage} />
+          <div className="flex justify-end">
+            <Pagination total={meta.pagination.pageCount} page={currentPage} />
+          </div>
         </div>
       </section>
 

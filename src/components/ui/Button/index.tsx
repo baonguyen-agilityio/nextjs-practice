@@ -1,28 +1,25 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { Button as HeroButton } from "@heroui/button";
-import type { ButtonProps as HeroButtonProps } from "@heroui/button";
+import { Button as HeroButton, extendVariants } from "@heroui/react";
 
-export function Button(props: HeroButtonProps) {
-  const { variant, className, ...rest } = props;
+export const Button = extendVariants(HeroButton, {
+  variants: {
+    variant: {
+      bordered: "hover:bg-secondary transition-colors text-primary",
+      solid:
+        "text-primary hover:border hover:border-secondary hover:text-secondary hover:bg-transparent transition-colors",
+    },
 
-  const hoverClasses = {
-    bordered: "hover:bg-accent transition-colors",
-    solid: "hover:bg-transparent hover:border hover:border-default transition-colors",
-  };
-
-  return (
-    <HeroButton
-      {...rest}
-      radius="none"
-      color="default"
-      variant={variant}
-      className={cn(
-        "text-title text-sm border-[1px] border-default transition-colors",
-        hoverClasses[variant as keyof typeof hoverClasses],
-        className
-      )}
-    />
-  );
-}
+    color: {
+      default: "default",
+      primary: "primary",
+      secondary: "secondary",
+    },
+  },
+  defaultVariants: {
+    radius: "none",
+    variant: "solid",
+    color: "secondary",
+    size: "lg",
+  },
+});

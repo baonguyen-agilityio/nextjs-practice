@@ -19,7 +19,7 @@ export function MobileMenuToggle({ children }: { children: ReactNode }) {
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 bg-background z-50">
+        <div className="fixed inset-0 bg-primary z-50">
           <div className="container mx-auto px-4 py-6">
             <div className="flex justify-end">
               <button

@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { NavItems } from "../header/nav-items";
+import { NavItems } from "../layouts/Header/NavItems";
 import { siteConfig } from "@/config/site";
 
 // Mock NextAuth

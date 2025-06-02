@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { Header } from "../header/main-header";
+import { Header } from "../layouts/Header";
 import { siteConfig } from "@/config/site";
 
 jest.mock("../icons/logo", () => ({
@@ -7,7 +7,7 @@ jest.mock("../icons/logo", () => ({
   default: () => <div data-testid="logo" />,
 }));
 
-jest.mock("../header/nav-items", () => ({
+jest.mock("../layouts/Header/NavItems", () => ({
   NavItems: () => (
     <div data-testid="nav-items">
       <div data-testid="cart-button" />
@@ -15,7 +15,7 @@ jest.mock("../header/nav-items", () => ({
   ),
 }));
 
-jest.mock("../header/mobile-menu", () => ({
+jest.mock("../layouts/Header/MobileMenu", () => ({
   MobileMenu: () => <div data-testid="mobile-menu" />,
 }));
 

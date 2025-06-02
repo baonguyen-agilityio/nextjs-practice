@@ -1,9 +1,10 @@
 "use client";
 
-import { FormInput } from "@/components/ui/form-input";
 import { useActionState, useState } from "react";
 import { authenticate } from "@/lib/actions";
 import { useSearchParams } from "next/navigation";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -16,7 +17,7 @@ export default function LoginForm() {
   return (
     <div className="w-full max-w-md mx-auto space-y-8">
       <form action={formAction} className="space-y-6">
-        <FormInput
+        <Input
           id="email"
           name="email"
           label="Email"
@@ -26,7 +27,7 @@ export default function LoginForm() {
           onChange={setEmail}
         />
 
-        <FormInput
+        <Input
           id="password"
           name="password"
           label="Password"
@@ -40,12 +41,9 @@ export default function LoginForm() {
 
         {errorMessage && <div className="text-red-500 text-sm">{errorMessage}</div>}
 
-        <button
-          disabled={isPending}
-          className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-darkblue hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-all"
-        >
+        <Button isDisabled={isPending} fullWidth type="submit">
           {isPending ? "Signing in..." : "Sign in"}
-        </button>
+        </Button>
       </form>
     </div>
   );
