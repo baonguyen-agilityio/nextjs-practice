@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import LoginForm from "@/components/features/login/login-form";
+import LoginForm from "@/components/features/login/LoginForm";
 import Logo from "@/components/icons/logo";
 
 export const metadata: Metadata = {
