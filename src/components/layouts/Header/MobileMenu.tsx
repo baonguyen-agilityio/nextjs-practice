@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import { logout } from "@/lib/actions";
-import { CartButton } from "./CartButton";
 import { auth } from "@/lib/auth/auth";
 import { MobileMenuToggle } from "./MobileMenuToggle";
+import Cart from "@/components/features/cart";
 
 export async function MobileMenu() {
   const session = await auth();
@@ -23,7 +23,7 @@ export async function MobileMenu() {
 
         {session ? (
           <>
-            <CartButton />
+            <Cart />
             <form action={logout}>
               <button className="text-xl hover:text-accent transition-colors">Sign Out</button>
             </form>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import { logout } from "@/lib/actions";
 import { auth } from "@/lib/auth/auth";
-import { CartButton } from "./CartButton";
+import Cart from "@/components/features/cart";
 
 export async function NavItems() {
   const session = await auth();
@@ -17,12 +17,12 @@ export async function NavItems() {
 
       {session ? (
         <>
-          <CartButton />
           <form action={logout}>
             <button className="hover:text-secondary transition-colors">
               <div className="hidden md:block">Sign Out</div>
             </button>
           </form>
+          <Cart />
         </>
       ) : (
         <Link href="/login" className="hover:text-secondary transition-colors">
