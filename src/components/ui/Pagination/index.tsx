@@ -5,10 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 type Props = {
   total: number;
-  page: number;
+  initialPage: number;
 };
 
-export default function Pagination({ total, page }: Props) {
+export default function Pagination({ total, initialPage }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -25,7 +25,7 @@ export default function Pagination({ total, page }: Props) {
         item: "font-inter",
       }}
       total={total}
-      page={page}
+      page={initialPage}
       showControls
       disableCursorAnimation
       onChange={onChange}

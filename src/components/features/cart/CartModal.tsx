@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/Button";
 import {
+  Image,
   Modal,
   ModalBody,
   ModalContent,
@@ -10,13 +11,15 @@ import {
   useDisclosure,
 } from "@heroui/react";
 import { OpenCart } from "./OpenCart";
+import { formatUSD } from "@/utils/currency";
+import type { Card, CartItemModel } from "@/types";
 
-export default function CartModal() {
+export default function CartModal({ cart }: { cart: Card | undefined }) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   return (
     <>
       <Button variant="light" data-hover="none" disableAnimation onPress={onOpen}>
-        <OpenCart quantity={1} />
+        <OpenCart quantity={cart?.totalQuantity} />
       </Button>
       <Modal
         backdrop="opaque"
@@ -36,7 +39,23 @@ export default function CartModal() {
           {(onClose) => (
             <>
               <ModalHeader className="flex flex-col gap-1">Your Cart</ModalHeader>
-              <ModalBody></ModalBody>
+              <ModalBody>
+                {cart?.cartItems.map((item: CartItemModel) => (
+                  <div key={item.book.data.attributes.slug} className="flex gap-2">
+                    <Image
+                      src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${item.imageUrl}`}
+                      alt={item.book.data.attributes.title}
+                      width={100}
+                    />
+                    <div className="flex flex-col gap-1">
+                      <span>{item.book.data.attributes.title}</span>
+                      <span className=" font-inter font-bold text-[12px] text-gray-500">
+                        {formatUSD(item.book.data.attributes.price)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </ModalBody>
               <ModalFooter>
                 <div className="flex justify-between">
                   <span>Sub-Total</span>

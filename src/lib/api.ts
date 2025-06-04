@@ -16,10 +16,10 @@ export async function fetchFromStrapi(endpoint: string, options: FetchOptions = 
 
   if (requiresAuth) {
     const session = await auth();
-    if (!session?.jwt) {
+    if (!session?.user?.token) {
       throw new Error("No authentication token found");
     }
-    headers["Authorization"] = `Bearer ${session.jwt}`;
+    headers["Authorization"] = `Bearer ${session.user.token}`;
   }
 
   const response = await fetch(`${strapiBaseURL}/api${endpoint}`, {

@@ -1,55 +1,15 @@
 import type { NextAuthConfig } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
-
-const strapiBaseURL = process.env.STRAPI_URL || "http://localhost:1337";
 
 export const authConfig = {
-  providers: [
-    Credentials({
-      async authorize(credentials) {
-        try {
-          const res = await fetch(`${strapiBaseURL}/api/auth/local`, {
-            method: "POST",
-            body: JSON.stringify({
-              identifier: credentials?.email,
-              password: credentials?.password,
-            }),
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-
-          const data = await res.json();
-
-          if (data.error) {
-            return null;
-          }
-
-          return {
-            id: data.user.id,
-            username: data.user.username,
-            email: data.user.email,
-            jwt: data.jwt,
-          };
-        } catch (error) {
-          console.error("Login error:", error);
-          return null;
-        }
-      },
-    }),
-  ],
+  trustHost: true,
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        token.jwt = user.jwt;
-      }
+      if (token) Object.assign(token, user);
       return token;
     },
     async session({ session, token }) {
-      return {
-        ...session,
-        jwt: token.jwt,
-      };
+      Object.assign(session.user, token);
+      return session;
     },
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
@@ -65,4 +25,5 @@ export const authConfig = {
   pages: {
     signIn: "/login",
   },
+  providers: [],
 } satisfies NextAuthConfig;

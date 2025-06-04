@@ -22,3 +22,21 @@ export async function getBook(slug: string) {
     auth: false,
   });
 }
+
+export async function getCartItems(userId: string) {
+  const query = new URLSearchParams({
+    "filters[users_permissions_user][id][$eq]": userId.toString(),
+    populate: "*",
+  });
+
+  return fetchFromStrapi(`/carts?${query.toString()}`);
+}
+
+export async function getCartItem(documentId: string) {
+  const query = new URLSearchParams({
+    "filters[documentId][$eq]": documentId,
+    "populate[book][populate]": "image",
+  });
+
+  return fetchFromStrapi(`/cart-items?${query.toString()}`);
+}

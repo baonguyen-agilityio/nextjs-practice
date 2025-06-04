@@ -4,18 +4,20 @@ export function OpenCart({ quantity }: { quantity?: number }) {
   return (
     <div className="hover:opacity-80 transition-opacity relative inline-block">
       <CartIcon />
-      <span
-        className="
-          absolute -top-3 -right-3
-          bg-secondary text-primary
-          rounded-full
-          w-5 h-5 flex items-center justify-center
-          font-bold text-[10px] font-inter
-          shadow
-        "
-      >
-        {quantity}
-      </span>
+      {quantity && (
+        <span
+          className="
+            absolute -top-3 -right-3
+            bg-secondary text-primary   
+            rounded-full
+            w-5 h-5 flex items-center justify-center
+            font-bold text-[10px] font-inter
+            shadow
+            "
+        >
+          {quantity}
+        </span>
+      )}
     </div>
   );
 }

@@ -1,5 +1,18 @@
+import { auth } from "@/lib/auth/auth";
 import CartModal from "./CartModal";
+import { getCartByUserId } from "@/services/cart";
 
 export default async function Cart() {
-  return <CartModal />;
+  const session = await auth();
+
+  let cart;
+  if (session?.user?.id) {
+    const searchParams = new URLSearchParams({
+      "filters[users_permissions_user][id][$eq]": session.user.id.toString(),
+      "populate[cart_items][populate][book][populate]": "image",
+    });
+    cart = await getCartByUserId({ searchParams });
+  }
+
+  return <CartModal cart={cart} />;
 }
