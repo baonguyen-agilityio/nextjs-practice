@@ -5,6 +5,7 @@ export const API_ENDPOINTS = {
   AUTH: "/auth/local",
   BOOKS: "/books",
   CART: "/carts",
+  CART_ITEMS: "/cart-items",
 };
 
 export const API_ROUTE_ENDPOINT = {

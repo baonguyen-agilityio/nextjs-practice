@@ -1,23 +1,26 @@
 "use client";
 
 import { Card, CardFooter, CardBody, Image } from "@heroui/react";
-import { Button } from "@/components/ui/Button";
-import { useRouter } from "next/navigation";
 import { formatUSD } from "@/utils/currency";
+import AddToCart from "@/components/features/cart/AddToCart";
 
 export default function BookCard(props: {
+  id: string;
   title: string;
   price: number;
   description: string;
-  image: string;
-  href: string;
+  imageUrl: string;
 }) {
-  const { title, price, description, image, href } = props;
-  const router = useRouter();
+  const { id, title, price, description, imageUrl } = props;
   return (
     <Card className="shadow-none rounded-none">
       <CardBody className="bg-background flex items-center justify-center">
-        <Image alt="Card background" className="w-full object-cover p-6" src={image} width="100%" />
+        <Image
+          alt="Card background"
+          className="w-full object-cover p-6"
+          src={imageUrl}
+          width="100%"
+        />
       </CardBody>
       <CardFooter className="flex flex-col gap-5 text-left items-start py-5 px-0">
         <div className="flex justify-between items-center w-full">
@@ -26,9 +29,7 @@ export default function BookCard(props: {
         </div>
         <p className="text-description font-inter text-xs">{description}</p>
         <div className="space-y-2">
-          <Button variant="bordered" onClick={() => router.push(href)}>
-            Order Today
-          </Button>
+          <AddToCart variant="order" bookId={id} quantity={1} />
         </div>
       </CardFooter>
     </Card>

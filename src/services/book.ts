@@ -1,7 +1,12 @@
 import { EXCEPTION_ERROR_MESSAGE } from "@/constants/message";
 import { API_ENDPOINTS, API_ROUTE_ENDPOINT, DOMAIN } from "@/constants";
 import { apiClient } from "./api";
-import type { BooksDataResponse, BooksResponse, ErrorResponse, FetchDataProps } from "@/types";
+import type {
+  BooksDataResponse,
+  BooksStrapiResponse,
+  ErrorResponse,
+  FetchDataProps,
+} from "@/types";
 
 export const getBooks = async ({
   searchParams = new URLSearchParams(),
@@ -10,22 +15,32 @@ export const getBooks = async ({
   try {
     const params = new URLSearchParams(searchParams);
     const url = decodeURIComponent(`${API_ROUTE_ENDPOINT.BOOKS}?${params.toString()}`);
-    const { data, meta, error } = await apiClient.get<BooksResponse & { error?: string }>(url, {
-      ...options,
-      next: {
-        ...options.next,
-        revalidate: 3600,
-      },
-      baseUrl: DOMAIN,
-    });
+    const { data, meta, error } = await apiClient.get<BooksStrapiResponse & { error?: string }>(
+      url,
+      {
+        ...options,
+        next: {
+          ...options.next,
+          revalidate: 3600,
+        },
+        baseUrl: DOMAIN,
+      }
+    );
 
     if (error) {
       const errorResponse = JSON.parse(error) as ErrorResponse;
       return { books: [], error: errorResponse.error.message };
     }
 
+    const books = data.map(({ image, ...rest }) => {
+      return {
+        ...rest,
+        imageUrl: image.url,
+      };
+    });
+
     return {
-      books: data,
+      books: books,
       ...meta,
       error: null,
     };

@@ -1,10 +1,3 @@
-export type APIResponse<T> = {
-  id: number;
-  attributes: T;
-};
-
-export type APIRelatedResponse<T> = { data: T };
-
 export type MetaResponse = {
   pagination?: {
     page: number;

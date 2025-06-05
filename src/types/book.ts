@@ -1,24 +1,28 @@
-import type { APIRelatedResponse, APIResponse, MetaResponse } from "@/types";
+import type { MetaResponse } from "@/types";
 
-export interface ImageModel {
+export interface ImageStrapiModel {
   url: string;
 }
-
-export interface BookModel {
-  title: string;
-  description: string;
-  image: APIRelatedResponse<APIResponse<ImageModel>>;
+export interface BookStrapiModel {
+  id: string;
   slug: string;
+  title: string;
   price: number;
+  language: string;
+  description: string;
+  image: ImageStrapiModel;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
 }
 
-export type BookResponse = APIResponse<BookModel>;
+export type Book = Omit<BookStrapiModel, "image"> & {
+  imageUrl: string;
+};
 
-export type BooksDataResponse = Promise<
-  { books: BookResponse[]; error: string | null } & MetaResponse
->;
+export type BooksDataResponse = Promise<{ books: Book[]; error: string | null } & MetaResponse>;
 
-export type BooksResponse = {
-  data: BookResponse[];
+export type BooksStrapiResponse = {
+  data: BookStrapiModel[];
   meta: MetaResponse;
 };

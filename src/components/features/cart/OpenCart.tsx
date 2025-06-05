@@ -4,7 +4,7 @@ export function OpenCart({ quantity }: { quantity?: number }) {
   return (
     <div className="hover:opacity-80 transition-opacity relative inline-block">
       <CartIcon />
-      {quantity && (
+      {quantity ? (
         <span
           className="
             absolute -top-3 -right-3
@@ -17,7 +17,7 @@ export function OpenCart({ quantity }: { quantity?: number }) {
         >
           {quantity}
         </span>
-      )}
+      ) : null}
     </div>
   );
 }

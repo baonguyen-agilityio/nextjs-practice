@@ -1,27 +1,41 @@
-import type { APIResponse, BookModel } from "@/types";
+import type { Book, BookStrapiModel } from "@/types";
 
-export type CartItemModel = {
+export type CartItemStrapiModel = {
+  id: string;
   quantity: number;
-  book: {
-    data: APIResponse<BookModel>;
-  };
-  imageUrl: string;
+  book: BookStrapiModel;
 };
 
-type CartItemResponse = APIResponse<CartItemModel>;
-
-type CartModel = {
-  cart_items: { data: CartItemResponse[] };
+export type CartStrapiModel = {
+  id: string;
+  cart_items: CartItemStrapiModel[];
 };
 
-export type Card = {
-  cartItems: CartItemModel[];
+export type CartStrapiResponse = {
+  data: CartStrapiModel[];
+};
+
+export type CartItemStrapiResponse = {
+  data: CartItemStrapiModel;
+};
+
+export type CartItem = {
+  id: string;
+  quantity: number;
+  book: Book | null;
+  error?: string | null;
+  documentId?: string;
+};
+
+export type Cart = {
+  id: string;
+  cartItems: CartItem[];
   totalQuantity: number;
   error?: string | null;
 };
 
-export type CartDataResponse = Promise<Card>;
-
-export type CartResponse = {
-  data: APIResponse<CartModel>[];
+export type CartItemPayload = {
+  bookId: string;
+  quantity: number;
+  cartId: string;
 };

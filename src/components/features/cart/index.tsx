@@ -9,7 +9,6 @@ export default async function Cart() {
   if (session?.user?.id) {
     const searchParams = new URLSearchParams({
       "filters[users_permissions_user][id][$eq]": session.user.id.toString(),
-      "populate[cart_items][populate][book][populate]": "image",
     });
     cart = await getCartByUserId({ searchParams });
   }

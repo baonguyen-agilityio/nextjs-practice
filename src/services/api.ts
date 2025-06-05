@@ -42,7 +42,6 @@ export class ApiClient {
       ...config,
       headers: {
         Authorization: `Bearer ${token}`,
-        "Strapi-Response-Format": "v4",
         ...config.headers,
       },
     });
@@ -151,7 +150,6 @@ export class ApiClient {
       ...this.config,
       ...config,
       headers: {
-        "Strapi-Response-Format": "v4",
         ...this.config.headers,
         ...config?.headers,
       },

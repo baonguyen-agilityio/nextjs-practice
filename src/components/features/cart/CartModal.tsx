@@ -12,9 +12,9 @@ import {
 } from "@heroui/react";
 import { OpenCart } from "./OpenCart";
 import { formatUSD } from "@/utils/currency";
-import type { Card, CartItemModel } from "@/types";
+import type { Cart, CartItem } from "@/types";
 
-export default function CartModal({ cart }: { cart: Card | undefined }) {
+export default function CartModal({ cart }: { cart: Cart | undefined }) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   return (
     <>
@@ -40,21 +40,22 @@ export default function CartModal({ cart }: { cart: Card | undefined }) {
             <>
               <ModalHeader className="flex flex-col gap-1">Your Cart</ModalHeader>
               <ModalBody>
-                {cart?.cartItems.map((item: CartItemModel) => (
-                  <div key={item.book.data.attributes.slug} className="flex gap-2">
-                    <Image
-                      src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${item.imageUrl}`}
-                      alt={item.book.data.attributes.title}
-                      width={100}
-                    />
-                    <div className="flex flex-col gap-1">
-                      <span>{item.book.data.attributes.title}</span>
-                      <span className=" font-inter font-bold text-[12px] text-gray-500">
-                        {formatUSD(item.book.data.attributes.price)}
-                      </span>
+                {cart &&
+                  cart.cartItems.map((item: CartItem) => (
+                    <div key={item.book?.slug} className="flex gap-2">
+                      <Image
+                        src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${item.book?.imageUrl}`}
+                        alt={item.book?.title}
+                        width={100}
+                      />
+                      <div className="flex flex-col gap-1">
+                        <span>{item.book?.title}</span>
+                        <span className=" font-inter font-bold text-[12px] text-gray-500">
+                          {formatUSD(item.book?.price || 0)}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </ModalBody>
               <ModalFooter>
                 <div className="flex justify-between">

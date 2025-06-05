@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 
 interface Book {
-  id: string;
+  id: number;
   title: string;
   price: number;
   description: string;
