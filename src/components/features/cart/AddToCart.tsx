@@ -1,13 +1,16 @@
 "use client";
 
 import { useActionState } from "react";
+
+import { useCart } from "@/hooks/useCart";
+import type { Book } from "@/types";
+import { addItem } from "@/app/actions/cart";
 import { Button } from "@/components/ui/Button";
-import { addToCart } from "@/app/actions";
 
 function SubmitButton({ variant }: { variant: "order" | "add" }) {
   if (variant === "order") {
     return (
-      <Button aria-label="Order Today" type="submit" variant="bordered">
+      <Button aria-label="Order Today" color="primary" type="submit" variant="ghost">
         Order Today
       </Button>
     );
@@ -19,22 +22,23 @@ function SubmitButton({ variant }: { variant: "order" | "add" }) {
   );
 }
 
-export default function AddToCart({
-  variant,
-  bookId,
-  quantity,
-}: {
-  variant: "order" | "add";
-  bookId: string;
-  quantity: number;
-}) {
-  const [state, formAction] = useActionState(addToCart, null);
-  console.log("state", state);
-  const actionWithVariant = formAction.bind(null, { bookId, quantity });
+export function AddToCart({ book, variant }: { book: Book; variant: "order" | "add" }) {
+  const { addCartItem } = useCart();
+  const { id } = book;
+  const [message, formAction] = useActionState(addItem, null);
+  const addItemAction = formAction.bind(null, id);
 
   return (
-    <form action={actionWithVariant}>
+    <form
+      action={async () => {
+        addCartItem(book);
+        addItemAction();
+      }}
+    >
       <SubmitButton variant={variant} />
+      <p aria-live="polite" className="sr-only" role="status">
+        {message}
+      </p>
     </form>
   );
 }

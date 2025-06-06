@@ -2,7 +2,7 @@ import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import { logout } from "@/lib/actions";
 import { auth } from "@/lib/auth/auth";
-import Cart from "@/components/features/cart";
+import CartModal from "@/components/features/cart/CartModal";
 
 export async function NavItems() {
   const session = await auth();
@@ -22,7 +22,7 @@ export async function NavItems() {
               <div className="hidden md:block">Sign Out</div>
             </button>
           </form>
-          <Cart />
+          <CartModal />
         </>
       ) : (
         <Link href="/login" className="hover:text-secondary transition-colors">

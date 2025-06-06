@@ -1,28 +1,9 @@
-interface InputProps {
-  id: string;
-  name: string;
-  label: string;
-  type: "text" | "email" | "password";
-  value?: string;
-  onChange?: (value: string) => void;
-  required?: boolean;
-}
+import { extendVariants, Input as HeroInput } from "@heroui/react";
 
-export function Input({ id, name, label, type, value, onChange, required = false }: InputProps) {
-  return (
-    <div>
-      <label htmlFor={id} className="block text-sm font-medium">
-        {label}
-      </label>
-      <input
-        type={type}
-        id={id}
-        name={name}
-        value={value}
-        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
-        required={required}
-      />
-    </div>
-  );
-}
+export const Input = extendVariants(HeroInput, {
+  defaultVariants: {
+    color: "primary",
+    size: "md",
+    radius: "none",
+  },
+});

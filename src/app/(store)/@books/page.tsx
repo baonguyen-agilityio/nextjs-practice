@@ -20,14 +20,7 @@ export default async function BooksPage({ searchParams }: { searchParams: Search
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           {books.map((book: Book) => (
-            <BookCard
-              key={book.id}
-              id={book.id}
-              title={book.title}
-              price={book.price}
-              description={book.description}
-              imageUrl={`${process.env.NEXT_PUBLIC_STRAPI_URL}${book.imageUrl}`}
-            />
+            <BookCard book={book} key={book.id} />
           ))}
         </div>
         <div className="flex justify-end">

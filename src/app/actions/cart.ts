@@ -1,33 +1,30 @@
 "use server";
 
 import { TAGS } from "@/constants";
-import { auth } from "@/lib/auth/auth";
-import { addCartItem, createCart, getCartByUserId } from "@/services/cart";
+import { addCartItem, getCartByUserId, updateCartItem } from "@/services/cart";
 import { revalidateTag } from "next/cache";
 
-export async function addToCart(
-  _: any,
-  { bookId, quantity }: { bookId: string; quantity: number }
-) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { error: "User not found" };
-  }
-  const searchParams = new URLSearchParams({
-    "filters[users_permissions_user][id][$eq]": session.user.id.toString(),
-  });
-
-  let cart = await getCartByUserId({ searchParams });
-
-  if (!cart.id) {
-    cart = await createCart({ userId: session.user.id });
-  }
+export async function addItem(prevState: any, bookId: string) {
+  const cart = await getCartByUserId();
 
   try {
-    await addCartItem({ bookId, quantity, cartId: cart.id });
+    await addCartItem({ bookId, quantity: 1, cartId: cart?.id || "" });
     revalidateTag(TAGS.cart);
-  } catch (error) {
-    console.log("error", error);
+  } catch (e) {
+    console.log("error", e);
     return "Error adding item to cart";
+  }
+}
+
+export async function updateItemQuantity(
+  prevState: any,
+  payload: { cartItemId: string; quantity: number }
+) {
+  try {
+    await updateCartItem(payload);
+    revalidateTag(TAGS.cart);
+  } catch (e) {
+    console.log("error", e);
+    return "Error updating item quantity";
   }
 }

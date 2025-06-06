@@ -22,9 +22,10 @@ export type CartItemStrapiResponse = {
 export type CartItem = {
   id: string;
   quantity: number;
-  book: Book | null;
+  book: Book;
   error?: string | null;
   documentId?: string;
+  totalAmount?: number;
 };
 
 export type Cart = {
@@ -32,6 +33,9 @@ export type Cart = {
   cartItems: CartItem[];
   totalQuantity: number;
   error?: string | null;
+  cost?: {
+    totalAmount: number;
+  };
 };
 
 export type CartItemPayload = {

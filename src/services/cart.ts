@@ -6,22 +6,27 @@ import type {
   CartItemPayload,
   CartStrapiResponse,
   ErrorResponse,
-  FetchDataProps,
+  Book,
 } from "@/types";
+import { auth } from "@/lib/auth/auth";
 
-export const getCartByUserId = async ({
-  searchParams = new URLSearchParams(),
-  options = { next: { tags: [API_ENDPOINTS.CART] } },
-}: FetchDataProps): Promise<Cart> => {
+export const getCartByUserId = async (): Promise<Cart | undefined> => {
   try {
-    const params = new URLSearchParams(searchParams);
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return undefined;
+    }
+
+    const searchParams = new URLSearchParams({
+      "filters[users_permissions_user][id][$eq]": session.user.id.toString(),
+    });
     const api = await apiClient.apiClientSession();
-    const url = decodeURIComponent(`${API_ROUTE_ENDPOINT.CART}?${params.toString()}`);
+    const url = decodeURIComponent(`${API_ROUTE_ENDPOINT.CART}?${searchParams.toString()}`);
 
     const { data, error } = await api.get<CartStrapiResponse & { error?: string }>(url, {
-      ...options,
       next: {
-        ...options.next,
+        tags: [API_ENDPOINTS.CART],
       },
       baseUrl: DOMAIN,
     });
@@ -65,32 +70,21 @@ export const getCartByUserId = async ({
   }
 };
 
-export const createCart = async ({ userId }: { userId: string }): Promise<Cart> => {
+export const createCart = async ({ userId }: { userId: string }): Promise<{ id: string }> => {
   const api = await apiClient.apiClientSession();
-  const url = decodeURIComponent(`${API_ENDPOINTS.CART}`);
 
-  const { data, error } = await api.post<{
-    data: Cart;
-    error?: string;
-  }>(url, {
+  const res = await api.post<{
+    data: { id: string };
+  }>(API_ENDPOINTS.CART, {
     body: {
       data: {
         users_permissions_user: userId,
       },
     },
-    baseUrl: DOMAIN,
   });
 
-  if (error) {
-    const errorResponse = JSON.parse(error) as ErrorResponse;
-    return { id: "", cartItems: [], totalQuantity: 0, error: errorResponse.error.message };
-  }
-
   return {
-    id: data.id,
-    cartItems: [],
-    totalQuantity: 0,
-    error: null,
+    id: res.data.id,
   };
 };
 
@@ -118,7 +112,42 @@ export const addCartItem = async ({
 
   if (error) {
     const errorResponse = JSON.parse(error) as ErrorResponse;
-    return { book: null, quantity: 0, id: "", error: errorResponse.error.message };
+    return { book: {} as Book, quantity: 0, id: "", error: errorResponse.error.message };
+  }
+
+  return {
+    book: data.book,
+    quantity: data.quantity,
+    id: data.id,
+  };
+};
+
+export const updateCartItem = async ({
+  cartItemId,
+  quantity,
+}: {
+  cartItemId: string;
+  quantity: number;
+}): Promise<CartItem> => {
+  const api = await apiClient.apiClientSession();
+  const url = decodeURIComponent(`${API_ROUTE_ENDPOINT.CART}`);
+
+  const { data, error } = await api.put<{
+    data: CartItem;
+    error?: string;
+  }>(url, {
+    body: {
+      data: {
+        cartItemId: cartItemId,
+        quantity: quantity,
+      },
+    },
+    baseUrl: DOMAIN,
+  });
+
+  if (error) {
+    const errorResponse = JSON.parse(error) as ErrorResponse;
+    return { book: {} as Book, quantity: 0, id: "", error: errorResponse.error.message };
   }
 
   return {

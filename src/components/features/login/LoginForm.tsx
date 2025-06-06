@@ -24,7 +24,8 @@ export default function LoginForm() {
           type="email"
           required
           value={email}
-          onChange={setEmail}
+          onChange={(e) => setEmail(e.target.value)}
+          isDisabled={isPending}
         />
 
         <Input
@@ -34,14 +35,15 @@ export default function LoginForm() {
           type="password"
           required
           value={password}
-          onChange={setPassword}
+          onChange={(e) => setPassword(e.target.value)}
+          isDisabled={isPending}
         />
 
         <input type="hidden" name="redirectTo" value={callbackUrl} />
 
         {errorMessage && <div className="text-red-500 text-sm">{errorMessage}</div>}
 
-        <Button isDisabled={isPending} fullWidth type="submit">
+        <Button fullWidth type="submit" isLoading={isPending} isDisabled={isPending}>
           {isPending ? "Signing in..." : "Sign in"}
         </Button>
       </form>

@@ -102,3 +102,25 @@ export const POST = withAuth(async (req: Request, token: string) => {
     });
   }
 });
+
+export const PUT = withAuth(async (req: Request, token: string) => {
+  const data = await req.json();
+  const { cartItemId, quantity } = data.data;
+  const searchParams = new URLSearchParams({
+    "populate[book][populate]": "image",
+  });
+
+  const res = await apiClient.put<CartItemStrapiResponse>(
+    `${API_ENDPOINTS.CART_ITEMS}/${cartItemId}?${decodeURIComponent(searchParams.toString())}`,
+    {
+      body: {
+        data: {
+          quantity: quantity,
+        },
+      },
+      headers: { Authorization: token },
+    }
+  );
+
+  return Response.json(res);
+});
