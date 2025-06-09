@@ -1,10 +1,16 @@
 "use server";
 
 import { TAGS } from "@/constants";
+import { auth } from "@/lib/auth/auth";
 import { addCartItem, getCartByUserId, updateCartItem } from "@/services/cart";
 import { revalidateTag } from "next/cache";
 
 export async function addItem(prevState: any, bookId: string) {
+  const session = await auth();
+  if (!session) {
+    return "UNAUTHORIZED";
+  }
+
   const cart = await getCartByUserId();
 
   try {

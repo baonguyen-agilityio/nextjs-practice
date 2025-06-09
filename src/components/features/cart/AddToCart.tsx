@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 
 import { useCart } from "@/hooks/useCart";
 import type { Book } from "@/types";
 import { addItem } from "@/app/actions/cart";
 import { Button } from "@/components/ui/Button";
+import { useRouter } from "next/navigation";
 
 function SubmitButton({ variant }: { variant: "order" | "add" }) {
   if (variant === "order") {
@@ -23,10 +24,18 @@ function SubmitButton({ variant }: { variant: "order" | "add" }) {
 }
 
 export function AddToCart({ book, variant }: { book: Book; variant: "order" | "add" }) {
+  const router = useRouter();
+
   const { addCartItem } = useCart();
   const { id } = book;
   const [message, formAction] = useActionState(addItem, null);
   const addItemAction = formAction.bind(null, id);
+
+  useEffect(() => {
+    if (message === "UNAUTHORIZED") {
+      router.push("/login");
+    }
+  }, [message, router]);
 
   return (
     <form
@@ -36,9 +45,6 @@ export function AddToCart({ book, variant }: { book: Book; variant: "order" | "a
       }}
     >
       <SubmitButton variant={variant} />
-      <p aria-live="polite" className="sr-only" role="status">
-        {message}
-      </p>
     </form>
   );
 }

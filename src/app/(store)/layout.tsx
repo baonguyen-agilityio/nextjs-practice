@@ -6,7 +6,7 @@ export default function ArchiveLayout({
   articles: React.ReactNode;
 }) {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen pt-20">
       <section className="bg-primary text-white py-16">
         <div className="container mx-auto px-4 max-w-7xl text-center">
           <h1 className="text-5xl md:text-5xl mb-4">My Store</h1>

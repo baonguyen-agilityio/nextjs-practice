@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export function Header() {
   return (
-    <header className="text-white bg-primary">
+    <header className="text-white bg-primary fixed top-0 left-0 right-0 z-50">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center gap-6">

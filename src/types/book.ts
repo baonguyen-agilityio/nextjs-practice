@@ -1,8 +1,4 @@
-import type { MetaResponse } from "@/types";
-
-export interface ImageStrapiModel {
-  url: string;
-}
+import type { ImageStrapiModel, MetaResponse } from "@/types";
 export interface BookStrapiModel {
   id: string;
   slug: string;
