@@ -1,9 +1,11 @@
 import { ArticleCard } from "@/components/ui/ArticleCard";
 import { Banner } from "@/components/ui/Banner";
-import Pagination from "@/components/ui/Pagination";
 import { PAGE_DEFAULT, PAGE_SIZE_DEFAULT } from "@/constants";
 import { getArticles } from "@/services/article";
 import type { SearchParams } from "@/types";
+import { lazy } from "react";
+
+const Pagination = lazy(() => import("@/components/ui/Pagination"));
 
 export default async function ArticlesPage({ searchParams }: { searchParams: SearchParams }) {
   const { page = PAGE_DEFAULT } = (await searchParams) || {};
@@ -21,7 +23,7 @@ export default async function ArticlesPage({ searchParams }: { searchParams: Sea
         title="Articles"
         description="There are many variations of passages of Lorem Ipsum available,  have suffered alteration in some form."
       />
-      <section className="py-16 bg-background">
+      <section className="min-h-screen pt-20">
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             {articles.map((article) => (

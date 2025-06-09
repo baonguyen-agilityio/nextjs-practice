@@ -5,7 +5,7 @@ import type { Book, Cart, CartItem } from "@/types";
 
 type CartContextType = {
   cart: Cart | undefined;
-  addCartItem: (book: Book) => void;
+  addCartItem: (book: Book, quantity: number) => void;
   updateCartItem: (bookId: string, updateType: UpdateType) => void;
 };
 
@@ -18,7 +18,7 @@ type CartAction =
     }
   | {
       type: "ADD_ITEM";
-      payload: { book: Book };
+      payload: { book: Book; quantity: number };
     };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -36,13 +36,17 @@ function calculateItemCost(quantity: number, price: number): number {
   return price * quantity;
 }
 
-function createOrUpdateCartItem(existingItem: CartItem | undefined, book: Book): CartItem {
-  const quantity = existingItem ? existingItem.quantity + 1 : 1;
+function createOrUpdateCartItem(
+  existingItem: CartItem | undefined,
+  book: Book,
+  quantity: number
+): CartItem {
+  const sumQuantity = existingItem ? existingItem.quantity + quantity : quantity;
   const totalAmount = calculateItemCost(quantity, book.price);
 
   return {
     id: existingItem?.id || "",
-    quantity,
+    quantity: sumQuantity,
     book,
     totalAmount: totalAmount,
   };
@@ -76,9 +80,9 @@ function cartReducer(state: Cart | undefined, action: CartAction): Cart {
   const currentCart = state || createEmptyCart();
   switch (action.type) {
     case "ADD_ITEM": {
-      const { book } = action.payload;
+      const { book, quantity } = action.payload;
       const existingItem = currentCart.cartItems.find((item) => item.book.id === book.id);
-      const updatedItem = createOrUpdateCartItem(existingItem, book);
+      const updatedItem = createOrUpdateCartItem(existingItem, book, quantity);
 
       const updatedCartItems = existingItem
         ? currentCart.cartItems.map((item) => (item.book.id === book.id ? updatedItem : item))
@@ -126,8 +130,8 @@ export function CartProvider({
   const initialCart = use(cartPromise);
   const [optimisticCart, updateOptimisticCart] = useOptimistic(initialCart, cartReducer);
 
-  const addCartItem = (book: Book) => {
-    updateOptimisticCart({ type: "ADD_ITEM", payload: { book } });
+  const addCartItem = (book: Book, quantity: number) => {
+    updateOptimisticCart({ type: "ADD_ITEM", payload: { book, quantity } });
   };
 
   const updateCartItem = (bookId: string, updateType: UpdateType) => {

@@ -29,7 +29,7 @@ export function AddToCart({ book, variant }: { book: Book; variant: "order" | "a
   const { addCartItem } = useCart();
   const { id } = book;
   const [message, formAction] = useActionState(addItem, null);
-  const addItemAction = formAction.bind(null, id);
+  const addItemAction = formAction.bind(null, { bookId: id, quantity: 1 });
 
   useEffect(() => {
     if (message === "UNAUTHORIZED") {
@@ -40,7 +40,7 @@ export function AddToCart({ book, variant }: { book: Book; variant: "order" | "a
   return (
     <form
       action={async () => {
-        addCartItem(book);
+        addCartItem(book, 1);
         addItemAction();
       }}
     >

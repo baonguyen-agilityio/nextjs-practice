@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth/auth";
 import { addCartItem, getCartByUserId, updateCartItem } from "@/services/cart";
 import { revalidateTag } from "next/cache";
 
-export async function addItem(prevState: any, bookId: string) {
+export async function addItem(prevState: any, payload: { bookId: string; quantity: number }) {
   const session = await auth();
   if (!session) {
     return "UNAUTHORIZED";
@@ -14,7 +14,11 @@ export async function addItem(prevState: any, bookId: string) {
   const cart = await getCartByUserId();
 
   try {
-    await addCartItem({ bookId, quantity: 1, cartId: cart?.id || "" });
+    await addCartItem({
+      bookId: payload.bookId,
+      quantity: payload.quantity,
+      cartId: cart?.id || "",
+    });
     revalidateTag(TAGS.cart);
   } catch (e) {
     console.log("error", e);

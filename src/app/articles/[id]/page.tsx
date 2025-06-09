@@ -1,13 +1,17 @@
 import { Banner } from "@/components/ui/Banner";
 import { getArticle } from "@/services/article";
 import Image from "next/image";
+import { notFound } from "next/navigation";
 
 type Params = Promise<{ id: string }>;
 
 export default async function ArticlePage({ params }: { params: Params }) {
   const { id } = await params;
   const { article } = await getArticle({ id });
-  console.log("article", article);
+
+  if (!article) {
+    return notFound();
+  }
 
   return (
     <>

@@ -1,3 +1,3 @@
 export default function ContactPage() {
-  return <div>ContactPage</div>;
+  return <section className="min-h-screen pt-20">ContactPage</section>;
 }

@@ -1,8 +1,6 @@
-import BookCard from "@/components/ui/BookCard";
-import Pagination from "@/components/ui/Pagination";
+import Books from "@/components/features/book/BookPage";
+import type { SearchParams } from "@/types";
 import { PAGE_DEFAULT, PAGE_SIZE_DEFAULT } from "@/constants";
-import { getBooks } from "@/services";
-import type { Book, SearchParams } from "@/types";
 
 export default async function BooksPage({ searchParams }: { searchParams: SearchParams }) {
   const { page = PAGE_DEFAULT } = (await searchParams) || {};
@@ -11,25 +9,5 @@ export default async function BooksPage({ searchParams }: { searchParams: Search
   searchParamsAPI.set("pagination[pageSize]", PAGE_SIZE_DEFAULT.toString());
   searchParamsAPI.set("populate", "image");
 
-  const { books, ...meta } = await getBooks({
-    searchParams: searchParamsAPI,
-  });
-
-  return (
-    <section className="py-16">
-      <div className="container mx-auto px-4 max-w-7xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {books.map((book: Book) => (
-            <BookCard book={book} key={book.id} />
-          ))}
-        </div>
-        <div className="flex justify-end">
-          <Pagination
-            total={meta.pagination?.pageCount ?? PAGE_DEFAULT}
-            initialPage={meta.pagination?.page ?? PAGE_DEFAULT}
-          />
-        </div>
-      </div>
-    </section>
-  );
+  return <Books searchParamsAPI={searchParamsAPI} />;
 }

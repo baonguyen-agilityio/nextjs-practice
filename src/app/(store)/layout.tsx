@@ -1,3 +1,6 @@
+import SkeletonList from "@/components/ui/SkeletonList";
+import { Suspense } from "react";
+
 export default function ArchiveLayout({
   books,
   articles,
@@ -16,8 +19,8 @@ export default function ArchiveLayout({
           </p>
         </div>
       </section>
-      <section>{books}</section>
-      <section>{articles}</section>
+      <Suspense fallback={<SkeletonList length={6} />}>{books}</Suspense>
+      <Suspense fallback={<SkeletonList length={3} />}>{articles}</Suspense>
     </main>
   );
 }

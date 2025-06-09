@@ -1,23 +1,9 @@
 "use client";
 
+import type { PaginationProps } from "@heroui/react";
 import { Pagination as HeroPagination } from "@heroui/react";
-import { useRouter, useSearchParams } from "next/navigation";
 
-type Props = {
-  total: number;
-  initialPage: number;
-};
-
-export default function Pagination({ total, initialPage }: Props) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const onChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("page", newPage.toString());
-    router.push(`?${params.toString()}`);
-  };
-
+export default function Pagination({ total, initialPage, onChange }: PaginationProps) {
   return (
     <HeroPagination
       classNames={{
@@ -25,7 +11,7 @@ export default function Pagination({ total, initialPage }: Props) {
         item: "font-inter",
       }}
       total={total}
-      page={initialPage}
+      initialPage={initialPage}
       showControls
       disableCursorAnimation
       onChange={onChange}
