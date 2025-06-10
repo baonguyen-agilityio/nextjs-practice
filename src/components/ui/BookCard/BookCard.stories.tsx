@@ -28,6 +28,7 @@ export const Default: Story = {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       publishedAt: new Date().toISOString(),
+      documentId: "1",
     },
   },
 };

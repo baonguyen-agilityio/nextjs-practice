@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Image, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from "@heroui/react";
@@ -9,12 +9,19 @@ import { formatUSD } from "@/utils/currency";
 import type { CartItem } from "@/types";
 import { useCart } from "@/hooks/useCart";
 import { EditItemQuantityButton } from "./EditItemQuantityButton";
+import { createCart } from "@/services/cart";
 
 export default function CartModal() {
   const { cart, updateCartItem } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const openCart = () => setIsOpen(true);
   const closeCart = () => setIsOpen(false);
+
+  useEffect(() => {
+    if (!cart) {
+      createCart();
+    }
+  }, [cart]);
 
   return (
     <>

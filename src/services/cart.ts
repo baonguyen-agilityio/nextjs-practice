@@ -70,22 +70,38 @@ export const getCartByUserId = async (): Promise<Cart | undefined> => {
   }
 };
 
-export const createCart = async ({ userId }: { userId: string }): Promise<{ id: string }> => {
-  const api = await apiClient.apiClientSession();
+export const createCart = async (): Promise<{ id: string; error?: string }> => {
+  try {
+    const session = await auth();
 
-  const res = await api.post<{
-    data: { id: string };
-  }>(API_ENDPOINTS.CART, {
-    body: {
-      data: {
-        users_permissions_user: userId,
+    if (!session?.user?.id) {
+      return { id: "", error: "User not found" };
+    }
+
+    const api = await apiClient.apiClientSession();
+
+    const res = await api.post<{
+      data: { id: string };
+    }>(API_ENDPOINTS.CART, {
+      body: {
+        data: {
+          users_permissions_user: session.user.id,
+        },
       },
-    },
-  });
+    });
 
-  return {
-    id: res.data.id,
-  };
+    return {
+      id: res.data.id,
+    };
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : EXCEPTION_ERROR_MESSAGE.GET("cart");
+
+    return {
+      id: "",
+      error: errorMessage,
+    };
+  }
 };
 
 export const addCartItem = async ({
