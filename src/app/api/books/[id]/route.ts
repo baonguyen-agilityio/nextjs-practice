@@ -4,7 +4,7 @@ import type { BookStrapiModel } from "@/types";
 
 type Params = Promise<{ id: string }>;
 
-export async function GET(req: Request, { params }: { params: Params }) {
+export async function GET(_: Request, { params }: { params: Params }) {
   const searchParams = new URLSearchParams();
   searchParams.set("populate", "*");
   const { id } = await params;

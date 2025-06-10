@@ -139,6 +139,8 @@ export class ApiClient {
       } as T;
     }
 
+    if (response.status === 204) return { success: true } as T;
+
     const data: T = await response.json();
     return data;
   }

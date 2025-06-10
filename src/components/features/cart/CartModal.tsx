@@ -10,6 +10,8 @@ import type { CartItem } from "@/types";
 import { useCart } from "@/hooks/useCart";
 import { EditItemQuantityButton } from "./EditItemQuantityButton";
 import { createCart } from "@/services/cart";
+import { ShoppingCartIcon } from "@heroicons/react/24/outline";
+import { DeleteItemButton } from "./DeleteItemButton";
 
 export default function CartModal() {
   const { cart, updateCartItem } = useCart();
@@ -47,7 +49,12 @@ export default function CartModal() {
             <>
               <ModalHeader className="flex flex-col gap-1">Your Cart</ModalHeader>
               <ModalBody>
-                {cart &&
+                {!cart || cart.cartItems.length === 0 ? (
+                  <div className="mt-20 flex w-full flex-col items-center justify-center overflow-hidden">
+                    <ShoppingCartIcon className="h-16" />
+                    <p className="mt-6 text-center text-2xl font-bold">Your cart is empty.</p>
+                  </div>
+                ) : (
                   cart.cartItems.map((item: CartItem) => (
                     <div key={item.book?.slug} className="flex gap-2">
                       <Image
@@ -62,9 +69,7 @@ export default function CartModal() {
                             {formatUSD(item.book?.price || 0)}
                           </span>
                         </div>
-                        <Button variant="light" color="default" size="lg" fullWidth>
-                          Remove
-                        </Button>
+                        <DeleteItemButton item={item} optimisticUpdate={updateCartItem} />
                       </div>
                       <div className="ml-auto flex h-9 flex-row items-center rounded-full border border-neutral-200 dark:border-neutral-700">
                         <EditItemQuantityButton
@@ -82,12 +87,15 @@ export default function CartModal() {
                         />
                       </div>
                     </div>
-                  ))}
+                  ))
+                )}
               </ModalBody>
               <ModalFooter>
                 <div className="flex justify-between">
                   <span>Sub-Total</span>
-                  <span className="font-bold font-inter">$100</span>
+                  <span className="font-bold font-inter">
+                    {formatUSD(cart?.cost?.totalAmount || 0)}
+                  </span>
                 </div>
                 <Button fullWidth variant="solid" onPress={closeCart}>
                   Close

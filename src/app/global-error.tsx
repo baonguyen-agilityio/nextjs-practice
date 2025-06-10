@@ -2,13 +2,11 @@
 
 import { Inter } from "next/font/google";
 
-import type { PageErrorProps } from "@/types";
-
 import { Button } from "@/components/ui/Button";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export default function GlobalError({ reset }: PageErrorProps) {
+export default function GlobalError({ reset }: { reset: () => void }) {
   return (
     <html lang="en">
       <body className={inter.className}>

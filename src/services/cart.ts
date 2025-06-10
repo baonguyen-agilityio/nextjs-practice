@@ -172,3 +172,30 @@ export const updateCartItem = async ({
     id: data.id,
   };
 };
+
+export const removeCartItem = async ({
+  cartItemId,
+}: {
+  cartItemId: string;
+}): Promise<{ success: true } | { error: string }> => {
+  try {
+    const api = await apiClient.apiClientSession();
+    const { success } = await api.delete<{ success: boolean }>(
+      `${API_ROUTE_ENDPOINT.CART}/${cartItemId}`,
+      {
+        baseUrl: DOMAIN,
+      }
+    );
+
+    if (!success) {
+      return { error: "Failed to remove cart item" };
+    }
+
+    return { success: true };
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : EXCEPTION_ERROR_MESSAGE.GET("cart");
+
+    return { error: errorMessage };
+  }
+};

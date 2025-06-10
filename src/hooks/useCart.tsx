@@ -29,6 +29,9 @@ function createEmptyCart(): Cart {
     totalQuantity: 0,
     cartItems: [],
     error: null,
+    cost: {
+      totalAmount: 0,
+    },
   };
 }
 
@@ -42,7 +45,7 @@ function createOrUpdateCartItem(
   quantity: number
 ): CartItem {
   const sumQuantity = existingItem ? existingItem.quantity + quantity : quantity;
-  const totalAmount = calculateItemCost(quantity, book.price);
+  const totalAmount = calculateItemCost(sumQuantity, book.price);
 
   return {
     id: existingItem?.id || "",
@@ -52,11 +55,15 @@ function createOrUpdateCartItem(
   };
 }
 
-function updateCartTotals(cartItems: CartItem[]): Pick<Cart, "totalQuantity"> {
+function updateCartTotals(cartItems: CartItem[]): Pick<Cart, "totalQuantity" | "cost"> {
   const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const totalAmount = cartItems.reduce((sum, item) => sum + (item?.totalAmount || 0), 0);
 
   return {
     totalQuantity,
+    cost: {
+      totalAmount: totalAmount,
+    },
   };
 }
 
@@ -104,6 +111,9 @@ function cartReducer(state: Cart | undefined, action: CartAction): Cart {
         return {
           ...currentCart,
           cartItems: [],
+          cost: {
+            totalAmount: 0,
+          },
           totalQuantity: 0,
         };
       }

@@ -2,7 +2,7 @@
 
 import { TAGS } from "@/constants";
 import { auth } from "@/lib/auth/auth";
-import { addCartItem, getCartByUserId, updateCartItem } from "@/services/cart";
+import { addCartItem, getCartByUserId, removeCartItem, updateCartItem } from "@/services/cart";
 import { revalidateTag } from "next/cache";
 
 export async function addItem(prevState: any, payload: { bookId: string; quantity: number }) {
@@ -38,3 +38,13 @@ export async function updateItemQuantity(
     return "Error updating item quantity";
   }
 }
+
+export const removeItem = async (prevState: any, cartItemId: string) => {
+  try {
+    await removeCartItem({ cartItemId });
+    revalidateTag(TAGS.cart);
+  } catch (e) {
+    console.log("error", e);
+    return "Error removing item from cart";
+  }
+};
