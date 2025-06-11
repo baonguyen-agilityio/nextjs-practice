@@ -9,7 +9,7 @@ export default function ArchiveLayout({
   articles: React.ReactNode;
 }) {
   return (
-    <main className="min-h-screen pt-20">
+    <>
       <section className="bg-primary text-white py-16">
         <div className="container mx-auto px-4 max-w-7xl text-center">
           <h1 className="text-5xl md:text-5xl mb-4">My Store</h1>
@@ -20,7 +20,7 @@ export default function ArchiveLayout({
         </div>
       </section>
       <Suspense fallback={<SkeletonList length={6} />}>{books}</Suspense>
-      <Suspense fallback={<SkeletonList length={3} />}>{articles}</Suspense>
-    </main>
+      <Suspense fallback={<SkeletonList length={6} />}>{articles}</Suspense>
+    </>
   );
 }

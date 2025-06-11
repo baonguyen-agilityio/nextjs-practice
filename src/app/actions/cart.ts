@@ -19,20 +19,17 @@ export async function addItem(prevState: any, payload: { bookId: string; quantit
       quantity: payload.quantity,
       cartId: cart?.id || "",
     });
-    revalidateTag(TAGS.cart);
+    revalidateTag(TAGS.CART);
   } catch (e) {
     console.log("error", e);
     return "Error adding item to cart";
   }
 }
 
-export async function updateItemQuantity(
-  prevState: any,
-  payload: { cartItemId: string; quantity: number }
-) {
+export async function updateItemQuantity(payload: { cartItemId: string; quantity: number }) {
   try {
     await updateCartItem(payload);
-    revalidateTag(TAGS.cart);
+    revalidateTag(TAGS.CART);
   } catch (e) {
     console.log("error", e);
     return "Error updating item quantity";
@@ -42,7 +39,7 @@ export async function updateItemQuantity(
 export const removeItem = async (prevState: any, cartItemId: string) => {
   try {
     await removeCartItem({ cartItemId });
-    revalidateTag(TAGS.cart);
+    revalidateTag(TAGS.CART);
   } catch (e) {
     console.log("error", e);
     return "Error removing item from cart";

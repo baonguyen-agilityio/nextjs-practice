@@ -24,7 +24,7 @@ export default async function RootLayout({
         <CartProvider cartPromise={cart}>
           <Providers>
             <Header />
-            {children}
+            <main className="min-h-screen pt-20">{children}</main>
             <Footer />
           </Providers>
         </CartProvider>

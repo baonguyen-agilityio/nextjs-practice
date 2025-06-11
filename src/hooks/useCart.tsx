@@ -57,7 +57,7 @@ function createOrUpdateCartItem(
 
 function updateCartTotals(cartItems: CartItem[]): Pick<Cart, "totalQuantity" | "cost"> {
   const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const totalAmount = cartItems.reduce((sum, item) => sum + (item?.totalAmount || 0), 0);
+  const totalAmount = cartItems.reduce((sum, item) => sum + item.book.price * item.quantity, 0);
 
   return {
     totalQuantity,

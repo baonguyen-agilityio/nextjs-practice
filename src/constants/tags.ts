@@ -1,3 +1,3 @@
 export const TAGS = {
-  cart: "cart",
+  CART: "cart",
 };

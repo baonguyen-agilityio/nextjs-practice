@@ -59,7 +59,7 @@ export const getBook = async ({ id }: { id: string }): BookDataResponse => {
     const url = decodeURIComponent(`${API_ROUTE_ENDPOINT.BOOKS}/${id}`);
     const { data, error } = await apiClient.get<BookStrapiResponse>(url, {
       next: {
-        // revalidate: 3600,
+        revalidate: 3600,
         tags: [API_ENDPOINTS.BOOKS, id],
       },
       baseUrl: DOMAIN,

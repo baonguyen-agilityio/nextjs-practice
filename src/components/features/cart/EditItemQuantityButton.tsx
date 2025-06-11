@@ -1,27 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import type { CartItem } from "@/types";
 import { MinusIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { updateItemQuantity } from "@/app/actions/cart";
-import { useActionState } from "react";
+import { useRef } from "react";
 import { Button } from "@/components/ui/Button";
-
-function SubmitButton({ type }: { type: "plus" | "minus" }) {
-  return (
-    <Button
-      type="submit"
-      size="sm"
-      aria-label={type === "plus" ? "Increase item quantity" : "Reduce item quantity"}
-      variant="light"
-      disableAnimation
-      isIconOnly
-      radius="full"
-    >
-      {type === "plus" ? <PlusIcon className="h-4 w-4" /> : <MinusIcon className="h-4 w-4" />}
-    </Button>
-  );
-}
+import debounce from "lodash/debounce";
 
 export function EditItemQuantityButton({
   item,
@@ -32,21 +16,30 @@ export function EditItemQuantityButton({
   type: "plus" | "minus";
   optimisticUpdate: any;
 }) {
-  const [message, formAction] = useActionState(updateItemQuantity, null);
-  const payload = {
-    cartItemId: item.documentId || "",
-    quantity: type === "plus" ? item.quantity + 1 : item.quantity - 1,
-  };
-  const updateItemQuantityAction = formAction.bind(null, payload);
+  const debouncedServerUpdate = useRef(
+    debounce((quantity: number) => {
+      updateItemQuantity({
+        cartItemId: item.documentId || "",
+        quantity,
+      });
+    }, 500)
+  ).current;
 
   return (
-    <form
-      action={async () => {
-        optimisticUpdate(item.book.id, type);
-        updateItemQuantityAction();
+    <Button
+      onClick={() => {
+        const newQuantity = type === "plus" ? item.quantity + 1 : item.quantity - 1;
+        optimisticUpdate(item.documentId, newQuantity);
+        debouncedServerUpdate(newQuantity);
       }}
+      size="sm"
+      aria-label={type === "plus" ? "Increase item quantity" : "Reduce item quantity"}
+      variant="light"
+      disableAnimation
+      isIconOnly
+      radius="full"
     >
-      <SubmitButton type={type} />
-    </form>
+      {type === "plus" ? <PlusIcon className="h-4 w-4" /> : <MinusIcon className="h-4 w-4" />}
+    </Button>
   );
 }

@@ -1,4 +1,10 @@
-import { API_ENDPOINTS, API_ROUTE_ENDPOINT, DOMAIN, EXCEPTION_ERROR_MESSAGE } from "@/constants";
+import {
+  API_ENDPOINTS,
+  API_ROUTE_ENDPOINT,
+  DOMAIN,
+  EXCEPTION_ERROR_MESSAGE,
+  TAGS,
+} from "@/constants";
 import { apiClient } from "./api";
 import type {
   Cart,
@@ -26,7 +32,8 @@ export const getCartByUserId = async (): Promise<Cart | undefined> => {
 
     const { data, error } = await api.get<CartStrapiResponse & { error?: string }>(url, {
       next: {
-        tags: [API_ENDPOINTS.CART],
+        revalidate: 3600,
+        tags: [TAGS.CART],
       },
       baseUrl: DOMAIN,
     });
@@ -38,23 +45,29 @@ export const getCartByUserId = async (): Promise<Cart | undefined> => {
 
     const rawItems = data[0]?.cart_items || [];
 
-    const cartItems = rawItems.map(({ quantity, book, ...rest }) => {
-      const { image, ...bookData } = book || {};
-      const imageUrl = image.url;
+    const cartItems = rawItems
+      .filter((item) => item.quantity > 0)
+      .map(({ quantity, book, ...rest }) => {
+        const { image, ...bookData } = book || {};
+        const imageUrl = image.url;
 
-      return {
-        quantity,
-        book: { ...bookData, imageUrl },
-        ...rest,
-      };
-    });
+        return {
+          quantity,
+          book: { ...bookData, imageUrl },
+          ...rest,
+        };
+      });
 
     const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    const totalAmount = cartItems.reduce((sum, item) => sum + item.book.price * item.quantity, 0);
 
     return {
       id: data[0]?.id || "",
       cartItems: cartItems,
       totalQuantity: totalQuantity,
+      cost: {
+        totalAmount: totalAmount,
+      },
       error: null,
     };
   } catch (error) {
