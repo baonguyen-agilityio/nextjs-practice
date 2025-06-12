@@ -29,7 +29,7 @@ export function NavItems({ session }: { session: Session | null }) {
               <div className="hidden md:block">Sign Out</div>
             </button>
           </form>
-          <CartModal />
+          {session.user.role !== "admin" && <CartModal />}
         </>
       ) : (
         <Link href="/login" className="hover:text-secondary transition-colors">

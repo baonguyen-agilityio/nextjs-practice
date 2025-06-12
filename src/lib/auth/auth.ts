@@ -30,7 +30,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        return user;
+        const meRes = await fetch(`${process.env.STRAPI_URL}/api/users/me?populate=role`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+
+        if (!meRes.ok) return null;
+
+        const userData = await meRes.json();
+
+        return {
+          id: userData.id,
+          email: userData.email,
+          name: userData.username,
+          role: userData.role?.type || "user",
+        };
       },
     }),
   ],

@@ -1,7 +1,7 @@
 "use client";
 
 import { lazy, Suspense, useCallback, useMemo, useTransition } from "react";
-import { ArticleCard } from "@/components/ui/ArticleCard";
+import { ArticleCard } from "@/components/features/article/ArticleCard";
 import { Banner } from "@/components/ui/Banner";
 import SkeletonList from "@/components/ui/SkeletonList";
 import { PAGE_DEFAULT } from "@/constants";

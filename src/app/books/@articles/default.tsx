@@ -1,4 +1,4 @@
-import { ArticleCard } from "@/components/ui/ArticleCard";
+import { ArticleCard } from "@/components/features/article/ArticleCard";
 import { getArticles } from "@/services/article";
 
 export default async function ArticlesPage() {

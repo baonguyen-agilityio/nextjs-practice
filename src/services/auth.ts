@@ -30,10 +30,9 @@ export const login = async (
     const data = {
       id: user?.id || "",
       token: jwt,
-      role: user?.role || "",
-      avatar: user?.avatar || "",
       username: user?.username || "",
       email: user?.email || "",
+      role: user?.role || "",
     };
 
     return { user: data, error: null };

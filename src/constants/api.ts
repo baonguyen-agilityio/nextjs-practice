@@ -7,6 +7,7 @@ export const API_ENDPOINTS = {
   CART: "/carts",
   CART_ITEMS: "/cart-items",
   ARTICLES: "/articles",
+  USER: "/users",
 };
 
 export const API_ROUTE_ENDPOINT = {
@@ -14,4 +15,5 @@ export const API_ROUTE_ENDPOINT = {
   BOOKS: "/api/books",
   CART: "/api/cart",
   ARTICLES: "/api/articles",
+  USER: "/api/auth/me",
 };
