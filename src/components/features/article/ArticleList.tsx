@@ -52,15 +52,17 @@ export default function ArticleList({
         title="Articles"
         description="There are many variations of passages of Lorem Ipsum available,  have suffered alteration in some form."
       />
-      <section className="min-h-screen pt-20">
+      <section className="min-h-screen py-16">
         <div className="container mx-auto px-4 max-w-7xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {isPending ? (
-              <SkeletonList length={3} />
-            ) : (
-              articles.map((article) => <ArticleCard key={article.id} article={article} />)
-            )}
-          </div>
+          {isPending ? (
+            <SkeletonList length={12} />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+              {articles.map((article) => (
+                <ArticleCard key={article.id} article={article} />
+              ))}
+            </div>
+          )}
           {!!pagination && pagination.pageCount > 1 && (
             <div className="flex justify-end">
               <Suspense fallback={null}>

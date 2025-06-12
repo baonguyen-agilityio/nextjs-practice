@@ -1,5 +1,6 @@
 export const PAGE_DEFAULT = 1;
 export const PAGE_SIZE_DEFAULT = 6;
+export const PAGE_SIZE_DEFAULT_ARTICLE = 12;
 
 export const PAGINATION_DEFAULT = {
   pagination: {

@@ -9,7 +9,7 @@ import Link from "next/link";
 export default function BookCard(props: { book: Book }) {
   const { book } = props;
   return (
-    <Link href={`/${book.documentId}`}>
+    <Link href={`/books/${book.documentId}`}>
       <Card className="shadow-none rounded-none">
         <CardBody className="bg-background flex items-center justify-center">
           <Image

@@ -1,16 +1,23 @@
+"use client";
+
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import { logout } from "@/lib/actions";
-import { auth } from "@/lib/auth/auth";
 import CartModal from "@/components/features/cart/CartModal";
+import { usePathname } from "next/navigation";
+import type { Session } from "next-auth";
 
-export async function NavItems() {
-  const session = await auth();
+export function NavItems({ session }: { session: Session | null }) {
+  const pathname = usePathname() ?? "";
 
   return (
     <nav className="hidden md:flex items-center gap-8 font-inter text-sm">
       {siteConfig.navItems.map(({ href, label }) => (
-        <Link key={href} href={href} className="hover:text-secondary transition-colors">
+        <Link
+          key={href}
+          href={href}
+          className={`hover:text-secondary transition-colors ${pathname === href ? "text-secondary" : "text-white"}`}
+        >
           {label}
         </Link>
       ))}

@@ -2,19 +2,13 @@ import { getBook } from "@/services";
 import { BookDetails } from "@/components/features/book/BookDetails";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import SkeletonList from "@/components/ui/SkeletonList";
+import SkeletonCard from "@/components/ui/SkeletonCard";
 
 type Params = Promise<{ id: string }>;
 
 export default function BookDetailWrapper({ params }: { params: Params }) {
   return (
-    <Suspense
-      fallback={
-        <>
-          <SkeletonList length={6} />
-        </>
-      }
-    >
+    <Suspense fallback={<SkeletonCard />}>
       <BookDetail params={params} />
     </Suspense>
   );

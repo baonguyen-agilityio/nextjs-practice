@@ -1,7 +1,7 @@
 import ArticleList from "@/components/features/article/ArticleList";
 import { Banner } from "@/components/ui/Banner";
 import SkeletonList from "@/components/ui/SkeletonList";
-import { PAGE_DEFAULT, PAGE_SIZE_DEFAULT } from "@/constants";
+import { PAGE_DEFAULT, PAGE_SIZE_DEFAULT_ARTICLE } from "@/constants";
 import { getArticles } from "@/services/article";
 import type { SearchParams } from "@/types";
 import { Suspense } from "react";
@@ -28,7 +28,7 @@ async function ArticlesPage({ searchParams }: { searchParams: SearchParams }) {
   const { page = PAGE_DEFAULT } = (await searchParams) || {};
   const searchParamsAPI = new URLSearchParams();
   searchParamsAPI.set("pagination[page]", page.toString());
-  searchParamsAPI.set("pagination[pageSize]", PAGE_SIZE_DEFAULT.toString());
+  searchParamsAPI.set("pagination[pageSize]", PAGE_SIZE_DEFAULT_ARTICLE.toString());
   searchParamsAPI.set("populate", "*");
 
   const { articles, ...meta } = await getArticles({

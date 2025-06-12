@@ -1,6 +1,3 @@
-import SkeletonList from "@/components/ui/SkeletonList";
-import { Suspense } from "react";
-
 export default function ArchiveLayout({
   books,
   articles,
@@ -19,8 +16,18 @@ export default function ArchiveLayout({
           </p>
         </div>
       </section>
-      <Suspense fallback={<SkeletonList length={6} />}>{books}</Suspense>
-      <Suspense fallback={<SkeletonList length={6} />}>{articles}</Suspense>
+      <section className="py-16">
+        <div className="container mx-auto px-4 max-w-7xl">{books}</div>
+      </section>
+      <section className="py-16 bg-background">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <h2 className="text-3xl font-bold text-center text-darkblue font-cardo">
+            Articles & Resources
+          </h2>
+          <span className="block w-10 h-1 my-12 bg-secondary mx-auto" />
+          {articles}
+        </div>
+      </section>
     </>
   );
 }
