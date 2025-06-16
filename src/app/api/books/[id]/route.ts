@@ -14,3 +14,21 @@ export async function GET(_: Request, { params }: { params: Params }) {
 
   return Response.json(res);
 }
+
+export async function PUT(req: Request, { params }: { params: Params }) {
+  const { id } = await params;
+  console.log(id);
+  const body = await req.json();
+  console.log(body);
+  const res = await apiClient.put<BookStrapiModel>(`${API_ENDPOINTS.BOOKS}/${id}`, {
+    body,
+  });
+
+  return Response.json(res);
+}
+
+export async function DELETE(_: Request, { params }: { params: Params }) {
+  const { id } = await params;
+  const res = await apiClient.delete(`${API_ENDPOINTS.BOOKS}/${id}`);
+  return Response.json(res);
+}

@@ -1,4 +1,4 @@
-import type { ImageStrapiModel, MetaResponse } from "@/types";
+import type { Category, ImageStrapiModel, MetaResponse } from "@/types";
 export interface BookStrapiModel {
   id: string;
   slug: string;
@@ -7,6 +7,7 @@ export interface BookStrapiModel {
   language: string;
   description: string;
   image: ImageStrapiModel;
+  categories: Category[];
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
@@ -28,4 +29,13 @@ export type BooksStrapiResponse = {
 export type BookStrapiResponse = {
   data: BookStrapiModel;
   error: string | null;
+};
+
+export type BookPayload = {
+  title: string;
+  price: number;
+  description: string;
+  language?: string;
+  category?: string;
+  image?: string;
 };

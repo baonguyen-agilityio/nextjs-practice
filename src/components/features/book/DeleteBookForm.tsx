@@ -1,10 +1,12 @@
-import type { Book } from "@/types";
-import { deleteBook } from "@/app/actions/book";
-import { useActionState } from "react";
+"use client";
+
+import { deleteBookAction } from "@/app/actions/book";
 import { Button } from "@/components/ui/Button";
+import type { Book } from "@/types";
+import { useActionState } from "react";
 
 export default function DeleteBookForm({ book, onClose }: { book: Book; onClose: () => void }) {
-  const [errorMessage, formAction, isPending] = useActionState(deleteBook, undefined);
+  const [errorMessage, formAction, isPending] = useActionState(deleteBookAction, undefined);
 
   return (
     <form action={formAction}>

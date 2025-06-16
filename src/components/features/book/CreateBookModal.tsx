@@ -1,29 +1,23 @@
 import { Button } from "@/components/ui/Button";
 import { Modal, ModalBody, ModalContent, ModalHeader, useDisclosure } from "@heroui/react";
-import type { Book, Category } from "@/types";
-import EditBookForm from "./EditBookForm";
+import CreateBookForm from "./CreateBookForm";
+import type { Category } from "@/types";
 
-export default function EditBookModal({
-  book,
-  categories,
-}: {
-  book: Book;
-  categories: Category[];
-}) {
+export default function CreateBookModal({ categories }: { categories: Category[] }) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   return (
     <>
-      <Button size="lg" color="primary" variant="ghost" fullWidth onPress={onOpen}>
-        Edit
+      <Button size="lg" color="primary" variant="ghost" onPress={onOpen}>
+        Add New Book
       </Button>
       <Modal isOpen={isOpen} placement="top-center" onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1">Edit book</ModalHeader>
+              <ModalHeader className="flex flex-col gap-1">Add New Book</ModalHeader>
               <ModalBody>
-                <EditBookForm book={book} onClose={onClose} categories={categories} />
+                <CreateBookForm onClose={onClose} categories={categories} />
               </ModalBody>
             </>
           )}

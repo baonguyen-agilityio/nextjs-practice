@@ -3,10 +3,9 @@ import { Suspense } from "react";
 import LoginForm from "@/components/features/login/LoginForm";
 import Logo from "@/components/icons/logo";
 
-export const metadata: Metadata = {
+export const generateMetadata = (): Metadata => ({
   title: "Login",
-};
-
+});
 function LoginFormFallback() {
   return (
     <div className="w-full max-w-md mx-auto space-y-8">

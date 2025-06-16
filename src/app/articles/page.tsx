@@ -4,7 +4,12 @@ import SkeletonList from "@/components/ui/SkeletonList";
 import { PAGE_DEFAULT, PAGE_SIZE_DEFAULT_ARTICLE } from "@/constants";
 import { getArticles } from "@/services/article";
 import type { SearchParams } from "@/types";
+import type { Metadata } from "next";
 import { Suspense } from "react";
+
+export const generateMetadata = (): Metadata => ({
+  title: "Articles",
+});
 
 export default function ArticlesPageWrapper({ searchParams }: { searchParams: SearchParams }) {
   return (

@@ -1,13 +1,13 @@
 "use client";
 
-import { updateBook } from "@/app/actions/book";
+import { createBook } from "@/app/actions/book";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import type { Book, Category } from "@/types";
 import { Form } from "@heroui/react";
 import { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import ImagePicker from "./ImagePicker";
 import { Select, SelectItem } from "@heroui/react";
+import type { Category } from "@/types";
 
 const fields = [
   { name: "title", label: "Title", type: "text", required: true },
@@ -16,20 +16,18 @@ const fields = [
   { name: "description", label: "Description", type: "text", required: true },
 ];
 
-export default function EditBookForm({
-  book,
+export default function CreateBookForm({
   onClose,
   categories,
 }: {
-  book: Book;
   onClose: () => void;
   categories: Category[];
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [result, formAction, isPending] = useActionState(updateBook, undefined);
+  const [result, formAction, isPending] = useActionState(createBook, undefined);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!formRef.current) return;
 
@@ -61,7 +59,6 @@ export default function EditBookForm({
 
   return (
     <Form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full" ref={formRef}>
-      <input type="hidden" name="documentId" value={book.documentId} />
       {fields.map((field) => (
         <div key={field.name} className="w-full">
           <Input
@@ -70,7 +67,6 @@ export default function EditBookForm({
             label={field.label}
             type={field.type}
             isRequired={field.required}
-            defaultValue={String(book[field.name as keyof Book] || "")}
             isDisabled={isPending}
             size="lg"
             errorMessage={fieldErrors?.[field.name]?.[0]}
@@ -86,7 +82,6 @@ export default function EditBookForm({
           isRequired
           isDisabled={isPending}
           size="lg"
-          defaultSelectedKeys={[book.categories[0]?.documentId || ""]}
         >
           {categories.map((category) => (
             <SelectItem key={category.documentId}>{category.name}</SelectItem>
@@ -97,7 +92,7 @@ export default function EditBookForm({
         )}
       </div>
 
-      <ImagePicker imageUrl={book.imageUrl} onFileChange={setSelectedFile} />
+      <ImagePicker imageUrl="" onFileChange={setSelectedFile} />
       {fieldErrors?.["image"]?.[0] && (
         <p className="text-red-500 text-sm mt-1">{fieldErrors["image"][0]}</p>
       )}
@@ -109,7 +104,7 @@ export default function EditBookForm({
           Cancel
         </Button>
         <Button color="primary" variant="flat" type="submit" isLoading={isPending}>
-          Update
+          Create
         </Button>
       </div>
     </Form>

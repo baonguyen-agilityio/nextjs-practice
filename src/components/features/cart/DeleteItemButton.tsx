@@ -5,12 +5,14 @@ import { useActionState } from "react";
 import { removeItem } from "@/app/actions";
 import { Button } from "@/components/ui/Button";
 
+type OptimisticUpdateFn = (bookId: string, updateType: "delete") => void;
+
 export function DeleteItemButton({
   item,
   optimisticUpdate,
 }: {
   item: CartItem;
-  optimisticUpdate: any;
+  optimisticUpdate: OptimisticUpdateFn;
 }) {
   const [message, formAction] = useActionState(removeItem, null);
   const bookId = item.book.id;

@@ -7,3 +7,4 @@ export * from "./searchParams";
 export * from "./cart";
 export * from "./image";
 export * from "./article";
+export * from "./category";

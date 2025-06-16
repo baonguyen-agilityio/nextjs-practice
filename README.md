@@ -1,36 +1,252 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📚 Bookstore - Next.js E-commerce Application
 
-## Getting Started
+A modern, full-featured bookstore e-commerce application built with Next.js 15, TypeScript, and Tailwind CSS. Features include book browsing, shopping cart functionality, user authentication, and responsive design.
 
-First, run the development server:
+## ✨ Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- 📖 **Book Catalog**: Browse and search through a comprehensive book collection
+- 🛒 **Shopping Cart**: Add, remove, and update quantities with optimistic updates
+- 🔐 **Authentication**: Secure user authentication with NextAuth.js
+- 📱 **Responsive Design**: Mobile-first responsive design with Tailwind CSS
+- ⚡ **Performance**: Optimized with Next.js 15 App Router and Turbopack
+- 🎨 **Modern UI**: Beautiful interface with HeroUI components and Framer Motion
+- 🧪 **Testing**: Comprehensive test suite with Jest and Testing Library
+- 📖 **Storybook**: Component documentation and development
+- 🔍 **TypeScript**: Full type safety throughout the application
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18.17 or later
+- npm, yarn, pnpm, or bun
+
+### Installation
+
+1. **Clone the repository:**
+
+   ```bash
+   git clone <repository-url>
+   cd nextjs-training
+   ```
+
+2. **Install dependencies:**
+
+   ```bash
+   npm install
+   # or
+   yarn install
+   # or
+   pnpm install
+   ```
+
+3. **Set up environment variables:**
+
+   ```bash
+   cp .env.example .env.local
+   ```
+
+   Fill in the required environment variables (see [Environment Variables](#environment-variables))
+
+4. **Run the development server:**
+
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   # or
+   pnpm dev
+   ```
+
+5. **Open your browser:**
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+## 🛠️ Development
+
+### Available Scripts
+
+- `npm run dev` - Start development server with Turbopack
+- `npm run build` - Build the application for production
+- `npm run start` - Start the production server
+- `npm run lint` - Run ESLint
+- `npm run format` - Check code formatting with Prettier
+- `npm run format:fix` - Fix code formatting issues
+- `npm run test` - Run tests
+- `npm run test:watch` - Run tests in watch mode
+- `npm run test:coverage` - Run tests with coverage report
+- `npm run storybook` - Start Storybook development server
+- `npm run build-storybook` - Build Storybook for production
+
+### Project Structure
+
+```
+src/
+├── app/                    # Next.js App Router pages and layouts
+│   ├── (auth)/            # Authentication routes
+│   ├── about/             # About page
+│   ├── api/               # API routes
+│   ├── articles/          # Articles/blog pages
+│   ├── books/             # Book catalog pages
+│   ├── contact/           # Contact page
+│   └── services/          # Service pages
+├── components/            # React components
+│   ├── features/          # Feature-specific components
+│   ├── layouts/           # Layout components
+│   ├── ui/                # Reusable UI components
+│   └── icons/             # Icon components
+├── hooks/                 # Custom React hooks
+├── lib/                   # Utilities and configurations
+├── services/              # API service functions
+├── types/                 # TypeScript type definitions
+├── utils/                 # Utility functions
+├── constants/             # Application constants
+└── assets/                # Static assets
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🔧 Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Create a `.env.local` file in the root directory with the following variables:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+# Authentication
+NEXTAUTH_SECRET=your-nextauth-secret
+NEXTAUTH_URL=http://localhost:3000
 
-## Learn More
+# API Configuration
+NEXT_PUBLIC_STRAPI_URL=your-strapi-url
+NEXT_PUBLIC_AUTH_TOKEN=your-strapi-token
 
-To learn more about Next.js, take a look at the following resources:
+# Add other environment variables as needed
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🧪 Testing
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The project uses Jest and React Testing Library for testing.
 
-## Deploy on Vercel
+### Running Tests
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+# Run all tests
+npm run test
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+### Testing Philosophy
+
+- **Unit Tests**: Test individual components and functions
+- **Integration Tests**: Test component interactions
+- **Coverage**: Maintain high test coverage for critical functionality
+
+## 📖 Storybook
+
+View and develop components in isolation:
+
+```bash
+# Start Storybook
+npm run storybook
+
+# Build Storybook
+npm run build-storybook
+```
+
+Visit [http://localhost:6006](http://localhost:6006) to view the component library.
+
+## 🎨 Styling
+
+- **Tailwind CSS**: Utility-first CSS framework
+- **HeroUI**: Modern React component library
+- **Framer Motion**: Smooth animations and transitions
+- **Custom Fonts**: Cardo and Inter from Google Fonts
+
+## 🔒 Authentication
+
+Authentication is handled by NextAuth.js with support for:
+
+- Email/Password authentication
+- OAuth providers (configurable)
+- Session management
+- Protected routes
+
+## 🛒 State Management
+
+- **React Context**: Global state management for cart and user data
+- **Optimistic Updates**: Immediate UI updates with server synchronization
+- **Server Actions**: Modern data mutations with Next.js
+
+## 📦 Key Dependencies
+
+### Core
+
+- **Next.js 15**: React framework with App Router
+- **React 19**: Latest React with concurrent features
+- **TypeScript**: Type safety and developer experience
+
+### UI & Styling
+
+- **Tailwind CSS**: Utility-first CSS
+- **HeroUI**: Component library
+- **Framer Motion**: Animation library
+- **Heroicons**: Icon library
+
+### Development
+
+- **ESLint**: Code linting
+- **Prettier**: Code formatting
+- **Husky**: Git hooks
+- **Jest**: Testing framework
+- **Storybook**: Component development
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+
+1. Push your code to GitHub
+2. Connect your repository to Vercel
+3. Configure environment variables
+4. Deploy automatically on push
+
+### Other Platforms
+
+The application can be deployed to any platform that supports Node.js:
+
+- Netlify
+- Railway
+- DigitalOcean App Platform
+- AWS Amplify
+
+### Build for Production
+
+```bash
+npm run build
+npm run start
+```
+
+### Commit Guidelines
+
+We follow conventional commits:
+
+- `feat:` New features
+- `fix:` Bug fixes
+- `docs:` Documentation changes
+- `style:` Code style changes
+- `refactor:` Code refactoring
+- `test:` Test additions or changes
+- `chore:` Maintenance tasks
+
+## 🆘 Support
+
+- **Documentation**: Check this README and inline code comments
+- **Issues**: Open a GitHub issue for bug reports
+- **Discussions**: Use GitHub Discussions for questions and ideas
+
+## 🔄 Recent Updates
+
+- ✅ Fixed TypeScript type safety issues
+- ✅ Improved React Hook dependencies
+- ✅ Enhanced error handling
+- ✅ Updated documentation

@@ -7,6 +7,8 @@ import { useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import debounce from "lodash/debounce";
 
+type OptimisticUpdateFn = (bookId: string, updateType: "plus" | "minus" | "delete") => void;
+
 export function EditItemQuantityButton({
   item,
   type,
@@ -14,7 +16,7 @@ export function EditItemQuantityButton({
 }: {
   item: CartItem;
   type: "plus" | "minus";
-  optimisticUpdate: any;
+  optimisticUpdate: OptimisticUpdateFn;
 }) {
   const debouncedServerUpdate = useRef(
     debounce((quantity: number) => {
@@ -28,8 +30,8 @@ export function EditItemQuantityButton({
   return (
     <Button
       onClick={() => {
+        optimisticUpdate(item.book.id, type);
         const newQuantity = type === "plus" ? item.quantity + 1 : item.quantity - 1;
-        optimisticUpdate(item.documentId, newQuantity);
         debouncedServerUpdate(newQuantity);
       }}
       size="sm"
