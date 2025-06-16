@@ -1,10 +1,11 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { authenticate } from "@/lib/actions";
 import { useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { addToast } from "@heroui/react";
+import { authenticate } from "@/app/actions";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -12,11 +13,25 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
-  const [errorMessage, formAction, isPending] = useActionState(authenticate, undefined);
+  const formAction = async (prevState: string | undefined, formData: FormData) => {
+    const result = await authenticate(prevState, formData);
+
+    if (typeof result === "string") {
+      addToast({
+        title: "Login failed",
+        description: result,
+        color: "danger",
+      });
+    }
+
+    return result;
+  };
+
+  const [_, formActionWithToast, isPending] = useActionState(formAction, undefined);
 
   return (
     <div className="w-full max-w-md mx-auto space-y-8">
-      <form action={formAction} className="space-y-6">
+      <form action={formActionWithToast} className="space-y-6">
         <Input
           id="email"
           name="email"
@@ -40,8 +55,6 @@ export default function LoginForm() {
         />
 
         <input type="hidden" name="redirectTo" value={callbackUrl} />
-
-        {errorMessage && <div className="text-red-500 text-sm">{errorMessage}</div>}
 
         <Button fullWidth type="submit" isLoading={isPending} isDisabled={isPending}>
           {isPending ? "Signing in..." : "Sign in"}

@@ -2,13 +2,20 @@ import { Button } from "@/components/ui/Button";
 import { Modal, ModalBody, ModalContent, ModalHeader, useDisclosure } from "@heroui/react";
 import type { Book, Category } from "@/types";
 import EditBookForm from "./EditBookForm";
+import type { ActionResult } from "@/app/actions/book";
 
 export default function EditBookModal({
   book,
   categories,
+  formAction,
+  isPending,
+  result,
 }: {
   book: Book;
   categories: Category[];
+  formAction: (payload: FormData) => void;
+  isPending: boolean;
+  result: ActionResult | undefined;
 }) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
@@ -23,7 +30,14 @@ export default function EditBookModal({
             <>
               <ModalHeader className="flex flex-col gap-1">Edit book</ModalHeader>
               <ModalBody>
-                <EditBookForm book={book} onClose={onClose} categories={categories} />
+                <EditBookForm
+                  book={book}
+                  onClose={onClose}
+                  categories={categories}
+                  formAction={formAction}
+                  isPending={isPending}
+                  result={result}
+                />
               </ModalBody>
             </>
           )}

@@ -7,9 +7,28 @@ import type { Book, Category } from "@/types";
 import EditBookModal from "@/components/features/book/EditBookModal";
 import DeleteBookModal from "./DeleteBookModal";
 import Image from "next/image";
+import type { ActionResult } from "@/app/actions/book";
 
-export default function BookCard(props: { book: Book; isAdmin: boolean; categories: Category[] }) {
-  const { book, isAdmin, categories } = props;
+export default function BookCard(props: {
+  book: Book;
+  isAdmin: boolean;
+  categories: Category[];
+  formAction: (payload: FormData) => void;
+  isPendingUpdateBook: boolean;
+  result: ActionResult | undefined;
+  formActionDelete: (payload: FormData) => void;
+  isPendingDelete: boolean;
+}) {
+  const {
+    book,
+    isAdmin,
+    categories,
+    formAction,
+    isPendingUpdateBook,
+    result,
+    formActionDelete,
+    isPendingDelete,
+  } = props;
   return (
     <Card className="shadow-none rounded-none h-full flex flex-col">
       <div className="p-0">
@@ -34,8 +53,18 @@ export default function BookCard(props: { book: Book; isAdmin: boolean; categori
         <div className="space-y-2 w-full mt-auto">
           {isAdmin ? (
             <>
-              <EditBookModal book={book} categories={categories} />
-              <DeleteBookModal book={book} />
+              <EditBookModal
+                book={book}
+                categories={categories}
+                formAction={formAction}
+                isPending={isPendingUpdateBook}
+                result={result}
+              />
+              <DeleteBookModal
+                book={book}
+                formActionDelete={formActionDelete}
+                isPendingDelete={isPendingDelete}
+              />
             </>
           ) : (
             <AddToCart book={book} variant="order" />

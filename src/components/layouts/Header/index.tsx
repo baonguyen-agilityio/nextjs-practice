@@ -1,4 +1,4 @@
-import Logo from "../../icons/logo";
+import Logo from "@/components/icons/logo";
 import { NavItems } from "./NavItems";
 import { MobileMenu } from "./MobileMenu";
 import { siteConfig } from "@/config/site";

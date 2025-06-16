@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
-import { logout } from "@/lib/actions";
+import { logout } from "@/app/actions";
 import CartModal from "@/components/features/cart/CartModal";
 import { usePathname } from "next/navigation";
 import type { Session } from "next-auth";

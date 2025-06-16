@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
-import { logout } from "@/lib/actions";
+import { logout } from "@/app/actions";
 import { auth } from "@/lib/auth/auth";
 import { MobileMenuToggle } from "./MobileMenuToggle";
 import CartModal from "@/components/features/cart/CartModal";

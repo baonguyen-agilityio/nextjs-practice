@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { uploadImage } from "@/lib/utils/image";
 import type { BookPayload } from "@/types";
 
-type ActionResult =
+export type ActionResult =
   | { success: true; message: string }
   | { success: false; error: Record<string, string[]> | string };
 

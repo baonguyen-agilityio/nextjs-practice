@@ -84,7 +84,9 @@ export default function CreateBookForm({
           size="lg"
         >
           {categories.map((category) => (
-            <SelectItem key={category.documentId}>{category.name}</SelectItem>
+            <SelectItem aria-label={category.name} key={category.documentId}>
+              {category.name}
+            </SelectItem>
           ))}
         </Select>
         {fieldErrors?.["categories"]?.[0] && (

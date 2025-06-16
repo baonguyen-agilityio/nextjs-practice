@@ -17,9 +17,7 @@ export async function GET(_: Request, { params }: { params: Params }) {
 
 export async function PUT(req: Request, { params }: { params: Params }) {
   const { id } = await params;
-  console.log(id);
   const body = await req.json();
-  console.log(body);
   const res = await apiClient.put<BookStrapiModel>(`${API_ENDPOINTS.BOOKS}/${id}`, {
     body,
   });

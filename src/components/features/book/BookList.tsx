@@ -1,6 +1,14 @@
 "use client";
 
-import { lazy, Suspense, useCallback, useMemo, useTransition } from "react";
+import {
+  lazy,
+  Suspense,
+  useActionState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useTransition,
+} from "react";
 import BookCard from "@/components/features/book/BookCard";
 import SkeletonList from "@/components/ui/SkeletonList";
 import { PAGE_DEFAULT } from "@/constants";
@@ -10,6 +18,8 @@ import Link from "next/link";
 import BookFilter from "./BookFilter";
 import CreateBookModal from "./CreateBookModal";
 import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
+import { deleteBookAction, updateBook } from "@/app/actions/book";
+import { addToast } from "@heroui/react";
 
 const Pagination = lazy(() => import("@/components/ui/Pagination"));
 
@@ -86,6 +96,40 @@ export default function BookList({
     500
   );
 
+  const [result, formAction, isPendingUpdateBook] = useActionState(updateBook, undefined);
+  const [resultDelete, formActionDelete, isPendingDelete] = useActionState(
+    deleteBookAction,
+    undefined
+  );
+
+  useEffect(() => {
+    if (result?.success) {
+      addToast({
+        title: result.message,
+        color: "success",
+      });
+    } else if (result?.success === false) {
+      addToast({
+        title: "Failed to update book",
+        color: "danger",
+      });
+    }
+  }, [result]);
+
+  useEffect(() => {
+    if (resultDelete?.success) {
+      addToast({
+        title: resultDelete.message,
+        color: "success",
+      });
+    } else if (resultDelete?.success === false) {
+      addToast({
+        title: "Failed to delete book",
+        color: "danger",
+      });
+    }
+  }, [resultDelete]);
+
   return (
     <>
       <div className="flex justify-between items-center mb-8 gap-4 w-full">
@@ -102,10 +146,29 @@ export default function BookList({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 items-stretch">
           {books.map((book: Book) =>
             isAdmin ? (
-              <BookCard book={book} key={book.id} isAdmin={isAdmin} categories={categories} />
+              <BookCard
+                book={book}
+                key={book.id}
+                isAdmin={isAdmin}
+                categories={categories}
+                formAction={formAction}
+                isPendingUpdateBook={isPendingUpdateBook}
+                result={result}
+                formActionDelete={formActionDelete}
+                isPendingDelete={isPendingDelete}
+              />
             ) : (
               <Link href={`/books/${book.documentId}`} key={book.id} className="block h-full">
-                <BookCard book={book} isAdmin={isAdmin} categories={categories} />
+                <BookCard
+                  book={book}
+                  isAdmin={isAdmin}
+                  categories={categories}
+                  formAction={formAction}
+                  isPendingUpdateBook={isPendingUpdateBook}
+                  result={result}
+                  formActionDelete={formActionDelete}
+                  isPendingDelete={isPendingDelete}
+                />
               </Link>
             )
           )}

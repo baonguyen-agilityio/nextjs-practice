@@ -1,13 +1,13 @@
 "use client";
 
-import { updateBook } from "@/app/actions/book";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import type { Book, Category } from "@/types";
 import { Form } from "@heroui/react";
-import { startTransition, useActionState, useEffect, useRef, useState } from "react";
+import { startTransition, useRef, useState } from "react";
 import ImagePicker from "./ImagePicker";
 import { Select, SelectItem } from "@heroui/react";
+import type { ActionResult } from "@/app/actions/book";
 
 const fields = [
   { name: "title", label: "Title", type: "text", required: true },
@@ -20,14 +20,19 @@ export default function EditBookForm({
   book,
   onClose,
   categories,
+  formAction,
+  isPending,
+  result,
 }: {
   book: Book;
   onClose: () => void;
   categories: Category[];
+  formAction: (payload: FormData) => void;
+  isPending: boolean;
+  result: ActionResult | undefined;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [result, formAction, isPending] = useActionState(updateBook, undefined);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -52,12 +57,6 @@ export default function EditBookForm({
     typeof result === "object" && result?.success === false && typeof result.error === "string"
       ? result.error
       : null;
-
-  useEffect(() => {
-    if (result?.success) {
-      onClose();
-    }
-  }, [result, onClose]);
 
   return (
     <Form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full" ref={formRef}>
@@ -89,7 +88,9 @@ export default function EditBookForm({
           defaultSelectedKeys={[book.categories[0]?.documentId || ""]}
         >
           {categories.map((category) => (
-            <SelectItem key={category.documentId}>{category.name}</SelectItem>
+            <SelectItem aria-label={category.name} key={category.documentId}>
+              {category.name}
+            </SelectItem>
           ))}
         </Select>
         {fieldErrors?.["categories"]?.[0] && (

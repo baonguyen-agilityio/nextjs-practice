@@ -1,4 +1,3 @@
-import { EXCEPTION_ERROR_MESSAGE } from "@/constants/message";
 import { API_ENDPOINTS, API_ROUTE_ENDPOINT, DOMAIN } from "@/constants";
 import { apiClient } from "./api";
 import type {
@@ -6,19 +5,20 @@ import type {
   BooksDataResponse,
   BooksStrapiResponse,
   BookStrapiResponse,
-  ErrorResponse,
   FetchDataProps,
   BookPayload,
 } from "@/types";
+import { handleApiError } from "@/lib/errors/handleApiError";
+import { revalidateTag } from "next/cache";
 
 export const getBooks = async ({
   searchParams = new URLSearchParams(),
   options = { next: { tags: [API_ENDPOINTS.BOOKS] } },
-}: FetchDataProps): BooksDataResponse => {
+}: FetchDataProps): Promise<BooksDataResponse> => {
   try {
     const params = new URLSearchParams(searchParams);
-
     const url = decodeURIComponent(`${API_ROUTE_ENDPOINT.BOOKS}?${params.toString()}`);
+
     const { data, meta, error } = await apiClient.get<BooksStrapiResponse & { error?: string }>(
       url,
       {
@@ -32,27 +32,25 @@ export const getBooks = async ({
     );
 
     if (error) {
-      const errorResponse = JSON.parse(error) as ErrorResponse;
-      return { books: [], error: errorResponse.error.message };
+      const { error: parsedError } = handleApiError(error);
+      const message = typeof parsedError === "string" ? parsedError : "Something went wrong";
+      return { books: [], error: message };
     }
 
-    const books = data.map(({ image, ...rest }) => {
-      return {
-        ...rest,
-        imageUrl: image.url,
-      };
-    });
+    const books = data.map(({ image, ...rest }) => ({
+      ...rest,
+      imageUrl: image?.url ?? "",
+    }));
 
     return {
-      books: books,
+      books,
       ...meta,
       error: null,
     };
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : EXCEPTION_ERROR_MESSAGE.GET("books");
-
-    return { books: [], error: errorMessage };
+  } catch (err) {
+    const { error: parsedError } = handleApiError(err);
+    const message = typeof parsedError === "string" ? parsedError : "Something went wrong";
+    return { books: [], error: message };
   }
 };
 
@@ -68,23 +66,23 @@ export const getBook = async ({ id }: { id: string }): BookDataResponse => {
     });
 
     if (error) {
-      const errorResponse = JSON.parse(error) as ErrorResponse;
-      return { book: null, error: errorResponse.error.message };
+      const { error: parsedError } = handleApiError(error);
+      const message = typeof parsedError === "string" ? parsedError : "Something went wrong";
+      return { book: null, error: message };
     }
 
     const { image, ...rest } = data;
     return { book: { ...rest, imageUrl: image.url || "" }, error: null };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : EXCEPTION_ERROR_MESSAGE.GET("book");
-
-    return { book: null, error: errorMessage };
+    const { error: parsedError } = handleApiError(error);
+    const message = typeof parsedError === "string" ? parsedError : "Something went wrong";
+    return { book: null, error: message };
   }
 };
 
 export const createBookService = async (
   payload: BookPayload
-): Promise<{ success: boolean; error?: string }> => {
+): Promise<{ success: boolean; error?: string | Record<string, string[]> }> => {
   try {
     const { error } = await apiClient.post<BookStrapiResponse>(`${API_ROUTE_ENDPOINT.BOOKS}`, {
       body: { data: payload },
@@ -92,16 +90,14 @@ export const createBookService = async (
     });
 
     if (error) {
-      const errorResponse = JSON.parse(error) as ErrorResponse;
-      return { success: false, error: errorResponse.error.message };
+      const { error: parsedError } = handleApiError(error);
+      return { success: false, error: parsedError };
     }
 
     return { success: true };
   } catch (err) {
-    return {
-      success: false,
-      error: err instanceof Error ? err.message : EXCEPTION_ERROR_MESSAGE.ADD("book"),
-    };
+    const { error: parsedError } = handleApiError(err);
+    return { success: false, error: parsedError };
   }
 };
 
@@ -113,24 +109,23 @@ export const deleteBook = async ({ id }: { id: string }): Promise<BookDataRespon
     });
 
     if (error) {
-      const errorResponse = JSON.parse(error) as ErrorResponse;
-      return { book: null, error: errorResponse.error.message };
+      const { error: parsedError } = handleApiError(error);
+      const message = typeof parsedError === "string" ? parsedError : "Something went wrong";
+      return { book: null, error: message };
     }
 
     return { book: null, error: null };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : EXCEPTION_ERROR_MESSAGE.DELETE("book");
-
-    return { book: null, error: errorMessage };
+    const { error: parsedError } = handleApiError(error);
+    const message = typeof parsedError === "string" ? parsedError : "Something went wrong";
+    return { book: null, error: message };
   }
 };
 
 export const updateBookService = async (
   id: string,
   payload: BookPayload
-): Promise<{ success: boolean; error?: string }> => {
-  console.log(id, payload);
+): Promise<{ success: boolean; error?: string | Record<string, string[]> }> => {
   try {
     const { error } = await apiClient.put<BookStrapiResponse>(`${API_ROUTE_ENDPOINT.BOOKS}/${id}`, {
       body: { data: payload },
@@ -138,15 +133,14 @@ export const updateBookService = async (
     });
 
     if (error) {
-      const errorResponse = JSON.parse(error) as ErrorResponse;
-      return { success: false, error: errorResponse.error.message };
+      const { error: parsedError } = handleApiError(error);
+      return { success: false, error: parsedError };
     }
+    revalidateTag(API_ENDPOINTS.BOOKS);
 
     return { success: true };
   } catch (err) {
-    return {
-      success: false,
-      error: err instanceof Error ? err.message : EXCEPTION_ERROR_MESSAGE.UPDATE("book"),
-    };
+    const { error: parsedError } = handleApiError(err);
+    return { success: false, error: parsedError };
   }
 };
