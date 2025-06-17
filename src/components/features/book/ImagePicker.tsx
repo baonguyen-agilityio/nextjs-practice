@@ -20,6 +20,8 @@ export default function ImagePicker({
     const file = e.target.files?.[0] || null;
     if (file) {
       setPreviewUrl(URL.createObjectURL(file));
+    }
+    if (onFileChange) {
       onFileChange(file);
     }
   };

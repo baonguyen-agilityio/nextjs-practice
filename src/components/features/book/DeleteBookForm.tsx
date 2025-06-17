@@ -16,7 +16,7 @@ export default function DeleteBookForm({
 }) {
   return (
     <form action={formActionDelete}>
-      <input type="hidden" name="id" value={book.documentId} />
+      <input type="hidden" name="id" value={book.documentId || ""} />
       <p>Are you sure you want to delete this book?</p>
       <div className="flex justify-end gap-4 mt-4">
         <Button color="danger" variant="flat" onPress={onClose} type="button">

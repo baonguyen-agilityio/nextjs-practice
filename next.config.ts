@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "productive-basket-ba025cc887.strapiapp.com",
+        hostname: "valuable-health-c8a8ba9845.strapiapp.com",
         pathname: "/**",
       },
     ],
