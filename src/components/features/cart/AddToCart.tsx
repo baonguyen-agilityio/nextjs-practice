@@ -7,17 +7,25 @@ import type { Book } from "@/types";
 import { addItem } from "@/app/actions/cart";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
+import { addToast } from "@heroui/react";
 
-function SubmitButton({ variant }: { variant: "order" | "add" }) {
+function SubmitButton({ variant, isPending }: { variant: "order" | "add"; isPending: boolean }) {
   if (variant === "order") {
     return (
-      <Button aria-label="Order Today" color="primary" type="submit" variant="ghost">
+      <Button
+        aria-label="Order Today"
+        color="primary"
+        disabled={isPending}
+        isLoading={isPending}
+        type="submit"
+        variant="ghost"
+      >
         Order Today
       </Button>
     );
   }
   return (
-    <Button type="submit" aria-label="Add to cart" variant="solid">
+    <Button disabled={isPending} type="submit" aria-label="Add to cart" variant="solid">
       Add To Cart
     </Button>
   );
@@ -28,14 +36,39 @@ export function AddToCart({ book, variant }: { book: Book; variant: "order" | "a
 
   const { addCartItem } = useCart();
   const { id } = book;
-  const [message, formAction] = useActionState(addItem, null);
+  const [result, formAction, isPending] = useActionState(addItem, {
+    success: null,
+    message: "",
+  });
   const addItemAction = formAction.bind(null, { bookId: id, quantity: 1 });
 
   useEffect(() => {
-    if (message === "UNAUTHORIZED") {
+    if (result?.message === "UNAUTHORIZED") {
+      addToast({
+        title: "You must be logged in to add items to your cart",
+        color: "danger",
+        shouldShowTimeoutProgress: true,
+      });
       router.push("/login");
     }
-  }, [message, router]);
+  }, [result, router]);
+
+  useEffect(() => {
+    if (result?.success) {
+      addToast({
+        title: result.message,
+        color: "success",
+        shouldShowTimeoutProgress: true,
+      });
+    }
+    if (result?.success === false && result?.message !== "UNAUTHORIZED") {
+      addToast({
+        title: "Failed to add item to cart",
+        color: "danger",
+        shouldShowTimeoutProgress: true,
+      });
+    }
+  }, [result]);
 
   return (
     <form
@@ -44,7 +77,7 @@ export function AddToCart({ book, variant }: { book: Book; variant: "order" | "a
         addItemAction();
       }}
     >
-      <SubmitButton variant={variant} />
+      <SubmitButton variant={variant} isPending={isPending} />
     </form>
   );
 }

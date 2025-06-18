@@ -8,6 +8,7 @@ import EditBookModal from "@/components/features/book/EditBookModal";
 import DeleteBookModal from "./DeleteBookModal";
 import Image from "next/image";
 import type { ActionResult } from "@/app/actions/book";
+import { createImageUrl } from "@/utils/image";
 
 export default function BookCard(props: {
   book: Book;
@@ -29,13 +30,14 @@ export default function BookCard(props: {
     formActionDelete,
     isPendingDelete,
   } = props;
+
   return (
     <Card className="shadow-none rounded-none h-full flex flex-col">
       <div className="p-0">
         <div className="w-full h-[450px] relative overflow-hidden bg-background">
           <Image
             alt={book.title}
-            src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${book.imageUrl}`}
+            src={createImageUrl(book.imageUrl)}
             className="object-cover p-6"
             fill
             priority

@@ -25,7 +25,10 @@ export function NavItems({ session }: { session: Session | null }) {
       {session ? (
         <>
           <form action={logout}>
-            <button className="hover:text-secondary transition-colors">
+            <button
+              className="hover:text-secondary transition-colors"
+              aria-label="Sign out of your account"
+            >
               <div className="hidden md:block">Sign Out</div>
             </button>
           </form>

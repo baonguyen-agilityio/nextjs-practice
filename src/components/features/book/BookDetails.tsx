@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { useActionState, useState, useCallback } from "react";
+import { useActionState, useState, useCallback, useEffect } from "react";
 import { addItem } from "@/app/actions";
 import { formatUSD } from "@/utils/currency";
 import type { Book } from "@/types";
@@ -10,18 +9,10 @@ import { useCart } from "@/hooks/useCart";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { MinusIcon, PlusIcon } from "@heroicons/react/24/outline";
-
-const MAX_QUANTITY = 10;
-const MIN_QUANTITY = 1;
-const DEFAULT_QUANTITY = 1;
-
-export const createImageUrl = (baseUrl: string | undefined, imageUrl: string) => {
-  return `${baseUrl || ""}${imageUrl}`;
-};
-
-export const validateQuantity = (value: number): number => {
-  return Math.max(MIN_QUANTITY, Math.min(value, MAX_QUANTITY));
-};
+import { createImageUrl, validateQuantity } from "@/utils";
+import { MIN_QUANTITY } from "@/constants";
+import { addToast } from "@heroui/react";
+import { useRouter } from "next/navigation";
 
 export const handleNavigation = (onNavigate?: () => void) => {
   if (onNavigate) {
@@ -37,10 +28,13 @@ interface BookDetailsProps {
 }
 
 export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
-  const [quantity, setQuantity] = useState(DEFAULT_QUANTITY);
+  const [quantity, setQuantity] = useState(MIN_QUANTITY);
   const { addCartItem } = useCart();
-  const [message, formAction, isPending] = useActionState(addItem, null);
-
+  const [result, formAction, isPending] = useActionState(addItem, {
+    success: null,
+    message: "",
+  });
+  const router = useRouter();
   const handleButtonQuantityChange = useCallback((type: "plus" | "minus") => {
     setQuantity((prev) => {
       const newValue = type === "plus" ? prev + 1 : prev - 1;
@@ -67,8 +61,35 @@ export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
     handleNavigation(onNavigateBack);
   }, [onNavigateBack]);
 
-  const imageUrl = createImageUrl(process.env.NEXT_PUBLIC_STRAPI_URL, book.imageUrl);
+  const imageUrl = createImageUrl(book.imageUrl);
   const formattedPrice = `${formatUSD(book.price)} USD`;
+
+  useEffect(() => {
+    if (result?.message === "UNAUTHORIZED") {
+      addToast({
+        title: "You must be logged in to add items to your cart",
+        color: "danger",
+        shouldShowTimeoutProgress: true,
+      });
+      router.push("/login");
+    }
+  }, [result, router]);
+
+  useEffect(() => {
+    if (result?.success) {
+      addToast({
+        title: result.message,
+        color: "success",
+        shouldShowTimeoutProgress: true,
+      });
+    }
+    if (result?.success === false) {
+      addToast({
+        title: "Failed to add item to cart",
+        color: "danger",
+      });
+    }
+  }, [result]);
 
   return (
     <section>
@@ -93,6 +114,7 @@ export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
               <Button
                 variant="light"
                 isIconOnly
+                aria-label="Decrease quantity"
                 onClick={() => handleButtonQuantityChange("minus")}
               >
                 <MinusIcon className="h-4 w-4" />
@@ -100,6 +122,7 @@ export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
               <Input
                 type="text"
                 inputMode="numeric"
+                aria-label="Book quantity"
                 classNames={{
                   input: "text-center text-lg",
                   inputWrapper: "bg-transparent shadow-none outline-none",
@@ -108,7 +131,12 @@ export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
                 value={`${quantity}`}
                 onChange={handleQuantityChange}
               />
-              <Button variant="light" isIconOnly onClick={() => handleButtonQuantityChange("plus")}>
+              <Button
+                variant="light"
+                isIconOnly
+                aria-label="Increase quantity"
+                onClick={() => handleButtonQuantityChange("plus")}
+              >
                 <PlusIcon className="h-4 w-4" />
               </Button>
             </div>

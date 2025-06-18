@@ -4,6 +4,7 @@ import type { Article } from "@/types";
 import { formatDate } from "@/utils/date";
 import { Card, CardBody, CardFooter, Image } from "@heroui/react";
 import Link from "next/link";
+import { createImageUrl } from "@/utils/image";
 
 export function ArticleCard(props: { article: Article }) {
   const { article } = props;
@@ -11,11 +12,7 @@ export function ArticleCard(props: { article: Article }) {
   return (
     <Card className="shadow-none rounded-none ">
       <CardBody className="overflow-visible p-0">
-        <Image
-          alt="Card background"
-          src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${article.imageUrl}`}
-          width="100%"
-        />
+        <Image alt="Card background" src={createImageUrl(article.imageUrl)} width="100%" />
       </CardBody>
       <CardFooter className="flex flex-col gap-5 text-left items-start p-5">
         <div className="flex justify-between items-center w-full">

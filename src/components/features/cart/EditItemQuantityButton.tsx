@@ -3,93 +3,71 @@
 import type { CartItem } from "@/types";
 import { MinusIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { updateItemQuantity } from "@/app/actions/cart";
-import { useRef, useCallback } from "react";
+import { useActionState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
-import debounce from "lodash/debounce";
+import { addToast } from "@heroui/react";
 
-export const DEBOUNCE_DELAY = 500;
-export const INCREASE_ARIA_LABEL = "Increase item quantity";
-export const DECREASE_ARIA_LABEL = "Reduce item quantity";
-
-export type OptimisticUpdateFn = (bookId: string, updateType: "plus" | "minus" | "delete") => void;
-export type QuantityUpdateType = "plus" | "minus";
-
-export const calculateNewQuantity = (currentQuantity: number, type: QuantityUpdateType): number => {
-  return type === "plus" ? currentQuantity + 1 : currentQuantity - 1;
-};
-
-export const getAriaLabel = (type: QuantityUpdateType): string => {
-  return type === "plus" ? INCREASE_ARIA_LABEL : DECREASE_ARIA_LABEL;
-};
-
-export const getCartItemId = (item: CartItem): string => {
-  return item.documentId || "";
-};
-
-export const getBookId = (item: CartItem): string => {
-  return item.book?.id || "";
-};
-
-export const createDebouncedUpdate = (
-  updateFn: (params: { cartItemId: string; quantity: number }) => void,
-  delay: number = DEBOUNCE_DELAY
-) => {
-  return debounce(updateFn, delay);
-};
-
-export const getButtonProps = (type: QuantityUpdateType) => ({
-  size: "sm" as const,
-  variant: "light" as const,
-  disableAnimation: true,
-  isIconOnly: true,
-  radius: "full" as const,
-  "aria-label": getAriaLabel(type),
-});
-
-export const renderIcon = (type: QuantityUpdateType) => {
-  const iconClass = "h-4 w-4";
-  return type === "plus" ? <PlusIcon className={iconClass} /> : <MinusIcon className={iconClass} />;
-};
-
-interface EditItemQuantityButtonProps {
-  item: CartItem;
-  type: QuantityUpdateType;
-  optimisticUpdate: OptimisticUpdateFn;
-  onUpdateQuantity?: (params: { cartItemId: string; quantity: number }) => void;
-  debounceDelay?: number;
+function SubmitButton({ type, isLoading }: { type: "plus" | "minus"; isLoading: boolean }) {
+  return (
+    <Button
+      type="submit"
+      size="sm"
+      aria-label={type === "plus" ? "Increase item quantity" : "Reduce item quantity"}
+      variant="light"
+      disableAnimation
+      isIconOnly
+      radius="full"
+      isLoading={isLoading}
+    >
+      {type === "plus" ? <PlusIcon className="h-4 w-4" /> : <MinusIcon className="h-4 w-4" />}
+    </Button>
+  );
 }
 
 export function EditItemQuantityButton({
   item,
   type,
   optimisticUpdate,
-  onUpdateQuantity,
-  debounceDelay = DEBOUNCE_DELAY,
-}: EditItemQuantityButtonProps) {
-  const updateFunction = onUpdateQuantity || updateItemQuantity;
+}: {
+  item: CartItem;
+  type: "plus" | "minus";
+  optimisticUpdate: any;
+}) {
+  const [result, formAction, isPending] = useActionState(updateItemQuantity, {
+    success: null,
+    message: "",
+  });
+  const payload = {
+    cartItemId: item.documentId || "",
+    quantity: type === "plus" ? item.quantity + 1 : item.quantity - 1,
+  };
+  const updateItemQuantityAction = formAction.bind(null, payload);
 
-  const debouncedServerUpdate = useRef(
-    createDebouncedUpdate(updateFunction, debounceDelay)
-  ).current;
-
-  const cartItemId = getCartItemId(item);
-  const bookId = getBookId(item);
-  const buttonProps = getButtonProps(type);
-  const icon = renderIcon(type);
-
-  const handleClick = useCallback(() => {
-    optimisticUpdate(bookId, type);
-
-    const newQuantity = calculateNewQuantity(item.quantity, type);
-    debouncedServerUpdate({
-      cartItemId,
-      quantity: newQuantity,
-    });
-  }, [optimisticUpdate, bookId, type, debouncedServerUpdate, cartItemId, item.quantity]);
+  useEffect(() => {
+    if (result?.success) {
+      addToast({
+        title: result.message,
+        color: "success",
+        shouldShowTimeoutProgress: true,
+      });
+    }
+    if (result?.success === false) {
+      addToast({
+        title: "Failed to update item quantity",
+        color: "danger",
+        shouldShowTimeoutProgress: true,
+      });
+    }
+  }, [result]);
 
   return (
-    <Button onClick={handleClick} {...buttonProps}>
-      {icon}
-    </Button>
+    <form
+      action={async () => {
+        optimisticUpdate(item.book.id, type);
+        updateItemQuantityAction();
+      }}
+    >
+      <SubmitButton type={type} isLoading={isPending} />
+    </form>
   );
 }

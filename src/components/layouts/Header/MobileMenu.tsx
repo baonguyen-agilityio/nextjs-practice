@@ -25,7 +25,12 @@ export async function MobileMenu() {
           <>
             {session.user.role !== "admin" && <CartModal />}
             <form action={logout}>
-              <button className="text-xl hover:text-accent transition-colors">Sign Out</button>
+              <button
+                className="text-xl hover:text-accent transition-colors"
+                aria-label="Sign out of your account"
+              >
+                Sign Out
+              </button>
             </form>
           </>
         ) : (

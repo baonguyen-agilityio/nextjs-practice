@@ -1,8 +1,9 @@
 import { createBook, updateBook, deleteBookAction } from "../book";
 import { createBookService, deleteBook, updateBookService } from "@/services/book";
 import { createBookSchema, updateBookSchema } from "@/schemas";
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { uploadImage } from "@/lib/utils/image";
+import { API_ENDPOINTS } from "@/constants";
 
 jest.mock("@/services/book", () => ({
   createBookService: jest.fn(),
@@ -11,7 +12,7 @@ jest.mock("@/services/book", () => ({
 }));
 
 jest.mock("next/cache", () => ({
-  revalidatePath: jest.fn(),
+  revalidateTag: jest.fn(),
 }));
 
 jest.mock("@/lib/utils/image", () => ({
@@ -30,7 +31,7 @@ jest.mock("@/schemas", () => ({
 const mockCreateBookService = createBookService as jest.MockedFunction<typeof createBookService>;
 const mockDeleteBook = deleteBook as any;
 const mockUpdateBookService = updateBookService as jest.MockedFunction<typeof updateBookService>;
-const mockRevalidatePath = revalidatePath as jest.MockedFunction<typeof revalidatePath>;
+const mockRevalidateTag = revalidateTag as jest.MockedFunction<typeof revalidateTag>;
 const mockUploadImage = uploadImage as jest.MockedFunction<typeof uploadImage>;
 const mockCreateBookSchema = createBookSchema as any;
 const mockUpdateBookSchema = updateBookSchema as any;
@@ -81,7 +82,7 @@ describe("Book Actions", () => {
         ...mockValidationResult.data,
         image: "uploaded-image-id",
       });
-      expect(mockRevalidatePath).toHaveBeenCalledWith("/books");
+      expect(mockRevalidateTag).toHaveBeenCalledWith(API_ENDPOINTS.BOOKS);
       expect(result).toEqual({
         success: true,
         message: "Book created successfully",
@@ -169,7 +170,7 @@ describe("Book Actions", () => {
         success: false,
         error: "Service error",
       });
-      expect(mockRevalidatePath).not.toHaveBeenCalled();
+      expect(mockRevalidateTag).not.toHaveBeenCalled();
     });
 
     it("should handle exceptions", async () => {
@@ -236,7 +237,7 @@ describe("Book Actions", () => {
         categories: "category-2",
       });
       expect(mockUpdateBookService).toHaveBeenCalledWith("book-123", mockValidationResult.data);
-      expect(mockRevalidatePath).toHaveBeenCalledWith("/books");
+      expect(mockRevalidateTag).toHaveBeenCalledWith(API_ENDPOINTS.BOOKS);
       expect(result).toEqual({
         success: true,
         message: "Book updated successfully",
@@ -316,7 +317,7 @@ describe("Book Actions", () => {
       const result = await deleteBookAction(undefined, formData);
 
       expect(mockDeleteBook).toHaveBeenCalledWith({ id: "book-123" });
-      expect(mockRevalidatePath).toHaveBeenCalledWith("/books");
+      expect(mockRevalidateTag).toHaveBeenCalledWith(API_ENDPOINTS.BOOKS);
       expect(result).toEqual({
         success: true,
         message: "Book deleted successfully",
@@ -351,7 +352,7 @@ describe("Book Actions", () => {
         success: false,
         error: "Delete failed",
       });
-      expect(mockRevalidatePath).not.toHaveBeenCalled();
+      expect(mockRevalidateTag).not.toHaveBeenCalled();
     });
   });
 });

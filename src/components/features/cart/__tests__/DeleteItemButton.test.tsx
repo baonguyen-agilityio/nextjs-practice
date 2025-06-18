@@ -1,15 +1,8 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import {
-  DeleteItemButton,
-  getBookId,
-  getCartItemId,
-  createRemoveAction,
-  handleOptimisticUpdate,
-  getButtonProps,
-  REMOVE_BUTTON_TEXT,
-  type OptimisticUpdateFn,
-} from "../DeleteItemButton";
+import { DeleteItemButton } from "../DeleteItemButton";
 import type { CartItem } from "@/types";
+
+export type OptimisticUpdateFn = (bookId: string, action: "delete") => void;
 
 const mockFormAction = jest.fn();
 const mockUseActionState = jest.fn();
@@ -18,10 +11,15 @@ jest.mock("@/app/actions", () => ({
   removeItem: jest.fn(),
 }));
 
+jest.mock("@heroui/react", () => ({
+  addToast: jest.fn(),
+}));
+
 jest.mock("react", () => ({
   ...jest.requireActual("react"),
   useActionState: (...args: any[]) => mockUseActionState(...args),
   useCallback: jest.fn().mockImplementation((fn: any) => fn),
+  useEffect: jest.fn(),
 }));
 
 jest.mock("@/components/ui/Button", () => ({
@@ -30,20 +28,18 @@ jest.mock("@/components/ui/Button", () => ({
     onClick,
     type,
     variant,
-    color,
-    size,
-    fullWidth,
+    disabled,
+    isLoading,
     ...props
   }: any) {
     return (
       <button
         onClick={onClick}
         type={type}
+        disabled={disabled || isLoading}
         data-testid="delete-button"
         data-variant={variant}
-        data-color={color}
-        data-size={size}
-        data-full-width={fullWidth}
+        data-loading={isLoading}
         {...props}
       >
         {children}
@@ -76,93 +72,8 @@ describe("DeleteItemButton", () => {
   const mockOptimisticUpdate: OptimisticUpdateFn = jest.fn();
 
   beforeEach(() => {
-    mockUseActionState.mockReturnValue([null, mockFormAction, false]);
+    mockUseActionState.mockReturnValue([{ success: null, message: "" }, mockFormAction, false]);
     jest.clearAllMocks();
-  });
-
-  describe("Helper Functions", () => {
-    describe("getBookId", () => {
-      it("should return book ID when book exists", () => {
-        const result = getBookId(mockCartItem);
-        expect(result).toBe("book-1");
-      });
-
-      it("should return empty string when book is null", () => {
-        const itemWithoutBook = { ...mockCartItem, book: null };
-        const result = getBookId(itemWithoutBook as any);
-        expect(result).toBe("");
-      });
-
-      it("should return empty string when book is undefined", () => {
-        const itemWithoutBook = { ...mockCartItem, book: undefined };
-        const result = getBookId(itemWithoutBook as any);
-        expect(result).toBe("");
-      });
-
-      it("should return empty string when book ID is missing", () => {
-        const itemWithoutBookId = {
-          ...mockCartItem,
-          book: { ...mockCartItem.book, id: undefined },
-        };
-        const result = getBookId(itemWithoutBookId as any);
-        expect(result).toBe("");
-      });
-    });
-
-    describe("getCartItemId", () => {
-      it("should return document ID when it exists", () => {
-        const result = getCartItemId(mockCartItem);
-        expect(result).toBe("doc-cart-item-1");
-      });
-
-      it("should return empty string when document ID is missing", () => {
-        const itemWithoutDocId = { ...mockCartItem, documentId: undefined };
-        const result = getCartItemId(itemWithoutDocId);
-        expect(result).toBe("");
-      });
-
-      it("should return empty string when document ID is null", () => {
-        const itemWithoutDocId = { ...mockCartItem, documentId: null };
-        const result = getCartItemId(itemWithoutDocId as any);
-        expect(result).toBe("");
-      });
-    });
-
-    describe("createRemoveAction", () => {
-      it("should bind form action with cart item ID", () => {
-        const mockBind = jest.fn().mockReturnValue("bound-action");
-        const mockAction = { bind: mockBind };
-
-        const result = createRemoveAction(mockAction, "test-cart-item-id");
-
-        expect(mockBind).toHaveBeenCalledWith(null, "test-cart-item-id");
-        expect(result).toBe("bound-action");
-      });
-    });
-
-    describe("handleOptimisticUpdate", () => {
-      it("should call optimistic update with correct parameters", () => {
-        const mockUpdate = jest.fn();
-
-        handleOptimisticUpdate(mockUpdate, "book-123");
-
-        expect(mockUpdate).toHaveBeenCalledWith("book-123", "delete");
-      });
-    });
-
-    describe("getButtonProps", () => {
-      it("should return correct button properties", () => {
-        const props = getButtonProps();
-
-        expect(props).toEqual({
-          type: "submit",
-          variant: "light",
-          color: "default",
-          size: "lg",
-          fullWidth: true,
-        });
-      });
-    });
   });
 
   describe("Component Rendering", () => {
@@ -171,7 +82,7 @@ describe("DeleteItemButton", () => {
 
       const button = screen.getByTestId("delete-button");
       expect(button).toBeInTheDocument();
-      expect(button).toHaveTextContent(REMOVE_BUTTON_TEXT);
+      expect(button).toHaveTextContent("Remove");
     });
 
     it("should render button with correct properties", () => {
@@ -180,92 +91,53 @@ describe("DeleteItemButton", () => {
       const button = screen.getByTestId("delete-button");
       expect(button).toHaveAttribute("type", "submit");
       expect(button).toHaveAttribute("data-variant", "light");
-      expect(button).toHaveAttribute("data-color", "default");
-      expect(button).toHaveAttribute("data-size", "lg");
-      expect(button).toHaveAttribute("data-full-width", "true");
     });
 
-    it("should render status message element", () => {
+    it("should render form wrapper", () => {
       render(<DeleteItemButton item={mockCartItem} optimisticUpdate={mockOptimisticUpdate} />);
 
-      const statusElement = screen.getByRole("status");
-      expect(statusElement).toBeInTheDocument();
-      expect(statusElement).toHaveClass("sr-only");
-      expect(statusElement).toHaveAttribute("aria-live", "polite");
-    });
-
-    it("should display message in status element when present", () => {
-      mockUseActionState.mockReturnValue(["Error occurred", mockFormAction, false]);
-
-      render(<DeleteItemButton item={mockCartItem} optimisticUpdate={mockOptimisticUpdate} />);
-
-      const statusElement = screen.getByRole("status");
-      expect(statusElement).toHaveTextContent("Error occurred");
+      const form = document.querySelector("form");
+      expect(form).toBeInTheDocument();
     });
   });
 
   describe("Form Submission", () => {
-    it("should call optimistic update on form submission", async () => {
-      const handleFormSubmit = jest.fn();
-      const { useCallback } = require("react");
-      useCallback.mockImplementation((fn: any) => {
-        handleFormSubmit.mockImplementation(fn);
-        return handleFormSubmit;
-      });
-
-      render(<DeleteItemButton item={mockCartItem} optimisticUpdate={mockOptimisticUpdate} />);
-
-      const form = screen.getByTestId("delete-button").closest("form");
-      expect(form).toBeInTheDocument();
-
-      handleFormSubmit();
-
-      expect(mockOptimisticUpdate).toHaveBeenCalledWith("book-1", "delete");
-    });
-
-    it("should use default removeItem action when no override provided", () => {
+    it("should use default removeItem action with correct initial state", () => {
       const { removeItem } = require("@/app/actions");
 
       render(<DeleteItemButton item={mockCartItem} optimisticUpdate={mockOptimisticUpdate} />);
 
-      expect(mockUseActionState).toHaveBeenCalledWith(removeItem, null);
+      expect(mockUseActionState).toHaveBeenCalledWith(removeItem, {
+        success: null,
+        message: "",
+      });
     });
 
-    it("should use custom remove action when override provided", () => {
-      const customRemoveAction = jest.fn();
-
-      render(
-        <DeleteItemButton
-          item={mockCartItem}
-          optimisticUpdate={mockOptimisticUpdate}
-          onRemoveOverride={customRemoveAction}
-        />
-      );
-
-      expect(mockUseActionState).toHaveBeenCalledWith(customRemoveAction, null);
-    });
-  });
-
-  describe("Action Binding", () => {
-    it("should bind form action with correct cart item ID", () => {
-      mockFormAction.bind = jest.fn().mockReturnValue("bound-action");
+    it("should handle loading state correctly", () => {
+      mockUseActionState.mockReturnValue([
+        { success: null, message: "" },
+        mockFormAction,
+        true, // isPending = true
+      ]);
 
       render(<DeleteItemButton item={mockCartItem} optimisticUpdate={mockOptimisticUpdate} />);
 
-      expect(mockFormAction.bind).toHaveBeenCalledWith(null, "doc-cart-item-1");
-    });
-
-    it("should handle empty cart item ID", () => {
-      const itemWithoutDocId = { ...mockCartItem, documentId: undefined };
-      mockFormAction.bind = jest.fn().mockReturnValue("bound-action");
-
-      render(<DeleteItemButton item={itemWithoutDocId} optimisticUpdate={mockOptimisticUpdate} />);
-
-      expect(mockFormAction.bind).toHaveBeenCalledWith(null, "");
+      const button = screen.getByTestId("delete-button");
+      expect(button).toHaveAttribute("disabled");
+      expect(button).toHaveAttribute("data-loading", "true");
     });
   });
 
-  describe("Edge Cases", () => {
+  describe("Integration", () => {
+    it("should call optimistic update when form is submitted", () => {
+      render(<DeleteItemButton item={mockCartItem} optimisticUpdate={mockOptimisticUpdate} />);
+
+      const form = document.querySelector("form");
+      fireEvent.submit(form!);
+
+      expect(mockOptimisticUpdate).toHaveBeenCalledWith("book-1", "delete");
+    });
+
     it("should handle cart item without book gracefully", () => {
       const itemWithoutBook = { ...mockCartItem, book: null };
 
@@ -277,53 +149,78 @@ describe("DeleteItemButton", () => {
       expect(button).toBeInTheDocument();
     });
 
-    it("should handle missing documentId gracefully", () => {
-      const itemWithoutDocId = { ...mockCartItem, documentId: undefined };
+    it("should handle cart item without documentId gracefully", () => {
+      const itemWithoutDocId = { ...mockCartItem, documentId: "" };
 
       render(<DeleteItemButton item={itemWithoutDocId} optimisticUpdate={mockOptimisticUpdate} />);
 
       const button = screen.getByTestId("delete-button");
       expect(button).toBeInTheDocument();
     });
-
-    it("should handle undefined book properties", () => {
-      const itemWithPartialBook = {
-        ...mockCartItem,
-        book: {
-          ...mockCartItem.book,
-          id: undefined,
-        },
-      };
-
-      render(
-        <DeleteItemButton
-          item={itemWithPartialBook as any}
-          optimisticUpdate={mockOptimisticUpdate}
-        />
-      );
-
-      const button = screen.getByTestId("delete-button");
-      expect(button).toBeInTheDocument();
-    });
   });
 
-  describe("Accessibility", () => {
-    it("should have proper form structure", () => {
+  describe("useActionState Integration", () => {
+    it("should call useActionState with correct parameters", () => {
+      const { removeItem } = require("@/app/actions");
+
       render(<DeleteItemButton item={mockCartItem} optimisticUpdate={mockOptimisticUpdate} />);
 
-      const form = screen.getByTestId("delete-button").closest("form");
-      const button = screen.getByTestId("delete-button");
-
-      expect(form).toBeInTheDocument();
-      expect(button).toHaveAttribute("type", "submit");
+      expect(mockUseActionState).toHaveBeenCalledWith(removeItem, {
+        success: null,
+        message: "",
+      });
     });
 
-    it("should have proper aria-live region for status updates", () => {
+    it("should handle success state correctly", () => {
+      const { useEffect } = require("react");
+      const { addToast } = require("@heroui/react");
+
+      mockUseActionState.mockReturnValue([
+        { success: true, message: "Item removed successfully" },
+        mockFormAction,
+        false,
+      ]);
+
+      useEffect.mockImplementation((callback: any, deps: any) => {
+        // Simulate the effect running when result changes
+        if (deps && deps.some((dep: any) => dep?.success === true)) {
+          callback();
+        }
+      });
+
       render(<DeleteItemButton item={mockCartItem} optimisticUpdate={mockOptimisticUpdate} />);
 
-      const statusElement = screen.getByRole("status");
-      expect(statusElement).toHaveAttribute("aria-live", "polite");
-      expect(statusElement).toHaveClass("sr-only");
+      expect(addToast).toHaveBeenCalledWith({
+        title: "Item removed successfully",
+        color: "success",
+        shouldShowTimeoutProgress: true,
+      });
+    });
+
+    it("should handle error state correctly", () => {
+      const { useEffect } = require("react");
+      const { addToast } = require("@heroui/react");
+
+      mockUseActionState.mockReturnValue([
+        { success: false, message: "Failed to remove item" },
+        mockFormAction,
+        false,
+      ]);
+
+      useEffect.mockImplementation((callback: any, deps: any) => {
+        // Simulate the effect running when result changes
+        if (deps && deps.some((dep: any) => dep?.success === false)) {
+          callback();
+        }
+      });
+
+      render(<DeleteItemButton item={mockCartItem} optimisticUpdate={mockOptimisticUpdate} />);
+
+      expect(addToast).toHaveBeenCalledWith({
+        title: "Failed to remove item",
+        color: "danger",
+        shouldShowTimeoutProgress: true,
+      });
     });
   });
 });

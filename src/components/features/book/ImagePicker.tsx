@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { createImageUrl } from "@/utils/image";
 
 export default function ImagePicker({
   imageUrl,
@@ -26,7 +27,7 @@ export default function ImagePicker({
     }
   };
 
-  const display = previewUrl || (imageUrl && `${process.env.NEXT_PUBLIC_STRAPI_URL}${imageUrl}`);
+  const display = previewUrl || (imageUrl && createImageUrl(imageUrl));
 
   return (
     <div className="flex flex-col gap-2">

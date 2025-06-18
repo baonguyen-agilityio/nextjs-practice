@@ -73,7 +73,7 @@ describe("AddToCart", () => {
       push: mockRouterPush,
     });
 
-    useActionState.mockReturnValue([null, mockFormAction]);
+    useActionState.mockReturnValue([{ success: null, message: "" }, mockFormAction, false]);
 
     jest.clearAllMocks();
   });
@@ -138,12 +138,16 @@ describe("AddToCart", () => {
     const { useActionState } = require("react");
     const { useEffect } = require("react");
 
-    useActionState.mockReturnValue(["UNAUTHORIZED", mockFormAction]);
+    // Return correct structure: [result, formAction, isPending]
+    useActionState.mockReturnValue([
+      { success: false, message: "UNAUTHORIZED" },
+      mockFormAction,
+      false,
+    ]);
 
-    useEffect.mockImplementation((callback: any, deps: any) => {
-      if (deps && deps.includes("UNAUTHORIZED")) {
-        callback();
-      }
+    // Mock useEffect to immediately call the callback
+    useEffect.mockImplementation((callback: any) => {
+      callback();
     });
 
     render(<AddToCart book={mockBook} variant="add" />);
@@ -154,7 +158,7 @@ describe("AddToCart", () => {
   it("should not redirect when message is not UNAUTHORIZED", () => {
     const { useActionState } = require("react");
 
-    useActionState.mockReturnValue(["SUCCESS", mockFormAction]);
+    useActionState.mockReturnValue([{ success: true, message: "SUCCESS" }, mockFormAction, false]);
 
     render(<AddToCart book={mockBook} variant="add" />);
 
@@ -198,7 +202,7 @@ describe("AddToCart", () => {
   it("should handle null message state", () => {
     const { useActionState } = require("react");
 
-    useActionState.mockReturnValue([null, mockFormAction]);
+    useActionState.mockReturnValue([{ success: null, message: "" }, mockFormAction, false]);
 
     render(<AddToCart book={mockBook} variant="add" />);
 
@@ -208,7 +212,7 @@ describe("AddToCart", () => {
   it("should handle empty message state", () => {
     const { useActionState } = require("react");
 
-    useActionState.mockReturnValue(["", mockFormAction]);
+    useActionState.mockReturnValue([{ success: false, message: "" }, mockFormAction, false]);
 
     render(<AddToCart book={mockBook} variant="add" />);
 

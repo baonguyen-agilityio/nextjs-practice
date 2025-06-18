@@ -4,6 +4,7 @@ import { Banner } from "@/components/ui/Banner";
 import { Button } from "@/components/ui/Button";
 import type { Article } from "@/types";
 import Image from "next/image";
+import { createImageUrl } from "@/utils/image";
 
 export default function ArticleDetails({ article }: { article: Article }) {
   return (
@@ -21,7 +22,7 @@ export default function ArticleDetails({ article }: { article: Article }) {
         </div>
         <div className="py-10 md:p-16 lg:p-20">
           <Image
-            src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${article.imageUrl}`}
+            src={createImageUrl(article.imageUrl)}
             alt={`article`}
             layout="responsive"
             width={600}

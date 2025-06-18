@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { BookDetails, createImageUrl, validateQuantity, handleNavigation } from "../BookDetails";
+import { BookDetails, handleNavigation } from "../BookDetails";
 import type { Book } from "@/types";
 
 const mockAddCartItem = jest.fn();
@@ -19,6 +19,16 @@ jest.mock("react", () => ({
 
 jest.mock("@/app/actions", () => ({
   addItem: jest.fn(),
+}));
+
+jest.mock("next/navigation", () => ({
+  useRouter: jest.fn().mockReturnValue({
+    push: jest.fn(),
+  }),
+}));
+
+jest.mock("@heroui/react", () => ({
+  addToast: jest.fn(),
 }));
 
 jest.mock("@/utils/currency", () => ({
@@ -144,39 +154,6 @@ describe("BookDetails", () => {
   });
 
   describe("Helper Functions", () => {
-    describe("createImageUrl", () => {
-      it("should create image URL with base URL", () => {
-        const result = createImageUrl("http://localhost:1337", "/test.jpg");
-        expect(result).toBe("http://localhost:1337/test.jpg");
-      });
-
-      it("should handle undefined base URL", () => {
-        const result = createImageUrl(undefined, "/test.jpg");
-        expect(result).toBe("/test.jpg");
-      });
-
-      it("should handle empty base URL", () => {
-        const result = createImageUrl("", "/test.jpg");
-        expect(result).toBe("/test.jpg");
-      });
-    });
-
-    describe("validateQuantity", () => {
-      it("should return value within bounds", () => {
-        expect(validateQuantity(5)).toBe(5);
-      });
-
-      it("should clamp to minimum value", () => {
-        expect(validateQuantity(0)).toBe(1);
-        expect(validateQuantity(-5)).toBe(1);
-      });
-
-      it("should clamp to maximum value", () => {
-        expect(validateQuantity(15)).toBe(10);
-        expect(validateQuantity(100)).toBe(10);
-      });
-    });
-
     describe("handleNavigation", () => {
       it("should call custom navigation function when provided", () => {
         const mockNavigate = jest.fn();

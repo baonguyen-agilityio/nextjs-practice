@@ -107,11 +107,13 @@ export default function BookList({
       addToast({
         title: result.message,
         color: "success",
+        shouldShowTimeoutProgress: true,
       });
     } else if (result?.success === false) {
       addToast({
         title: "Failed to update book",
         color: "danger",
+        shouldShowTimeoutProgress: true,
       });
     }
   }, [result]);
@@ -121,11 +123,13 @@ export default function BookList({
       addToast({
         title: resultDelete.message,
         color: "success",
+        shouldShowTimeoutProgress: true,
       });
     } else if (resultDelete?.success === false) {
       addToast({
         title: "Failed to delete book",
         color: "danger",
+        shouldShowTimeoutProgress: true,
       });
     }
   }, [resultDelete]);

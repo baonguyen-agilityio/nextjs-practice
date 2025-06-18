@@ -7,6 +7,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <HeroUIProvider>
       <ToastProvider
+        placement="top-right"
         toastProps={{
           variant: "bordered",
           classNames: {

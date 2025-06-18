@@ -1,70 +1,60 @@
 "use client";
 
 import type { CartItem } from "@/types";
-import { useActionState, useCallback } from "react";
+import { useActionState, useCallback, useEffect } from "react";
 import { removeItem } from "@/app/actions";
 import { Button } from "@/components/ui/Button";
-
-export const REMOVE_BUTTON_TEXT = "Remove";
-
-export type OptimisticUpdateFn = (bookId: string, updateType: "delete") => void;
-
-export const getBookId = (item: CartItem): string => {
-  return item.book?.id || "";
-};
-
-export const getCartItemId = (item: CartItem): string => {
-  return item.documentId || "";
-};
-
-export const createRemoveAction = (formAction: any, cartItemId: string) => {
-  return formAction.bind(null, cartItemId);
-};
-
-export const handleOptimisticUpdate = (
-  optimisticUpdate: OptimisticUpdateFn,
-  bookId: string
-): void => {
-  optimisticUpdate(bookId, "delete");
-};
-
-export const getButtonProps = () => ({
-  type: "submit" as const,
-  variant: "light" as const,
-  color: "default" as const,
-  size: "lg" as const,
-  fullWidth: true,
-});
+import { addToast } from "@heroui/react";
 
 interface DeleteItemButtonProps {
   item: CartItem;
-  optimisticUpdate: OptimisticUpdateFn;
-  onRemoveOverride?: (cartItemId: string) => Promise<any>;
+  optimisticUpdate: any;
 }
 
-export function DeleteItemButton({
-  item,
-  optimisticUpdate,
-  onRemoveOverride,
-}: DeleteItemButtonProps) {
-  const [message, formAction] = useActionState(onRemoveOverride || removeItem, null);
+export function DeleteItemButton({ item, optimisticUpdate }: DeleteItemButtonProps) {
+  const [result, formAction, isPending] = useActionState(removeItem, {
+    success: null,
+    message: "",
+  });
 
-  const bookId = getBookId(item);
-  const cartItemId = getCartItemId(item);
-  const removeItemAction = createRemoveAction(formAction, cartItemId);
-  const buttonProps = getButtonProps();
+  const bookId = item.book?.id || "";
+  const cartItemId = item.documentId || "";
+  const removeItemAction = formAction.bind(null, cartItemId);
 
   const handleFormSubmit = useCallback(async () => {
-    handleOptimisticUpdate(optimisticUpdate, bookId);
+    optimisticUpdate(bookId, "delete");
     removeItemAction();
   }, [optimisticUpdate, bookId, removeItemAction]);
 
+  useEffect(() => {
+    if (result?.success) {
+      addToast({
+        title: result.message,
+        color: "success",
+        shouldShowTimeoutProgress: true,
+      });
+    }
+    if (result?.success === false) {
+      addToast({
+        title: result.message,
+        color: "danger",
+        shouldShowTimeoutProgress: true,
+      });
+    }
+  }, [result]);
+
   return (
     <form action={handleFormSubmit}>
-      <Button {...buttonProps}>{REMOVE_BUTTON_TEXT}</Button>
-      <p aria-live="polite" className="sr-only" role="status">
-        {message}
-      </p>
+      <Button
+        aria-label="Remove item from cart"
+        disabled={isPending}
+        isLoading={isPending}
+        type="submit"
+        variant="light"
+        color="danger"
+      >
+        Remove
+      </Button>
     </form>
   );
 }

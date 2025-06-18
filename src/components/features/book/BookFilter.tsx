@@ -30,6 +30,7 @@ export default function BookFilter({
       <Input
         type="text"
         placeholder="Search books..."
+        aria-label="Search books"
         className="max-w-xs"
         value={searchValue}
         onChange={(e) => {
@@ -45,6 +46,7 @@ export default function BookFilter({
       />
       <Select
         placeholder="Filter by category"
+        aria-label="Filter books by category"
         className="max-w-xs"
         selectedKeys={categoryValue ? [categoryValue] : []}
         onChange={(e) => {

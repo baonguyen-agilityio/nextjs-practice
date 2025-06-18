@@ -3,7 +3,7 @@
 import { createBook } from "@/app/actions/book";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Form } from "@heroui/react";
+import { addToast, Form } from "@heroui/react";
 import { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import ImagePicker from "./ImagePicker";
 import { Select, SelectItem } from "@heroui/react";
@@ -26,6 +26,7 @@ export default function CreateBookForm({
   const formRef = useRef<HTMLFormElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [result, formAction, isPending] = useActionState(createBook, undefined);
+  const handledRef = useRef(false);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -35,6 +36,8 @@ export default function CreateBookForm({
     if (selectedFile) {
       formData.append("image", selectedFile);
     }
+
+    handledRef.current = false;
 
     startTransition(() => {
       formAction(formData);
@@ -52,9 +55,21 @@ export default function CreateBookForm({
       : null;
 
   useEffect(() => {
+    if (!result || handledRef.current) return;
     if (result?.success) {
+      addToast({
+        title: result.message,
+        color: "success",
+      });
       onClose();
     }
+    if (result?.success === false) {
+      addToast({
+        title: "Failed to create book",
+        color: "danger",
+      });
+    }
+    handledRef.current = true;
   }, [result, onClose]);
 
   return (

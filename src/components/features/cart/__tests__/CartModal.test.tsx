@@ -1,18 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import CartModal, {
-  createImageUrl,
-  isCartEmpty,
-  formatPrice,
-  getTotalAmount,
-  getModalClassNames,
-  getEmptyCartStyles,
-  getQuantityControlsStyles,
-  MODAL_TITLE,
-  EMPTY_CART_MESSAGE,
-  SUBTOTAL_LABEL,
-  CLOSE_BUTTON_TEXT,
-} from "../CartModal";
-import type { Cart, CartItem } from "@/types";
+import CartModal from "../CartModal";
+import type { CartItem, Cart } from "@/types";
 
 const mockUpdateCartItem = jest.fn();
 const mockUseCart = jest.fn();
@@ -165,104 +153,6 @@ describe("CartModal", () => {
     process.env = originalEnv;
   });
 
-  describe("Helper Functions", () => {
-    describe("createImageUrl", () => {
-      it("should create image URL with base URL", () => {
-        const result = createImageUrl("http://localhost:1337", "/test.jpg");
-        expect(result).toBe("http://localhost:1337/test.jpg");
-      });
-
-      it("should handle undefined base URL", () => {
-        const result = createImageUrl(undefined, "/test.jpg");
-        expect(result).toBe("/test.jpg");
-      });
-    });
-
-    describe("isCartEmpty", () => {
-      it("should return true for null cart", () => {
-        expect(isCartEmpty(null)).toBe(true);
-      });
-
-      it("should return true for undefined cart", () => {
-        expect(isCartEmpty(undefined)).toBe(true);
-      });
-
-      it("should return true for cart with no items", () => {
-        expect(isCartEmpty({ ...mockCart, cartItems: [] })).toBe(true);
-      });
-
-      it("should return false for cart with items", () => {
-        expect(isCartEmpty(mockCart)).toBe(false);
-      });
-    });
-
-    describe("formatPrice", () => {
-      it("should format price correctly", () => {
-        const { formatUSD } = require("@/utils/currency");
-        formatUSD.mockReturnValue("$29.99");
-
-        const result = formatPrice(29.99);
-        expect(formatUSD).toHaveBeenCalledWith(29.99);
-        expect(result).toBe("$29.99");
-      });
-
-      it("should handle zero price", () => {
-        const { formatUSD } = require("@/utils/currency");
-        formatUSD.mockReturnValue("$0.00");
-
-        const result = formatPrice(0);
-        expect(result).toBe("$0.00");
-      });
-    });
-
-    describe("getTotalAmount", () => {
-      it("should return total amount from cart", () => {
-        expect(getTotalAmount(mockCart)).toBe(59.98);
-      });
-
-      it("should return 0 for empty cart", () => {
-        expect(getTotalAmount(null)).toBe(0);
-      });
-
-      it("should return 0 for cart without cost", () => {
-        const cartWithoutCost = { ...mockCart, cost: undefined };
-        expect(getTotalAmount(cartWithoutCost)).toBe(0);
-      });
-    });
-
-    describe("getModalClassNames", () => {
-      it("should return correct class names object", () => {
-        const classNames = getModalClassNames();
-        expect(classNames).toEqual({
-          body: "py-6",
-          backdrop: "bg-primary/90 backdrop-opacity-40",
-          base: "text-primary",
-          header: "bg-secondary text-primary",
-          footer: "flex flex-col gap-4",
-          closeButton: "text-primary hover:bg-white/5 active:bg-white/10 top-3 right-2",
-        });
-      });
-    });
-
-    describe("getEmptyCartStyles", () => {
-      it("should return correct empty cart styles", () => {
-        const styles = getEmptyCartStyles();
-        expect(styles).toBe(
-          "mt-20 flex w-full flex-col items-center justify-center overflow-hidden"
-        );
-      });
-    });
-
-    describe("getQuantityControlsStyles", () => {
-      it("should return correct quantity controls styles", () => {
-        const styles = getQuantityControlsStyles();
-        expect(styles).toBe(
-          "ml-auto flex h-9 flex-row items-center rounded-full border border-neutral-200 dark:border-neutral-700"
-        );
-      });
-    });
-  });
-
   describe("Component Rendering", () => {
     it("should render cart modal trigger button", () => {
       render(<CartModal />);
@@ -290,7 +180,7 @@ describe("CartModal", () => {
       fireEvent.click(triggerButton);
 
       await waitFor(() => {
-        expect(screen.getByTestId("modal-header")).toHaveTextContent(MODAL_TITLE);
+        expect(screen.getByTestId("modal-header")).toHaveTextContent("Your Cart");
       });
     });
 
@@ -324,7 +214,7 @@ describe("CartModal", () => {
       fireEvent.click(triggerButton);
 
       await waitFor(() => {
-        expect(screen.getByText(EMPTY_CART_MESSAGE)).toBeInTheDocument();
+        expect(screen.getByText("Your cart is empty.")).toBeInTheDocument();
         expect(screen.getByTestId("shopping-cart-icon")).toBeInTheDocument();
       });
     });
@@ -339,7 +229,7 @@ describe("CartModal", () => {
       fireEvent.click(triggerButton);
 
       await waitFor(() => {
-        expect(screen.getByText(SUBTOTAL_LABEL)).toBeInTheDocument();
+        expect(screen.getByText("Sub-Total")).toBeInTheDocument();
         const modalFooter = screen.getByTestId("modal-footer");
         expect(modalFooter).toHaveTextContent("$59.98");
       });
@@ -352,7 +242,7 @@ describe("CartModal", () => {
       fireEvent.click(triggerButton);
 
       await waitFor(() => {
-        const closeButton = screen.getByText(CLOSE_BUTTON_TEXT);
+        const closeButton = screen.getByText("Close");
         expect(closeButton).toBeInTheDocument();
       });
     });
@@ -393,20 +283,6 @@ describe("CartModal", () => {
       render(<CartModal />);
 
       expect(createCart).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("Custom Image URL", () => {
-    it("should use custom base image URL when provided", async () => {
-      render(<CartModal baseImageUrl="https://custom.com" />);
-
-      const triggerButton = screen.getByTestId("button");
-      fireEvent.click(triggerButton);
-
-      await waitFor(() => {
-        const image = screen.getByTestId("cart-image");
-        expect(image).toHaveAttribute("src", "https://custom.com/test-image.jpg");
-      });
     });
   });
 

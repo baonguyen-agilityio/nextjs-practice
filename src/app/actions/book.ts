@@ -2,9 +2,10 @@
 
 import { createBookService, deleteBook, updateBookService } from "@/services/book";
 import { createBookSchema, updateBookSchema } from "@/schemas";
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { uploadImage } from "@/lib/utils/image";
 import type { BookPayload } from "@/types";
+import { API_ENDPOINTS } from "@/constants";
 
 export type ActionResult =
   | { success: true; message: string }
@@ -51,7 +52,7 @@ async function handleBookAction(
       }
     }
 
-    revalidatePath("/books");
+    revalidateTag(API_ENDPOINTS.BOOKS);
     return {
       success: true,
       message: action === "create" ? "Book created successfully" : "Book updated successfully",
@@ -79,6 +80,6 @@ export async function deleteBookAction(_: unknown, formData: FormData): Promise<
     return { success: false, error };
   }
 
-  revalidatePath("/books");
+  revalidateTag(API_ENDPOINTS.BOOKS);
   return { success: true, message: "Book deleted successfully" };
 }
