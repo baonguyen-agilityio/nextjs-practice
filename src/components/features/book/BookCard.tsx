@@ -4,8 +4,7 @@ import { Card, CardFooter } from "@heroui/react";
 import { formatUSD } from "@/utils/currency";
 import { AddToCart } from "@/components/features/cart/AddToCart";
 import type { Book, Category } from "@/types";
-import EditBookModal from "@/components/features/book/EditBookModal";
-import DeleteBookModal from "./DeleteBookModal";
+import { LazyEditBookModal, LazyDeleteBookModal } from "./DynamicModals";
 import Image from "next/image";
 import type { ActionResult } from "@/app/actions/book";
 import { createImageUrl } from "@/utils/image";
@@ -34,14 +33,17 @@ export default function BookCard(props: {
   return (
     <Card className="shadow-none rounded-none h-full flex flex-col">
       <div className="p-0">
-        <div className="w-full h-[450px] relative overflow-hidden bg-background">
-          <Image
-            alt={book.title}
-            src={createImageUrl(book.imageUrl)}
-            className="object-cover p-6"
-            fill
-            priority
-          />
+        <div className="w-full h-[650px] relative overflow-hidden bg-background p-6">
+          <div className="w-full h-full relative">
+            <Image
+              alt={book.title}
+              src={createImageUrl(book.imageUrl)}
+              className="object-contain"
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              priority
+            />
+          </div>
         </div>
       </div>
 
@@ -55,14 +57,14 @@ export default function BookCard(props: {
         <div className="space-y-2 w-full mt-auto">
           {isAdmin ? (
             <>
-              <EditBookModal
+              <LazyEditBookModal
                 book={book}
                 categories={categories}
                 formAction={formAction}
                 isPending={isPendingUpdateBook}
                 result={result}
               />
-              <DeleteBookModal
+              <LazyDeleteBookModal
                 book={book}
                 formActionDelete={formActionDelete}
                 isPendingDelete={isPendingDelete}

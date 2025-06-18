@@ -1,6 +1,6 @@
 import BookList from "@/components/features/book/BookList";
 import { auth } from "@/lib/auth/auth";
-import { getBooks } from "@/services";
+import { getBooks } from "@/services/book";
 import { getCategories } from "@/services/category";
 
 export default async function Books({ searchParamsAPI }: { searchParamsAPI: URLSearchParams }) {

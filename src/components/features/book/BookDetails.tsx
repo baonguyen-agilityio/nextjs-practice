@@ -8,7 +8,8 @@ import Image from "next/image";
 import { useCart } from "@/hooks/useCart";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { MinusIcon, PlusIcon } from "@heroicons/react/24/outline";
+import MinusIcon from "@/components/icons/MinusIcon";
+import PlusIcon from "@/components/icons/PlusIcon";
 import { createImageUrl, validateQuantity } from "@/utils";
 import { MIN_QUANTITY } from "@/constants";
 import { addToast } from "@heroui/react";
@@ -98,12 +99,21 @@ export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
           ← Back to list
         </Button>
       </div>
-      <div className="flex justify-between gap-10">
-        <div className="flex justify-center w-1/2 bg-background p-10">
-          <Image alt={book.title} src={imageUrl} width={580} height={660} />
+      <div className="flex flex-col md:flex-row justify-between gap-10">
+        <div className="flex justify-center w-full md:w-1/2 bg-background p-6 md:p-10">
+          <div className="w-full max-w-[580px] aspect-[580/660] relative">
+            <Image
+              alt={book.title}
+              src={imageUrl}
+              fill
+              className="object-contain"
+              sizes="(max-width: 768px) 100vw, 50vw"
+              priority
+            />
+          </div>
         </div>
 
-        <div className="flex flex-col gap-8 w-1/2">
+        <div className="flex flex-col gap-8 w-full md:w-1/2">
           <div className="flex flex-col gap-6">
             <p className="text-title text-5xl">{book.title}</p>
             <p className="text-secondary font-inter text-lg font-bold">{formattedPrice}</p>

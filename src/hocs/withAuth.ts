@@ -1,4 +1,4 @@
-import { validateAuthHeader } from "@/utils";
+import { validateAuthHeader } from "@/utils/auth";
 
 export const withAuth = (handler: (req: Request, token: string) => Promise<Response>) => {
   return async (req: Request) => {

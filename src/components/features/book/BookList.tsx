@@ -16,7 +16,7 @@ import type { Book, Category, MetaResponse } from "@/types";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import BookFilter from "./BookFilter";
-import CreateBookModal from "./CreateBookModal";
+import { LazyCreateBookModal } from "./DynamicModals";
 import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
 import { deleteBookAction, updateBook } from "@/app/actions/book";
 import { addToast } from "@heroui/react";
@@ -142,7 +142,7 @@ export default function BookList({
           onSearchChange={debouncedSearchChange}
           onCategoryChange={handleCategoryChange}
         />
-        {isAdmin && <CreateBookModal categories={categories} />}
+        {isAdmin && <LazyCreateBookModal categories={categories} />}
       </div>
       {isPending ? (
         <SkeletonList length={6} />

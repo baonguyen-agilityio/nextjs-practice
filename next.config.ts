@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "10mb",
     },
+    optimizePackageImports: ["@heroui/react"],
   },
   images: {
     remotePatterns: [
@@ -25,6 +26,10 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
+    formats: ["image/webp", "image/avif"],
+  },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production",
   },
 };
 

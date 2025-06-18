@@ -1,7 +1,8 @@
 "use client";
 
 import type { CartItem } from "@/types";
-import { MinusIcon, PlusIcon } from "@heroicons/react/24/outline";
+import MinusIcon from "@/components/icons/MinusIcon";
+import PlusIcon from "@/components/icons/PlusIcon";
 import { updateItemQuantity } from "@/app/actions/cart";
 import { useActionState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";

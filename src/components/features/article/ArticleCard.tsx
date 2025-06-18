@@ -2,7 +2,8 @@
 
 import type { Article } from "@/types";
 import { formatDate } from "@/utils/date";
-import { Card, CardBody, CardFooter, Image } from "@heroui/react";
+import { Card, CardBody, CardFooter } from "@heroui/react";
+import Image from "next/image";
 import Link from "next/link";
 import { createImageUrl } from "@/utils/image";
 
@@ -12,7 +13,15 @@ export function ArticleCard(props: { article: Article }) {
   return (
     <Card className="shadow-none rounded-none ">
       <CardBody className="overflow-visible p-0">
-        <Image alt="Card background" src={createImageUrl(article.imageUrl)} width="100%" />
+        <div className="w-full h-[300px] relative overflow-hidden">
+          <Image
+            alt="Card background"
+            src={createImageUrl(article.imageUrl)}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        </div>
       </CardBody>
       <CardFooter className="flex flex-col gap-5 text-left items-start p-5">
         <div className="flex justify-between items-center w-full">

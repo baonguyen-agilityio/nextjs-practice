@@ -1,4 +1,4 @@
-import { getBook } from "@/services";
+import { getBook } from "@/services/book";
 import { BookDetails } from "@/components/features/book/BookDetails";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";

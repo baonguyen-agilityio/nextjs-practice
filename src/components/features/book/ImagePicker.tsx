@@ -31,8 +31,16 @@ export default function ImagePicker({
 
   return (
     <div className="flex flex-col gap-2">
-      {display && <Image src={display} alt="Preview" width={100} height={100} />}
-      {!display && <p className="text-gray-500">No image selected.</p>}
+      {display && (
+        <div className="w-[200px] h-[240px] relative border rounded-lg overflow-hidden bg-gray-50">
+          <Image src={display} alt="Preview" fill className="object-cover" sizes="200px" />
+        </div>
+      )}
+      {!display && (
+        <div className="w-[200px] h-[240px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
+          <p className="text-gray-500 text-center">No image selected.</p>
+        </div>
+      )}
       <input
         ref={inputRef}
         type="file"
