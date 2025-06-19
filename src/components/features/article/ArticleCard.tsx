@@ -15,6 +15,7 @@ export function ArticleCard(props: { article: Article }) {
       <CardBody className="overflow-visible p-0">
         <div className="w-full h-[300px] relative overflow-hidden">
           <Image
+            data-testid="hero-image"
             alt="Card background"
             src={createImageUrl(article.imageUrl)}
             fill

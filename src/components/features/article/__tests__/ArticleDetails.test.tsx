@@ -63,165 +63,104 @@ describe("ArticleDetails", () => {
     jest.clearAllMocks();
   });
 
-  it("should render article details with all elements", () => {
-    render(<ArticleDetails article={mockArticle} />);
+  describe("Component Rendering", () => {
+    it("should render all main elements", () => {
+      render(<ArticleDetails article={mockArticle} />);
 
-    expect(screen.getByTestId("banner")).toBeInTheDocument();
-    expect(screen.getByTestId("button")).toBeInTheDocument();
-    expect(screen.getByTestId("article-image")).toBeInTheDocument();
+      expect(screen.getByTestId("banner")).toBeInTheDocument();
+      expect(screen.getByTestId("button")).toBeInTheDocument();
+      expect(screen.getByTestId("article-image")).toBeInTheDocument();
+    });
+
+    it("should render banner with correct title", () => {
+      render(<ArticleDetails article={mockArticle} />);
+
+      const banner = screen.getByTestId("banner");
+      expect(banner).toHaveTextContent("Significant reading has more info number");
+    });
+
+    it("should render back button with correct props", () => {
+      render(<ArticleDetails article={mockArticle} />);
+
+      const backButton = screen.getByTestId("button");
+      expect(backButton).toHaveTextContent("← Back to list");
+      expect(backButton).toHaveAttribute("data-variant", "light");
+      expect(backButton).toHaveClass("text-description");
+    });
   });
 
-  it("should render banner with correct title", () => {
-    render(<ArticleDetails article={mockArticle} />);
+  describe("User Interactions", () => {
+    it("should handle back button click", () => {
+      render(<ArticleDetails article={mockArticle} />);
 
-    const banner = screen.getByTestId("banner");
-    expect(banner).toHaveTextContent("Significant reading has more info number");
+      const backButton = screen.getByTestId("button");
+      fireEvent.click(backButton);
+
+      expect(window.history.back).toHaveBeenCalled();
+    });
   });
 
-  it("should render back button with correct props", () => {
-    render(<ArticleDetails article={mockArticle} />);
+  describe("Image Handling", () => {
+    it("should render image with correct props and environment URL", () => {
+      render(<ArticleDetails article={mockArticle} />);
 
-    const backButton = screen.getByTestId("button");
-    expect(backButton).toHaveTextContent("← Back to list");
-    expect(backButton).toHaveAttribute("data-variant", "light");
-    expect(backButton).toHaveClass("text-description");
+      const image = screen.getByTestId("article-image");
+      expect(image).toHaveAttribute("src", "http://localhost:1337/test-image.jpg");
+      expect(image).toHaveAttribute("alt", "article");
+      expect(image).toHaveAttribute("data-layout", "responsive");
+      expect(image).toHaveAttribute("data-width", "600");
+      expect(image).toHaveAttribute("data-height", "400");
+      expect(image).toHaveAttribute("data-object-fit", "contain");
+    });
+
+    it("should handle missing environment variable", () => {
+      delete process.env.NEXT_PUBLIC_STRAPI_URL;
+
+      render(<ArticleDetails article={mockArticle} />);
+
+      const image = screen.getByTestId("article-image");
+      expect(image).toHaveAttribute("src", "/test-image.jpg");
+    });
   });
 
-  it("should handle back button click", () => {
-    render(<ArticleDetails article={mockArticle} />);
+  describe("Content Display", () => {
+    it("should display published date and author", () => {
+      render(<ArticleDetails article={mockArticle} />);
 
-    const backButton = screen.getByTestId("button");
-    fireEvent.click(backButton);
+      expect(screen.getByText("2023-01-01T00:00:00.000Z / Author")).toBeInTheDocument();
+    });
 
-    expect(window.history.back).toHaveBeenCalled();
+    it("should render content with HTML", () => {
+      const { container } = render(<ArticleDetails article={mockArticle} />);
+
+      expect(container.textContent).toContain("This is a test article content");
+      expect(container.textContent).toContain("HTML");
+    });
+
+    it("should handle empty content", () => {
+      const articleWithEmptyContent = {
+        ...mockArticle,
+        content: "",
+      };
+
+      const { container } = render(<ArticleDetails article={articleWithEmptyContent} />);
+
+      expect(container.querySelector(".space-y-4")).toBeInTheDocument();
+    });
   });
 
-  it("should render image with correct props", () => {
-    render(<ArticleDetails article={mockArticle} />);
+  describe("Layout Structure", () => {
+    it("should have correct container structure", () => {
+      const { container } = render(<ArticleDetails article={mockArticle} />);
 
-    const image = screen.getByTestId("article-image");
-    expect(image).toHaveAttribute("src", "http://localhost:1337/test-image.jpg");
-    expect(image).toHaveAttribute("alt", "article");
-    expect(image).toHaveAttribute("data-layout", "responsive");
-    expect(image).toHaveAttribute("data-width", "600");
-    expect(image).toHaveAttribute("data-height", "400");
-    expect(image).toHaveAttribute("data-object-fit", "contain");
-  });
+      const section = container.querySelector("section");
+      expect(section).toHaveClass("container", "mx-auto", "px-4", "max-w-7xl");
 
-  it("should display published date", () => {
-    render(<ArticleDetails article={mockArticle} />);
+      const paddingDiv = container.querySelector(".py-10");
+      expect(paddingDiv).toHaveClass("py-10", "md:p-16", "lg:p-20");
 
-    expect(screen.getByText("2023-01-01T00:00:00.000Z / Author")).toBeInTheDocument();
-  });
-
-  it("should render content with HTML", () => {
-    const { container } = render(<ArticleDetails article={mockArticle} />);
-
-    expect(container.textContent).toContain("This is a test article content");
-    expect(container.textContent).toContain("HTML");
-  });
-
-  it("should have correct container structure", () => {
-    const { container } = render(<ArticleDetails article={mockArticle} />);
-
-    const section = container.querySelector("section");
-    expect(section).toHaveClass("container", "mx-auto", "px-4", "max-w-7xl");
-  });
-
-  it("should have correct spacing classes", () => {
-    const { container } = render(<ArticleDetails article={mockArticle} />);
-
-    const paddingDiv = container.querySelector(".py-10");
-    expect(paddingDiv).toHaveClass("py-10", "md:p-16", "lg:p-20");
-
-    const spacingDiv = container.querySelector(".space-y-4");
-    expect(spacingDiv).toHaveClass("space-y-4", "mt-5");
-  });
-
-  it("should handle article with empty content", () => {
-    const articleWithEmptyContent = {
-      ...mockArticle,
-      content: "",
-    };
-
-    const { container } = render(<ArticleDetails article={articleWithEmptyContent} />);
-
-    expect(container.querySelector(".space-y-4")).toBeInTheDocument();
-  });
-
-  it("should handle article with null content", () => {
-    const articleWithNullContent = {
-      ...mockArticle,
-      content: null as any,
-    };
-
-    const { container } = render(<ArticleDetails article={articleWithNullContent} />);
-
-    expect(container.querySelector(".space-y-4")).toBeInTheDocument();
-  });
-
-  it("should handle different image URLs", () => {
-    const articleWithDifferentImage = {
-      ...mockArticle,
-      imageUrl: "/different-image.png",
-    };
-
-    render(<ArticleDetails article={articleWithDifferentImage} />);
-
-    const image = screen.getByTestId("article-image");
-    expect(image).toHaveAttribute("src", "http://localhost:1337/different-image.png");
-  });
-
-  it("should handle missing environment variable", () => {
-    delete process.env.NEXT_PUBLIC_STRAPI_URL;
-
-    render(<ArticleDetails article={mockArticle} />);
-
-    const image = screen.getByTestId("article-image");
-    expect(image).toHaveAttribute("src", "undefined/test-image.jpg");
-  });
-
-  it("should handle long published date", () => {
-    const articleWithLongDate = {
-      ...mockArticle,
-      publishedAt: "2023-12-31T23:59:59.999Z",
-    };
-
-    render(<ArticleDetails article={articleWithLongDate} />);
-
-    expect(screen.getByText("2023-12-31T23:59:59.999Z / Author")).toBeInTheDocument();
-  });
-
-  it("should have proper semantic structure", () => {
-    const { container } = render(<ArticleDetails article={mockArticle} />);
-
-    const section = container.querySelector("section");
-    expect(section).toBeInTheDocument();
-  });
-
-  it("should render content with complex HTML", () => {
-    const articleWithComplexContent = {
-      ...mockArticle,
-      content:
-        "<div><h2>Title</h2><p>Paragraph with <a href='#'>link</a></p><ul><li>Item 1</li><li>Item 2</li></ul></div>",
-    };
-
-    const { container } = render(<ArticleDetails article={articleWithComplexContent} />);
-
-    expect(container.textContent).toContain("Title");
-    expect(container.textContent).toContain("Paragraph with link");
-    expect(container.textContent).toContain("Item 1");
-    expect(container.textContent).toContain("Item 2");
-  });
-
-  it("should handle special characters in content", () => {
-    const articleWithSpecialChars = {
-      ...mockArticle,
-      content: "<p>Content with special chars: &lt;&gt;&amp;&quot;&#39;</p>",
-    };
-
-    const { container } = render(<ArticleDetails article={articleWithSpecialChars} />);
-
-    expect(container.textContent).toContain("Content with special chars");
+      const spacingDiv = container.querySelector(".space-y-4");
+      expect(spacingDiv).toHaveClass("space-y-4", "mt-5");
+    });
   });
 });

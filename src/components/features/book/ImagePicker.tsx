@@ -33,7 +33,14 @@ export default function ImagePicker({
     <div className="flex flex-col gap-2">
       {display && (
         <div className="w-[200px] h-[240px] relative border rounded-lg overflow-hidden bg-gray-50">
-          <Image src={display} alt="Preview" fill className="object-cover" sizes="200px" />
+          <Image
+            data-testid="preview-image"
+            src={display}
+            alt="Preview"
+            fill
+            className="object-contain"
+            sizes="200px"
+          />
         </div>
       )}
       {!display && (
@@ -49,7 +56,7 @@ export default function ImagePicker({
         onChange={handleChange}
         name="image"
       />
-      <Button onPress={handlePick} variant="flat" color="primary">
+      <Button data-testid="pick-button" onPress={handlePick} variant="flat" color="primary">
         Pick Image
       </Button>
     </div>

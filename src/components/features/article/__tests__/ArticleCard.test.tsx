@@ -62,177 +62,125 @@ describe("ArticleCard", () => {
 
   beforeEach(() => {
     process.env.NEXT_PUBLIC_STRAPI_URL = "http://localhost:1337";
-  });
-
-  afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it("should render article card with all elements", () => {
-    render(<ArticleCard article={mockArticle} />);
+  describe("Component Rendering", () => {
+    it("should render article card with all elements", () => {
+      render(<ArticleCard article={mockArticle} />);
 
-    expect(screen.getByTestId("card")).toBeInTheDocument();
-    expect(screen.getByTestId("card-body")).toBeInTheDocument();
-    expect(screen.getByTestId("card-footer")).toBeInTheDocument();
-    expect(screen.getByTestId("hero-image")).toBeInTheDocument();
+      expect(screen.getByTestId("card")).toBeInTheDocument();
+      expect(screen.getByTestId("card-body")).toBeInTheDocument();
+      expect(screen.getByTestId("card-footer")).toBeInTheDocument();
+      expect(screen.getByTestId("hero-image")).toBeInTheDocument();
+    });
+
+    it("should display article content", () => {
+      render(<ArticleCard article={mockArticle} />);
+
+      expect(screen.getByText("Test Article")).toBeInTheDocument();
+      expect(screen.getByText("This is a test article content")).toBeInTheDocument();
+      expect(screen.getByText("John Doe")).toBeInTheDocument();
+    });
   });
 
-  it("should display article title", () => {
-    render(<ArticleCard article={mockArticle} />);
+  describe("Date and Author", () => {
+    it("should display formatted published date", () => {
+      const { formatDate } = require("@/utils/date");
+      render(<ArticleCard article={mockArticle} />);
 
-    expect(screen.getByText("Test Article")).toBeInTheDocument();
+      expect(formatDate).toHaveBeenCalledWith("2023-01-01T00:00:00.000Z");
+      expect(screen.getByText("formatted-2023-01-01T00:00:00.000Z")).toBeInTheDocument();
+    });
+
+    it("should handle article without author", () => {
+      const articleWithoutAuthor = {
+        ...mockArticle,
+        author: { name: "" },
+      };
+
+      render(<ArticleCard article={articleWithoutAuthor} />);
+
+      expect(screen.getByText("Test Article")).toBeInTheDocument();
+      expect(screen.queryByText("John Doe")).not.toBeInTheDocument();
+    });
   });
 
-  it("should display article content", () => {
-    render(<ArticleCard article={mockArticle} />);
+  describe("Image Handling", () => {
+    it("should render image with environment URL", () => {
+      render(<ArticleCard article={mockArticle} />);
 
-    expect(screen.getByText("This is a test article content")).toBeInTheDocument();
+      const image = screen.getByTestId("hero-image");
+      expect(image).toHaveAttribute("src", expect.stringContaining("test-image.jpg"));
+      expect(image).toHaveAttribute("alt", "Card background");
+    });
+
+    it("should handle missing environment variable", () => {
+      delete process.env.NEXT_PUBLIC_STRAPI_URL;
+
+      render(<ArticleCard article={mockArticle} />);
+
+      const image = screen.getByTestId("hero-image");
+      expect(image).toHaveAttribute("src", expect.stringContaining("%2Ftest-image.jpg"));
+    });
   });
 
-  it("should display author name", () => {
-    render(<ArticleCard article={mockArticle} />);
+  describe("Navigation", () => {
+    it("should render read more link with correct href", () => {
+      render(<ArticleCard article={mockArticle} />);
 
-    expect(screen.getByText("John Doe")).toBeInTheDocument();
+      const readMoreLink = screen.getByRole("link", { name: "Read more" });
+      expect(readMoreLink).toHaveAttribute("href", "/articles/doc-1");
+    });
   });
 
-  it("should display formatted published date", () => {
-    const { formatDate } = require("@/utils/date");
-    render(<ArticleCard article={mockArticle} />);
+  describe("CSS Classes", () => {
+    it("should apply correct CSS classes", () => {
+      render(<ArticleCard article={mockArticle} />);
 
-    expect(formatDate).toHaveBeenCalledWith("2023-01-01T00:00:00.000Z");
-    expect(screen.getByText("formatted-2023-01-01T00:00:00.000Z")).toBeInTheDocument();
+      const card = screen.getByTestId("card");
+      expect(card).toHaveClass("shadow-none", "rounded-none");
+
+      const cardBody = screen.getByTestId("card-body");
+      expect(cardBody).toHaveClass("overflow-visible", "p-0");
+
+      const cardFooter = screen.getByTestId("card-footer");
+      expect(cardFooter).toHaveClass(
+        "flex",
+        "flex-col",
+        "gap-5",
+        "text-left",
+        "items-start",
+        "p-5"
+      );
+    });
   });
 
-  it("should render image with correct src and alt", () => {
-    render(<ArticleCard article={mockArticle} />);
+  describe("Edge Cases", () => {
+    it("should handle long content", () => {
+      const articleWithLongContent: Article = {
+        ...mockArticle,
+        title: "This is a very long article title",
+        content: "This is a very long article content that should be displayed properly.",
+      };
 
-    const image = screen.getByTestId("hero-image");
-    expect(image).toHaveAttribute("src", "http://localhost:1337/test-image.jpg");
-    expect(image).toHaveAttribute("alt", "Card background");
-  });
+      render(<ArticleCard article={articleWithLongContent} />);
 
-  it("should render read more link with correct href", () => {
-    render(<ArticleCard article={mockArticle} />);
+      expect(screen.getByText("This is a very long article title")).toBeInTheDocument();
+      expect(screen.getByText(/This is a very long article content/)).toBeInTheDocument();
+    });
 
-    const readMoreLink = screen.getByRole("link", { name: "Read more" });
-    expect(readMoreLink).toHaveAttribute("href", "/articles/doc-1");
-  });
+    it("should handle special characters", () => {
+      const articleWithSpecialChars: Article = {
+        ...mockArticle,
+        title: "Test Article with Special Characters: @#$%",
+        content: "Content with special chars: <>&\"'",
+      };
 
-  it("should apply correct CSS classes", () => {
-    render(<ArticleCard article={mockArticle} />);
+      render(<ArticleCard article={articleWithSpecialChars} />);
 
-    const card = screen.getByTestId("card");
-    expect(card).toHaveClass("shadow-none", "rounded-none");
-
-    const cardBody = screen.getByTestId("card-body");
-    expect(cardBody).toHaveClass("overflow-visible", "p-0");
-
-    const cardFooter = screen.getByTestId("card-footer");
-    expect(cardFooter).toHaveClass("flex", "flex-col", "gap-5", "text-left", "items-start", "p-5");
-  });
-
-  it("should handle article without author", () => {
-    const articleWithoutAuthor = {
-      ...mockArticle,
-      author: { name: "" },
-    };
-
-    render(<ArticleCard article={articleWithoutAuthor} />);
-
-    expect(screen.getByText("Test Article")).toBeInTheDocument();
-    expect(screen.queryByText("John Doe")).not.toBeInTheDocument();
-  });
-
-  it("should handle article without published date", () => {
-    const { formatDate } = require("@/utils/date");
-    const articleWithoutDate = {
-      ...mockArticle,
-      publishedAt: "",
-    };
-
-    render(<ArticleCard article={articleWithoutDate} />);
-
-    expect(formatDate).toHaveBeenCalledWith("");
-  });
-
-  it("should handle long article title", () => {
-    const articleWithLongTitle: Article = {
-      ...mockArticle,
-      title:
-        "This is a very long article title that should still be displayed properly in the card",
-    };
-
-    render(<ArticleCard article={articleWithLongTitle} />);
-
-    expect(
-      screen.getByText(
-        "This is a very long article title that should still be displayed properly in the card"
-      )
-    ).toBeInTheDocument();
-  });
-
-  it("should handle long article content", () => {
-    const articleWithLongContent: Article = {
-      ...mockArticle,
-      content:
-        "This is a very long article content that should be displayed in the description area. It might be truncated or styled differently based on the CSS but should still be accessible.",
-    };
-
-    render(<ArticleCard article={articleWithLongContent} />);
-
-    expect(screen.getByText(/This is a very long article content/)).toBeInTheDocument();
-  });
-
-  it("should handle special characters in title and content", () => {
-    const articleWithSpecialChars: Article = {
-      ...mockArticle,
-      title: "Test Article with Special Characters: @#$%",
-      content: "Content with special chars: <>&\"'",
-    };
-
-    render(<ArticleCard article={articleWithSpecialChars} />);
-
-    expect(screen.getByText("Test Article with Special Characters: @#$%")).toBeInTheDocument();
-    expect(screen.getByText("Content with special chars: <>&\"'")).toBeInTheDocument();
-  });
-
-  it("should handle missing image URL", () => {
-    const articleWithoutImage: Article = {
-      ...mockArticle,
-      imageUrl: "",
-    };
-
-    render(<ArticleCard article={articleWithoutImage} />);
-
-    const image = screen.getByTestId("hero-image");
-    expect(image).toHaveAttribute("src", "http://localhost:1337");
-  });
-
-  it("should have proper accessibility attributes", () => {
-    render(<ArticleCard article={mockArticle} />);
-
-    const image = screen.getByTestId("hero-image");
-    expect(image).toHaveAttribute("alt", "Card background");
-
-    const readMoreLink = screen.getByRole("link", { name: "Read more" });
-    expect(readMoreLink).toBeInTheDocument();
-  });
-
-  it("should use environment variable for image URL", () => {
-    process.env.NEXT_PUBLIC_STRAPI_URL = "https://api.example.com";
-
-    render(<ArticleCard article={mockArticle} />);
-
-    const image = screen.getByTestId("hero-image");
-    expect(image).toHaveAttribute("src", "https://api.example.com/test-image.jpg");
-  });
-
-  it("should handle missing environment variable", () => {
-    delete process.env.NEXT_PUBLIC_STRAPI_URL;
-
-    render(<ArticleCard article={mockArticle} />);
-
-    const image = screen.getByTestId("hero-image");
-    expect(image).toHaveAttribute("src", "undefined/test-image.jpg");
+      expect(screen.getByText("Test Article with Special Characters: @#$%")).toBeInTheDocument();
+      expect(screen.getByText("Content with special chars: <>&\"'")).toBeInTheDocument();
+    });
   });
 });

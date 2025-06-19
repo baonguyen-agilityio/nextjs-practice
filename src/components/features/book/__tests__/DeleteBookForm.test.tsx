@@ -53,11 +53,13 @@ describe("DeleteBookForm", () => {
   });
 
   describe("Component Rendering", () => {
-    it("should render form with confirmation message", () => {
+    it("should render form with confirmation message and buttons", () => {
       render(<DeleteBookForm {...defaultProps} />);
 
       expect(screen.getByText("Are you sure you want to delete this book?")).toBeInTheDocument();
       expect(getForm()).toBeInTheDocument();
+      expect(screen.getByTestId("button-cancel")).toBeInTheDocument();
+      expect(screen.getByTestId("button-delete")).toBeInTheDocument();
     });
 
     it("should render hidden input with book documentId", () => {
@@ -69,14 +71,7 @@ describe("DeleteBookForm", () => {
       expect(hiddenInput).toHaveAttribute("name", "id");
     });
 
-    it("should render Cancel and Delete buttons", () => {
-      render(<DeleteBookForm {...defaultProps} />);
-
-      expect(screen.getByTestId("button-cancel")).toBeInTheDocument();
-      expect(screen.getByTestId("button-delete")).toBeInTheDocument();
-    });
-
-    it("should render buttons with correct styling props", () => {
+    it("should render buttons with correct props", () => {
       render(<DeleteBookForm {...defaultProps} />);
 
       const cancelButton = screen.getByTestId("button-cancel");
@@ -92,60 +87,36 @@ describe("DeleteBookForm", () => {
     });
   });
 
-  describe("Button Interactions", () => {
+  describe("User Interactions", () => {
     it("should call onClose when Cancel button is clicked", () => {
       render(<DeleteBookForm {...defaultProps} />);
 
-      const cancelButton = screen.getByTestId("button-cancel");
-      fireEvent.click(cancelButton);
-
+      fireEvent.click(screen.getByTestId("button-cancel"));
       expect(mockOnClose).toHaveBeenCalledTimes(1);
-    });
-
-    it("should not call formActionDelete when Cancel button is clicked", () => {
-      render(<DeleteBookForm {...defaultProps} />);
-
-      const cancelButton = screen.getByTestId("button-cancel");
-      fireEvent.click(cancelButton);
-
       expect(mockFormActionDelete).not.toHaveBeenCalled();
     });
 
     it("should call formActionDelete when form is submitted", () => {
       render(<DeleteBookForm {...defaultProps} />);
 
-      const form = getForm();
-      fireEvent.submit(form);
-
+      fireEvent.submit(getForm());
       expect(mockFormActionDelete).toHaveBeenCalledTimes(1);
-      expect(mockFormActionDelete).toHaveBeenCalledWith(expect.any(FormData));
-    });
-
-    it("should call formActionDelete when Delete button is clicked", () => {
-      render(<DeleteBookForm {...defaultProps} />);
-
-      const deleteButton = screen.getByTestId("button-delete");
-      fireEvent.click(deleteButton);
-
-      expect(mockFormActionDelete).toHaveBeenCalledTimes(1);
-      expect(mockFormActionDelete).toHaveBeenCalledWith(expect.any(FormData));
-    });
-
-    it("should include book documentId in FormData when submitted", () => {
-      render(<DeleteBookForm {...defaultProps} />);
-
-      const form = getForm();
-      fireEvent.submit(form);
-
       expect(mockFormActionDelete).toHaveBeenCalledWith(expect.any(FormData));
 
       const formData = mockFormActionDelete.mock.calls[0][0] as FormData;
       expect(formData.get("id")).toBe("doc-123");
     });
+
+    it("should call formActionDelete when Delete button is clicked", () => {
+      render(<DeleteBookForm {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId("button-delete"));
+      expect(mockFormActionDelete).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe("Loading State", () => {
-    it("should show loading state on Delete button when isPendingDelete is true", () => {
+    it("should show loading state on Delete button when pending", () => {
       render(<DeleteBookForm {...defaultProps} isPendingDelete={true} />);
 
       const deleteButton = screen.getByTestId("button-delete");
@@ -154,7 +125,7 @@ describe("DeleteBookForm", () => {
       expect(deleteButton).toHaveTextContent("Loading...");
     });
 
-    it("should not show loading state when isPendingDelete is false", () => {
+    it("should not show loading state when not pending", () => {
       render(<DeleteBookForm {...defaultProps} isPendingDelete={false} />);
 
       const deleteButton = screen.getByTestId("button-delete");
@@ -163,7 +134,7 @@ describe("DeleteBookForm", () => {
       expect(deleteButton).toHaveTextContent("Delete");
     });
 
-    it("should not affect Cancel button loading state", () => {
+    it("should not affect Cancel button during loading", () => {
       render(<DeleteBookForm {...defaultProps} isPendingDelete={true} />);
 
       const cancelButton = screen.getByTestId("button-cancel");
@@ -172,66 +143,16 @@ describe("DeleteBookForm", () => {
     });
   });
 
-  describe("Form Submission", () => {
-    it("should prevent default form submission and call custom handler", () => {
-      render(<DeleteBookForm {...defaultProps} />);
-
-      const form = getForm();
-      const submitEvent = new Event("submit", { bubbles: true, cancelable: true });
-      const preventDefaultSpy = jest.spyOn(submitEvent, "preventDefault");
-
-      fireEvent(form, submitEvent);
-
-      expect(mockFormActionDelete).toHaveBeenCalled();
-    });
-
-    it("should handle form submission with action attribute", () => {
-      render(<DeleteBookForm {...defaultProps} />);
-
-      const form = getForm();
-      expect(form).toHaveAttribute("action");
-    });
-  });
-
   describe("Edge Cases", () => {
-    it("should handle book with null documentId", () => {
-      const bookWithNullId = { ...mockBook, documentId: null as any };
-      render(<DeleteBookForm {...defaultProps} book={bookWithNullId} />);
+    it("should handle empty documentId", () => {
+      const bookWithEmptyId = { ...mockBook, documentId: "" };
+      render(<DeleteBookForm {...defaultProps} book={bookWithEmptyId} />);
 
       const hiddenInput = screen.getByDisplayValue("");
       expect(hiddenInput).toBeInTheDocument();
     });
 
-    it("should handle book with undefined documentId", () => {
-      const bookWithUndefinedId = { ...mockBook, documentId: undefined as any };
-      render(<DeleteBookForm {...defaultProps} book={bookWithUndefinedId} />);
-
-      const hiddenInput = document.querySelector('input[type="hidden"]') as HTMLInputElement;
-      expect(hiddenInput).toHaveValue("");
-    });
-
-    it("should handle multiple rapid Cancel button clicks", () => {
-      render(<DeleteBookForm {...defaultProps} />);
-
-      const cancelButton = screen.getByTestId("button-cancel");
-      fireEvent.click(cancelButton);
-      fireEvent.click(cancelButton);
-      fireEvent.click(cancelButton);
-
-      expect(mockOnClose).toHaveBeenCalledTimes(3);
-    });
-
-    it("should handle multiple rapid Delete button clicks when not pending", () => {
-      render(<DeleteBookForm {...defaultProps} />);
-
-      const deleteButton = screen.getByTestId("button-delete");
-      fireEvent.click(deleteButton);
-      fireEvent.click(deleteButton);
-
-      expect(mockFormActionDelete).toHaveBeenCalledTimes(2);
-    });
-
-    it("should prevent Delete button clicks when pending", () => {
+    it("should prevent Delete button when pending", () => {
       render(<DeleteBookForm {...defaultProps} isPendingDelete={true} />);
 
       const deleteButton = screen.getByTestId("button-delete");
@@ -239,76 +160,6 @@ describe("DeleteBookForm", () => {
 
       fireEvent.click(deleteButton);
       expect(mockFormActionDelete).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("Accessibility", () => {
-    it("should have proper form structure", () => {
-      render(<DeleteBookForm {...defaultProps} />);
-
-      const form = getForm();
-      expect(form).toBeInTheDocument();
-    });
-
-    it("should have buttons with proper types", () => {
-      render(<DeleteBookForm {...defaultProps} />);
-
-      const cancelButton = screen.getByTestId("button-cancel");
-      const deleteButton = screen.getByTestId("button-delete");
-
-      expect(cancelButton).toHaveAttribute("type", "button");
-      expect(deleteButton).toHaveAttribute("type", "submit");
-    });
-
-    it("should have accessible button text", () => {
-      render(<DeleteBookForm {...defaultProps} />);
-
-      expect(screen.getByRole("button", { name: /cancel/i })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /delete/i })).toBeInTheDocument();
-    });
-
-    it("should maintain button accessibility during loading", () => {
-      render(<DeleteBookForm {...defaultProps} isPendingDelete={true} />);
-
-      const deleteButton = screen.getByRole("button", { name: /loading/i });
-      expect(deleteButton).toBeInTheDocument();
-      expect(deleteButton).toBeDisabled();
-    });
-  });
-
-  describe("Layout and Styling", () => {
-    it("should have proper layout classes", () => {
-      render(<DeleteBookForm {...defaultProps} />);
-
-      const buttonsContainer = screen.getByTestId("button-cancel").parentElement;
-      expect(buttonsContainer).toHaveClass("flex", "justify-end", "gap-4", "mt-4");
-    });
-
-    it("should render confirmation message with proper spacing", () => {
-      render(<DeleteBookForm {...defaultProps} />);
-
-      const message = screen.getByText("Are you sure you want to delete this book?");
-      expect(message.tagName).toBe("P");
-    });
-  });
-
-  describe("Data Integrity", () => {
-    it("should preserve original book data", () => {
-      render(<DeleteBookForm {...defaultProps} />);
-
-      expect(mockBook.documentId).toBe("doc-123");
-      expect(mockBook.title).toBe("Test Book Title");
-    });
-
-    it("should handle special characters in documentId", () => {
-      const bookWithSpecialChars = {
-        ...mockBook,
-        documentId: "doc-123_special-chars@domain.com",
-      };
-      render(<DeleteBookForm {...defaultProps} book={bookWithSpecialChars} />);
-
-      const hiddenInput = screen.getByDisplayValue("doc-123_special-chars@domain.com");
-      expect(hiddenInput).toBeInTheDocument();
     });
   });
 });

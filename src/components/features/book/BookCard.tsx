@@ -36,6 +36,7 @@ export default function BookCard(props: {
         <div className="w-full h-[650px] relative overflow-hidden bg-background p-6">
           <div className="w-full h-full relative">
             <Image
+              data-testid="book-image"
               alt={book.title}
               src={createImageUrl(book.imageUrl)}
               className="object-contain"

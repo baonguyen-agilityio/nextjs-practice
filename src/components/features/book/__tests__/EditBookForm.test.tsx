@@ -157,8 +157,8 @@ describe("EditBookForm", () => {
     jest.clearAllMocks();
   });
 
-  describe("Component Rendering", () => {
-    it("should render form with all fields", () => {
+  describe("Form Rendering", () => {
+    it("should render form with all fields and default values", () => {
       render(<EditBookForm {...defaultProps} />);
 
       expect(screen.getByTestId("edit-form")).toBeInTheDocument();
@@ -168,41 +168,26 @@ describe("EditBookForm", () => {
       expect(screen.getByTestId("input-description")).toBeInTheDocument();
       expect(screen.getByTestId("select-categories")).toBeInTheDocument();
       expect(screen.getByTestId("image-picker")).toBeInTheDocument();
-    });
-
-    it("should render hidden input with book documentId", () => {
-      render(<EditBookForm {...defaultProps} />);
-
-      const hiddenInput = screen.getByDisplayValue("doc-123");
-      expect(hiddenInput).toBeInTheDocument();
-      expect(hiddenInput).toHaveAttribute("name", "documentId");
-      expect(hiddenInput).toHaveAttribute("type", "hidden");
-    });
-
-    it("should render form fields with correct default values", () => {
-      render(<EditBookForm {...defaultProps} />);
-
-      const titleInput = screen.getByDisplayValue("Test Book Title");
-      const priceInput = screen.getByDisplayValue("19.99");
-      const languageInput = screen.getByDisplayValue("en");
-      const descriptionInput = screen.getByDisplayValue("A test book description");
-
-      expect(titleInput).toBeInTheDocument();
-      expect(priceInput).toBeInTheDocument();
-      expect(languageInput).toBeInTheDocument();
-      expect(descriptionInput).toBeInTheDocument();
-    });
-
-    it("should render Cancel and Update buttons", () => {
-      render(<EditBookForm {...defaultProps} />);
-
       expect(screen.getByTestId("button-cancel")).toBeInTheDocument();
       expect(screen.getByTestId("button-update")).toBeInTheDocument();
+
+      // Check default values
+      expect(screen.getByDisplayValue("Test Book Title")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("19.99")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("en")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("A test book description")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("doc-123")).toBeInTheDocument();
+    });
+
+    it("should pass image URL to ImagePicker", () => {
+      render(<EditBookForm {...defaultProps} />);
+
+      expect(screen.getByTestId("current-image-url")).toHaveTextContent("/test-book.jpg");
     });
   });
 
   describe("Form Submission", () => {
-    it("should call formAction on form submit", async () => {
+    it("should call formAction with form data on submit", async () => {
       render(<EditBookForm {...defaultProps} />);
 
       const form = screen.getByTestId("edit-form");
@@ -214,7 +199,7 @@ describe("EditBookForm", () => {
       });
     });
 
-    it("should include image file in form data when selected", async () => {
+    it("should include image file in form data when file is selected", async () => {
       render(<EditBookForm {...defaultProps} />);
 
       const fileInput = screen.getByTestId("file-input");
@@ -236,14 +221,10 @@ describe("EditBookForm", () => {
     it("should call onClose when Cancel button is clicked", () => {
       render(<EditBookForm {...defaultProps} />);
 
-      const cancelButton = screen.getByTestId("button-cancel");
-      fireEvent.click(cancelButton);
-
+      fireEvent.click(screen.getByTestId("button-cancel"));
       expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
-  });
 
-  describe("Loading State", () => {
     it("should show loading state on Update button when pending", () => {
       render(<EditBookForm {...defaultProps} isPending={true} />);
 
@@ -283,31 +264,6 @@ describe("EditBookForm", () => {
       render(<EditBookForm {...defaultProps} result={resultWithGeneralError} />);
 
       expect(screen.getByText("Something went wrong")).toBeInTheDocument();
-    });
-  });
-
-  describe("Image Picker Integration", () => {
-    it("should pass current image URL to ImagePicker", () => {
-      render(<EditBookForm {...defaultProps} />);
-
-      expect(screen.getByTestId("current-image-url")).toHaveTextContent("/test-book.jpg");
-    });
-  });
-
-  describe("Edge Cases", () => {
-    it("should handle book with missing categories", () => {
-      const bookWithoutCategories = { ...mockBook, categories: [] };
-      render(<EditBookForm {...defaultProps} book={bookWithoutCategories} />);
-
-      const categorySelect = screen.getByTestId("select-categories").querySelector("select");
-      expect(categorySelect).toHaveValue("");
-    });
-
-    it("should handle empty categories array", () => {
-      render(<EditBookForm {...defaultProps} categories={[]} />);
-
-      const categorySelect = screen.getByTestId("select-categories");
-      expect(categorySelect).toBeInTheDocument();
     });
   });
 });

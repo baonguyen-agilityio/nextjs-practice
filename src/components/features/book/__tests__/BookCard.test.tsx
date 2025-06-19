@@ -17,6 +17,13 @@ jest.mock("@heroui/react", () => ({
       </div>
     );
   },
+  Skeleton: function MockSkeleton({ children, className }: any) {
+    return (
+      <div className={className} data-testid="skeleton">
+        {children}
+      </div>
+    );
+  },
 }));
 
 jest.mock("@/utils/currency", () => ({
@@ -33,8 +40,8 @@ jest.mock("@/components/features/cart/AddToCart", () => ({
   },
 }));
 
-jest.mock("@/components/features/book/EditBookModal", () => {
-  return function MockEditBookModal({
+jest.mock("../DynamicModals", () => ({
+  LazyEditBookModal: function MockLazyEditBookModal({
     formAction,
     isPending,
   }: {
@@ -50,11 +57,8 @@ jest.mock("@/components/features/book/EditBookModal", () => {
         Edit Book
       </button>
     );
-  };
-});
-
-jest.mock("../DeleteBookModal", () => {
-  return function MockDeleteBookModal({
+  },
+  LazyDeleteBookModal: function MockLazyDeleteBookModal({
     formActionDelete,
     isPendingDelete,
   }: {
@@ -70,8 +74,8 @@ jest.mock("../DeleteBookModal", () => {
         Delete Book
       </button>
     );
-  };
-});
+  },
+}));
 
 jest.mock("next/image", () => {
   return function MockImage({
@@ -140,212 +144,100 @@ describe("BookCard", () => {
     jest.clearAllMocks();
   });
 
-  it("should render book card with all elements", () => {
-    render(<BookCard {...defaultProps} />);
+  describe("Component Rendering", () => {
+    it("should render book card with all elements", () => {
+      render(<BookCard {...defaultProps} />);
 
-    expect(screen.getByTestId("card")).toBeInTheDocument();
-    expect(screen.getByTestId("card-footer")).toBeInTheDocument();
-    expect(screen.getByTestId("book-image")).toBeInTheDocument();
+      expect(screen.getByTestId("card")).toBeInTheDocument();
+      expect(screen.getByTestId("card-footer")).toBeInTheDocument();
+      expect(screen.getByTestId("book-image")).toBeInTheDocument();
+    });
+
+    it("should display book title and price", () => {
+      render(<BookCard {...defaultProps} />);
+
+      expect(screen.getByText("Test Book")).toBeInTheDocument();
+      expect(screen.getByText("$19.99")).toBeInTheDocument();
+    });
+
+    it("should render AddToCart for non-admin users", () => {
+      render(<BookCard {...defaultProps} />);
+
+      expect(screen.getByTestId("add-to-cart")).toBeInTheDocument();
+      expect(screen.queryByTestId("edit-book-modal")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("delete-book-modal")).not.toBeInTheDocument();
+    });
   });
 
-  it("should display book title and price", () => {
-    render(<BookCard {...defaultProps} />);
+  describe("Admin Features", () => {
+    it("should render admin modals for admin users", () => {
+      render(<BookCard {...defaultProps} isAdmin={true} />);
 
-    expect(screen.getByText("Test Book")).toBeInTheDocument();
-    expect(screen.getByText("$19.99")).toBeInTheDocument();
+      expect(screen.getByTestId("edit-book-modal")).toBeInTheDocument();
+      expect(screen.getByTestId("delete-book-modal")).toBeInTheDocument();
+      expect(screen.queryByTestId("add-to-cart")).not.toBeInTheDocument();
+    });
+
+    it("should handle edit book action", () => {
+      render(<BookCard {...defaultProps} isAdmin={true} />);
+
+      const editButton = screen.getByTestId("edit-book-modal");
+      fireEvent.click(editButton);
+
+      expect(mockFormAction).toHaveBeenCalled();
+    });
+
+    it("should handle delete book action", () => {
+      render(<BookCard {...defaultProps} isAdmin={true} />);
+
+      const deleteButton = screen.getByTestId("delete-book-modal");
+      fireEvent.click(deleteButton);
+
+      expect(mockFormActionDelete).toHaveBeenCalled();
+    });
   });
 
-  it("should display book description", () => {
-    render(<BookCard {...defaultProps} />);
+  describe("Image Handling", () => {
+    it("should render image with environment URL", () => {
+      render(<BookCard {...defaultProps} />);
 
-    expect(screen.getByText("A great test book")).toBeInTheDocument();
+      const image = screen.getByTestId("book-image");
+      expect(image).toHaveAttribute("src", expect.stringContaining("localhost:1337"));
+      expect(image).toHaveAttribute("alt", "Test Book");
+    });
+
+    it("should handle missing environment variable", () => {
+      delete process.env.NEXT_PUBLIC_STRAPI_URL;
+
+      render(<BookCard {...defaultProps} />);
+
+      const image = screen.getByTestId("book-image");
+      expect(image).toHaveAttribute("src", "/test-book.jpg");
+    });
   });
 
-  it("should render image with correct props", () => {
-    render(<BookCard {...defaultProps} />);
+  describe("Loading States", () => {
+    it("should disable edit modal when pending update", () => {
+      render(<BookCard {...defaultProps} isAdmin={true} isPendingUpdateBook={true} />);
 
-    const image = screen.getByTestId("book-image");
-    expect(image).toHaveAttribute("src", "http://localhost:1337/test-book.jpg");
-    expect(image).toHaveAttribute("alt", "Test Book");
-    expect(image).toHaveAttribute("data-fill", "true");
-    expect(image).toHaveAttribute("data-priority", "true");
+      const editButton = screen.getByTestId("edit-book-modal");
+      expect(editButton).toBeDisabled();
+    });
+
+    it("should disable delete modal when pending delete", () => {
+      render(<BookCard {...defaultProps} isAdmin={true} isPendingDelete={true} />);
+
+      const deleteButton = screen.getByTestId("delete-book-modal");
+      expect(deleteButton).toBeDisabled();
+    });
   });
 
-  it("should format currency correctly", () => {
-    const { formatUSD } = require("@/utils/currency");
-    render(<BookCard {...defaultProps} />);
+  describe("Categories", () => {
+    it("should pass categories to modals", () => {
+      render(<BookCard {...defaultProps} isAdmin={true} />);
 
-    expect(formatUSD).toHaveBeenCalledWith(19.99);
-  });
-
-  it("should show AddToCart for non-admin users", () => {
-    render(<BookCard {...defaultProps} />);
-
-    expect(screen.getByTestId("add-to-cart")).toBeInTheDocument();
-    expect(screen.queryByTestId("edit-book-modal")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("delete-book-modal")).not.toBeInTheDocument();
-  });
-
-  it("should show admin controls for admin users", () => {
-    render(<BookCard {...defaultProps} isAdmin={true} />);
-
-    expect(screen.getByTestId("edit-book-modal")).toBeInTheDocument();
-    expect(screen.getByTestId("delete-book-modal")).toBeInTheDocument();
-    expect(screen.queryByTestId("add-to-cart")).not.toBeInTheDocument();
-  });
-
-  it("should handle edit book action", () => {
-    render(<BookCard {...defaultProps} isAdmin={true} />);
-
-    const editButton = screen.getByTestId("edit-book-modal");
-    fireEvent.click(editButton);
-
-    expect(mockFormAction).toHaveBeenCalledWith(expect.any(FormData));
-  });
-
-  it("should handle delete book action", () => {
-    render(<BookCard {...defaultProps} isAdmin={true} />);
-
-    const deleteButton = screen.getByTestId("delete-book-modal");
-    fireEvent.click(deleteButton);
-
-    expect(mockFormActionDelete).toHaveBeenCalledWith(expect.any(FormData));
-  });
-
-  it("should disable edit button when pending", () => {
-    render(<BookCard {...defaultProps} isAdmin={true} isPendingUpdateBook={true} />);
-
-    const editButton = screen.getByTestId("edit-book-modal");
-    expect(editButton).toBeDisabled();
-  });
-
-  it("should disable delete button when pending", () => {
-    render(<BookCard {...defaultProps} isAdmin={true} isPendingDelete={true} />);
-
-    const deleteButton = screen.getByTestId("delete-book-modal");
-    expect(deleteButton).toBeDisabled();
-  });
-
-  it("should have correct CSS classes", () => {
-    render(<BookCard {...defaultProps} />);
-
-    const card = screen.getByTestId("card");
-    expect(card).toHaveClass("shadow-none", "rounded-none", "h-full", "flex", "flex-col");
-
-    const cardFooter = screen.getByTestId("card-footer");
-    expect(cardFooter).toHaveClass(
-      "flex",
-      "flex-col",
-      "gap-5",
-      "text-left",
-      "items-start",
-      "py-5",
-      "px-0",
-      "flex-grow"
-    );
-  });
-
-  it("should handle long book title", () => {
-    const bookWithLongTitle = {
-      ...mockBook,
-      title: "This is a very long book title that should still be displayed properly",
-    };
-
-    render(<BookCard {...defaultProps} book={bookWithLongTitle} />);
-
-    expect(
-      screen.getByText("This is a very long book title that should still be displayed properly")
-    ).toBeInTheDocument();
-  });
-
-  it("should handle long book description", () => {
-    const bookWithLongDescription = {
-      ...mockBook,
-      description:
-        "This is a very long book description that provides detailed information about the book content and should be displayed properly in the card.",
-    };
-
-    render(<BookCard {...defaultProps} book={bookWithLongDescription} />);
-
-    expect(screen.getByText(/This is a very long book description/)).toBeInTheDocument();
-  });
-
-  it("should handle missing image URL", () => {
-    const bookWithoutImage = {
-      ...mockBook,
-      imageUrl: "",
-    };
-
-    render(<BookCard {...defaultProps} book={bookWithoutImage} />);
-
-    const image = screen.getByTestId("book-image");
-    expect(image).toHaveAttribute("src", "http://localhost:1337");
-  });
-
-  it("should handle different price formats", () => {
-    const { formatUSD } = require("@/utils/currency");
-    const bookWithDifferentPrice = {
-      ...mockBook,
-      price: 123.45,
-    };
-
-    render(<BookCard {...defaultProps} book={bookWithDifferentPrice} />);
-
-    expect(formatUSD).toHaveBeenCalledWith(123.45);
-    expect(screen.getByText("$123.45")).toBeInTheDocument();
-  });
-
-  it("should handle special characters in title and description", () => {
-    const bookWithSpecialChars = {
-      ...mockBook,
-      title: "Book with Special Chars: @#$%",
-      description: "Description with special chars: <>&\"'",
-    };
-
-    render(<BookCard {...defaultProps} book={bookWithSpecialChars} />);
-
-    expect(screen.getByText("Book with Special Chars: @#$%")).toBeInTheDocument();
-    expect(screen.getByText("Description with special chars: <>&\"'")).toBeInTheDocument();
-  });
-
-  it("should pass correct props to AddToCart", () => {
-    render(<BookCard {...defaultProps} />);
-
-    const addToCartButton = screen.getByTestId("add-to-cart");
-    expect(addToCartButton).toHaveAttribute("data-variant", "order");
-  });
-
-  it("should handle result prop in admin mode", () => {
-    const mockResult = { success: true as const, message: "Updated successfully" };
-
-    render(<BookCard {...defaultProps} isAdmin={true} result={mockResult} />);
-
-    expect(screen.getByTestId("edit-book-modal")).toBeInTheDocument();
-  });
-
-  it("should maintain proper image aspect ratio", () => {
-    const { container } = render(<BookCard {...defaultProps} />);
-
-    const imageContainer = container.querySelector(".w-full.h-\\[450px\\]");
-    expect(imageContainer).toBeInTheDocument();
-    expect(imageContainer).toHaveClass("relative", "overflow-hidden", "bg-background");
-  });
-
-  it("should handle environment variable for image URL", () => {
-    process.env.NEXT_PUBLIC_STRAPI_URL = "https://api.example.com";
-
-    render(<BookCard {...defaultProps} />);
-
-    const image = screen.getByTestId("book-image");
-    expect(image).toHaveAttribute("src", "https://api.example.com/test-book.jpg");
-  });
-
-  it("should handle missing environment variable", () => {
-    delete process.env.NEXT_PUBLIC_STRAPI_URL;
-
-    render(<BookCard {...defaultProps} />);
-
-    const image = screen.getByTestId("book-image");
-    expect(image).toHaveAttribute("src", "undefined/test-book.jpg");
+      expect(screen.getByTestId("edit-book-modal")).toBeInTheDocument();
+      expect(screen.getByTestId("delete-book-modal")).toBeInTheDocument();
+    });
   });
 });

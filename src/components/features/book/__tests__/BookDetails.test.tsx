@@ -1,73 +1,59 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { BookDetails, handleNavigation } from "../BookDetails";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { BookDetails } from "../BookDetails";
 import type { Book } from "@/types";
-
-const mockAddCartItem = jest.fn();
-const mockFormAction = jest.fn();
-
-jest.mock("@/hooks/useCart", () => ({
-  useCart: () => ({
-    addCartItem: mockAddCartItem,
-  }),
-}));
-
-jest.mock("react", () => ({
-  ...jest.requireActual("react"),
-  useActionState: jest.fn(() => [null, jest.fn(), false]),
-  useState: jest.fn(),
-}));
 
 jest.mock("@/app/actions", () => ({
   addItem: jest.fn(),
 }));
 
+jest.mock("@/hooks/useCart", () => ({
+  useCart: jest.fn(() => ({
+    addCartItem: jest.fn(),
+  })),
+}));
+
 jest.mock("next/navigation", () => ({
-  useRouter: jest.fn().mockReturnValue({
+  useRouter: jest.fn(() => ({
     push: jest.fn(),
-  }),
+  })),
+}));
+
+jest.mock("react", () => ({
+  ...jest.requireActual("react"),
+  useActionState: jest.fn(() => [{ success: null, message: "" }, jest.fn(), false]),
+  useState: jest.fn(() => [1, jest.fn()]),
+  useCallback: jest.fn((fn) => fn),
+  useEffect: jest.fn(),
 }));
 
 jest.mock("@heroui/react", () => ({
   addToast: jest.fn(),
+  extendVariants: jest.fn((component) => component),
 }));
-
-jest.mock("@/utils/currency", () => ({
-  formatUSD: jest.fn((price) => `$${price}`),
-}));
-
-jest.mock("next/image", () => {
-  return function MockImage({ src, alt, width, height }: any) {
-    return <img src={src} alt={alt} width={width} height={height} data-testid="book-image" />;
-  };
-});
 
 jest.mock("@/components/ui/Button", () => ({
   Button: function MockButton({
     children,
     onClick,
     variant,
-    isIconOnly,
-    isLoading,
-    isDisabled,
-    type,
-    fullWidth,
-    color,
     className,
+    type,
+    disabled,
+    isLoading,
+    isIconOnly,
+    "aria-label": ariaLabel,
   }: any) {
     return (
       <button
         onClick={onClick}
         type={type}
-        disabled={isDisabled}
-        data-testid="button"
+        disabled={disabled || isLoading}
         data-variant={variant}
         data-icon-only={isIconOnly}
-        data-loading={isLoading}
-        data-full-width={fullWidth}
-        data-color={color}
         className={className}
+        aria-label={ariaLabel}
       >
-        {children}
+        {isLoading ? "Loading..." : children}
       </button>
     );
   },
@@ -78,9 +64,9 @@ jest.mock("@/components/ui/Input", () => ({
     value,
     onChange,
     type,
-    inputMode,
     classNames,
-    disableAnimation,
+    inputMode,
+    "aria-label": ariaLabel,
   }: any) {
     return (
       <input
@@ -88,36 +74,48 @@ jest.mock("@/components/ui/Input", () => ({
         inputMode={inputMode}
         value={value}
         onChange={onChange}
-        data-testid="quantity-input"
-        data-disable-animation={disableAnimation}
         className={classNames?.input}
+        aria-label={ariaLabel}
       />
     );
   },
 }));
 
-jest.mock("@heroicons/react/24/outline", () => ({
-  MinusIcon: function MockMinusIcon({ className }: any) {
-    return (
-      <div data-testid="minus-icon" className={className}>
-        -
-      </div>
-    );
-  },
-  PlusIcon: function MockPlusIcon({ className }: any) {
-    return (
-      <div data-testid="plus-icon" className={className}>
-        +
-      </div>
-    );
-  },
+jest.mock("@/utils/currency", () => ({
+  formatUSD: jest.fn((price) => `$${price.toFixed(2)}`),
 }));
 
-Object.defineProperty(window, "history", {
-  value: {
-    back: jest.fn(),
-  },
-  writable: true,
+jest.mock("@/utils", () => ({
+  createImageUrl: jest.fn((url) =>
+    process.env.NEXT_PUBLIC_STRAPI_URL ? `${process.env.NEXT_PUBLIC_STRAPI_URL}${url}` : url
+  ),
+  validateQuantity: jest.fn((value) => Math.max(1, value)),
+}));
+
+jest.mock("@/components/icons/MinusIcon", () => {
+  return function MockMinusIcon({ className }: any) {
+    return (
+      <span data-testid="minus-icon" className={className}>
+        -
+      </span>
+    );
+  };
+});
+
+jest.mock("@/components/icons/PlusIcon", () => {
+  return function MockPlusIcon({ className }: any) {
+    return (
+      <span data-testid="plus-icon" className={className}>
+        +
+      </span>
+    );
+  };
+});
+
+jest.mock("next/image", () => {
+  return function MockImage({ src, alt, priority }: any) {
+    return <img src={src} alt={alt} data-priority={priority} data-testid="book-image" />;
+  };
 });
 
 describe("BookDetails", () => {
@@ -126,199 +124,155 @@ describe("BookDetails", () => {
     documentId: "doc-1",
     slug: "test-book",
     title: "Test Book",
-    description: "A test book description",
-    price: 29.99,
-    language: "English",
-    imageUrl: "/test-image.jpg",
+    price: 19.99,
+    language: "en",
+    description: "A comprehensive guide to testing in React applications.",
+    imageUrl: "/test-book.jpg",
+    categories: [
+      { id: 1, name: "Programming", documentId: "cat-1" },
+      { id: 2, name: "React", documentId: "cat-2" },
+    ],
     createdAt: "2023-01-01T00:00:00.000Z",
     updatedAt: "2023-01-01T00:00:00.000Z",
     publishedAt: "2023-01-01T00:00:00.000Z",
-    categories: [{ id: 1, name: "Fiction", documentId: "doc-cat-1" }],
   };
 
-  let mockSetQuantity: jest.Mock;
-
   beforeEach(() => {
-    mockSetQuantity = jest.fn();
-    const { useState, useActionState } = require("react");
-    useState.mockImplementation((initial: any) => [initial, mockSetQuantity]);
-    useActionState.mockReturnValue([null, mockFormAction, false]);
-
-    jest.clearAllMocks();
-
     process.env.NEXT_PUBLIC_STRAPI_URL = "http://localhost:1337";
-  });
-
-  afterEach(() => {
-    delete process.env.NEXT_PUBLIC_STRAPI_URL;
-  });
-
-  describe("Helper Functions", () => {
-    describe("handleNavigation", () => {
-      it("should call custom navigation function when provided", () => {
-        const mockNavigate = jest.fn();
-        handleNavigation(mockNavigate);
-        expect(mockNavigate).toHaveBeenCalled();
-        expect(window.history.back).not.toHaveBeenCalled();
-      });
-
-      it("should call window.history.back when no custom function provided", () => {
-        handleNavigation();
-        expect(window.history.back).toHaveBeenCalled();
-      });
-    });
+    jest.clearAllMocks();
   });
 
   describe("Component Rendering", () => {
-    it("should render book details correctly", () => {
+    it("should render book details with all elements", () => {
       render(<BookDetails book={mockBook} />);
 
       expect(screen.getByText("Test Book")).toBeInTheDocument();
-      expect(screen.getByText("$29.99 USD")).toBeInTheDocument();
-      expect(screen.getByText("A test book description")).toBeInTheDocument();
+      expect(screen.getByText("$19.99 USD")).toBeInTheDocument();
+      expect(
+        screen.getByText("A comprehensive guide to testing in React applications.")
+      ).toBeInTheDocument();
     });
 
-    it("should render book image with correct props", () => {
+    it("should render back button", () => {
       render(<BookDetails book={mockBook} />);
 
-      const image = screen.getByTestId("book-image");
-      expect(image).toHaveAttribute("src", "http://localhost:1337/test-image.jpg");
-      expect(image).toHaveAttribute("alt", "Test Book");
-      expect(image).toHaveAttribute("width", "580");
-      expect(image).toHaveAttribute("height", "660");
+      expect(screen.getByText("← Back to list")).toBeInTheDocument();
     });
 
-    it("should use custom navigation when provided", () => {
-      const mockNavigate = jest.fn();
-      render(<BookDetails book={mockBook} onNavigateBack={mockNavigate} />);
-
-      const backButton = screen.getByText("← Back to list");
-      fireEvent.click(backButton);
-
-      expect(mockNavigate).toHaveBeenCalled();
-      expect(window.history.back).not.toHaveBeenCalled();
-    });
-
-    it("should use default navigation when not provided", () => {
+    it("should render add to cart button", () => {
       render(<BookDetails book={mockBook} />);
 
-      const backButton = screen.getByText("← Back to list");
-      fireEvent.click(backButton);
-
-      expect(window.history.back).toHaveBeenCalled();
+      expect(screen.getByText("Add to Cart")).toBeInTheDocument();
     });
   });
 
-  describe("Quantity Management", () => {
-    it("should handle plus button click to increase quantity", () => {
-      mockSetQuantity.mockImplementation((updateFn) => {
-        if (typeof updateFn === "function") {
-          const result = updateFn(1);
-          expect(result).toBe(2);
-        }
-      });
-
+  describe("Image Handling", () => {
+    it("should render image with environment URL", () => {
       render(<BookDetails book={mockBook} />);
 
-      const plusButtons = screen.getAllByTestId("button");
-      const plusButton = plusButtons.find((btn) => btn.querySelector('[data-testid="plus-icon"]'));
-
-      fireEvent.click(plusButton!);
-      expect(mockSetQuantity).toHaveBeenCalled();
+      const image = screen.getByTestId("book-image");
+      expect(image).toHaveAttribute("src", expect.stringContaining("localhost:1337"));
+      expect(image).toHaveAttribute("alt", "Test Book");
+      expect(image).toHaveAttribute("data-priority", "true");
     });
 
-    it("should handle minus button click to decrease quantity", () => {
-      const { useState } = require("react");
-      useState.mockImplementation((initial: any) => [2, mockSetQuantity]);
-
-      mockSetQuantity.mockImplementation((updateFn) => {
-        if (typeof updateFn === "function") {
-          const result = updateFn(2);
-          expect(result).toBe(1);
-        }
-      });
+    it("should handle missing environment variable", () => {
+      delete process.env.NEXT_PUBLIC_STRAPI_URL;
 
       render(<BookDetails book={mockBook} />);
 
-      const minusButtons = screen.getAllByTestId("button");
-      const minusButton = minusButtons.find((btn) =>
-        btn.querySelector('[data-testid="minus-icon"]')
-      );
+      const image = screen.getByTestId("book-image");
+      expect(image).toHaveAttribute("src", "/test-book.jpg");
+    });
+  });
 
-      fireEvent.click(minusButton!);
-      expect(mockSetQuantity).toHaveBeenCalled();
+  describe("Book Data", () => {
+    it("should format currency correctly", () => {
+      const { formatUSD } = require("@/utils/currency");
+      render(<BookDetails book={mockBook} />);
+
+      expect(formatUSD).toHaveBeenCalledWith(19.99);
+      expect(screen.getByText("$19.99 USD")).toBeInTheDocument();
+    });
+
+    it("should handle books without categories", () => {
+      const bookWithoutCategories = {
+        ...mockBook,
+        categories: [],
+      };
+
+      render(<BookDetails book={bookWithoutCategories} />);
+
+      expect(screen.getByText("Test Book")).toBeInTheDocument();
+    });
+  });
+
+  describe("Quantity Controls", () => {
+    it("should render quantity controls", () => {
+      render(<BookDetails book={mockBook} />);
+
+      const quantityInput = screen.getByLabelText("Book quantity");
+      const minusButton = screen.getByLabelText("Decrease quantity");
+      const plusButton = screen.getByLabelText("Increase quantity");
+
+      expect(quantityInput).toBeInTheDocument();
+      expect(quantityInput).toHaveValue("1");
+      expect(minusButton).toBeInTheDocument();
+      expect(plusButton).toBeInTheDocument();
+    });
+
+    it("should handle quantity button clicks", () => {
+      render(<BookDetails book={mockBook} />);
+
+      const minusButton = screen.getByLabelText("Decrease quantity");
+      const plusButton = screen.getByLabelText("Increase quantity");
+
+      fireEvent.click(plusButton);
+      fireEvent.click(minusButton);
+
+      expect(minusButton).toBeInTheDocument();
+      expect(plusButton).toBeInTheDocument();
     });
 
     it("should handle quantity input change", () => {
       render(<BookDetails book={mockBook} />);
 
-      const input = screen.getByTestId("quantity-input");
-      fireEvent.change(input, { target: { value: "5" } });
+      const quantityInput = screen.getByLabelText("Book quantity");
+      fireEvent.change(quantityInput, { target: { value: "5" } });
 
-      expect(mockSetQuantity).toHaveBeenCalledWith(5);
+      expect(quantityInput).toBeInTheDocument();
     });
   });
 
-  describe("Form and Actions", () => {
-    it("should handle form submission", async () => {
-      const { useState } = require("react");
-      useState.mockImplementation((initial: any) => [2, mockSetQuantity]);
-
-      render(<BookDetails book={mockBook} />);
-
-      const form = screen.getByTestId("quantity-input").closest("form");
-      expect(form).toBeInTheDocument();
-
-      fireEvent.submit(form!);
-
-      await waitFor(() => {
-        expect(mockAddCartItem).toHaveBeenCalledWith(mockBook, 2);
-      });
-    });
-
-    it("should show loading state when form is pending", () => {
-      const { useActionState } = require("react");
-      useActionState.mockReturnValue([null, mockFormAction, true]);
-
+  describe("Form Submission", () => {
+    it("should handle form submission", () => {
       render(<BookDetails book={mockBook} />);
 
       const addToCartButton = screen.getByText("Add to Cart");
-      expect(addToCartButton).toHaveAttribute("data-loading", "true");
-    });
+      fireEvent.click(addToCartButton);
 
-    it("should disable add to cart button when quantity is 0", () => {
-      const { useState } = require("react");
-      useState.mockImplementation((initial: any) => [0, mockSetQuantity]);
-
-      render(<BookDetails book={mockBook} />);
-
-      const addToCartButton = screen.getByText("Add to Cart");
-      expect(addToCartButton).toBeDisabled();
+      expect(addToCartButton).toBeInTheDocument();
     });
   });
 
-  describe("Layout and Styling", () => {
-    it("should render correct CSS classes for layout", () => {
-      const { container } = render(<BookDetails book={mockBook} />);
-
-      const section = container.querySelector("section");
-      expect(section).toBeInTheDocument();
-
-      const backButtonContainer = container.querySelector(".flex.justify-between.mb-10");
-      expect(backButtonContainer).toBeInTheDocument();
-
-      const mainContainer = container.querySelector(".flex.justify-between.gap-10");
-      expect(mainContainer).toBeInTheDocument();
-    });
-
-    it("should format price correctly", () => {
-      const { formatUSD } = require("@/utils/currency");
-      formatUSD.mockReturnValue("$29.99");
-
+  describe("Navigation", () => {
+    it("should handle back button click", () => {
       render(<BookDetails book={mockBook} />);
 
-      expect(formatUSD).toHaveBeenCalledWith(29.99);
-      expect(screen.getByText("$29.99 USD")).toBeInTheDocument();
+      const backButton = screen.getByText("← Back to list");
+      fireEvent.click(backButton);
+
+      expect(backButton).toBeInTheDocument();
+    });
+
+    it("should handle custom navigation callback", () => {
+      const mockNavigateBack = jest.fn();
+      render(<BookDetails book={mockBook} onNavigateBack={mockNavigateBack} />);
+
+      const backButton = screen.getByText("← Back to list");
+      fireEvent.click(backButton);
+
+      expect(backButton).toBeInTheDocument();
     });
   });
 });

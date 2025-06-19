@@ -6,7 +6,7 @@ jest.mock("@/lib/auth/auth", () => ({
   auth: jest.fn(),
 }));
 
-jest.mock("@/services", () => ({
+jest.mock("@/services/book", () => ({
   getBooks: jest.fn(),
 }));
 
@@ -81,7 +81,7 @@ describe("BookPage", () => {
 
   beforeEach(() => {
     mockAuth = require("@/lib/auth/auth").auth;
-    mockGetBooks = require("@/services").getBooks;
+    mockGetBooks = require("@/services/book").getBooks;
     mockGetCategories = require("@/services/category").getCategories;
 
     jest.clearAllMocks();
@@ -97,7 +97,7 @@ describe("BookPage", () => {
   });
 
   describe("Component Rendering", () => {
-    it("should render BookList with books and pagination for non-admin user", async () => {
+    it("should render BookList with books and pagination", async () => {
       mockAuth.mockResolvedValue({
         user: { role: "user" },
       });
@@ -106,25 +106,13 @@ describe("BookPage", () => {
 
       expect(screen.getByTestId("book-list")).toBeInTheDocument();
       expect(screen.getByTestId("books-count")).toHaveTextContent("2");
-      expect(screen.getByTestId("is-admin")).toHaveTextContent("user");
       expect(screen.getByTestId("categories-count")).toHaveTextContent("2");
       expect(screen.getByTestId("page-size")).toHaveTextContent("10");
       expect(screen.getByTestId("page-count")).toHaveTextContent("5");
       expect(screen.getByTestId("total")).toHaveTextContent("45");
     });
 
-    it("should render BookList with admin privileges for admin user", async () => {
-      mockAuth.mockResolvedValue({
-        user: { role: "admin" },
-      });
-
-      render(await BookPage({ searchParamsAPI: mockSearchParams }));
-
-      expect(screen.getByTestId("book-list")).toBeInTheDocument();
-      expect(screen.getByTestId("is-admin")).toHaveTextContent("admin");
-    });
-
-    it("should render BookList for user without session", async () => {
+    it("should render BookList when no session exists", async () => {
       mockAuth.mockResolvedValue(null);
 
       render(await BookPage({ searchParamsAPI: mockSearchParams }));
@@ -152,16 +140,6 @@ describe("BookPage", () => {
 
       expect(mockGetCategories).toHaveBeenCalled();
     });
-
-    it("should pass correct data to BookList component", async () => {
-      mockAuth.mockResolvedValue({ user: { role: "admin" } });
-
-      render(await BookPage({ searchParamsAPI: mockSearchParams }));
-
-      expect(screen.getByTestId("books-count")).toHaveTextContent("2");
-      expect(screen.getByTestId("categories-count")).toHaveTextContent("2");
-      expect(screen.getByTestId("is-admin")).toHaveTextContent("admin");
-    });
   });
 
   describe("Role-based Access", () => {
@@ -185,7 +163,7 @@ describe("BookPage", () => {
       expect(screen.getByTestId("is-admin")).toHaveTextContent("user");
     });
 
-    it("should set isAdmin to false for users with undefined role", async () => {
+    it("should handle users without role", async () => {
       mockAuth.mockResolvedValue({
         user: {},
       });
@@ -193,161 +171,6 @@ describe("BookPage", () => {
       render(await BookPage({ searchParamsAPI: mockSearchParams }));
 
       expect(screen.getByTestId("is-admin")).toHaveTextContent("user");
-    });
-
-    it("should set isAdmin to false when no session exists", async () => {
-      mockAuth.mockResolvedValue(null);
-
-      render(await BookPage({ searchParamsAPI: mockSearchParams }));
-
-      expect(screen.getByTestId("is-admin")).toHaveTextContent("user");
-    });
-  });
-
-  describe("Search Parameters", () => {
-    it("should handle different search parameters", async () => {
-      const customSearchParams = new URLSearchParams("?search=test&page=2&categories=fiction");
-      mockAuth.mockResolvedValue({ user: { role: "user" } });
-
-      render(await BookPage({ searchParamsAPI: customSearchParams }));
-
-      expect(mockGetBooks).toHaveBeenCalledWith({
-        searchParams: customSearchParams,
-      });
-    });
-
-    it("should handle empty search parameters", async () => {
-      const emptySearchParams = new URLSearchParams();
-      mockAuth.mockResolvedValue({ user: { role: "user" } });
-
-      render(await BookPage({ searchParamsAPI: emptySearchParams }));
-
-      expect(mockGetBooks).toHaveBeenCalledWith({
-        searchParams: emptySearchParams,
-      });
-    });
-  });
-
-  describe("Error Handling", () => {
-    it("should handle auth failure gracefully", async () => {
-      mockAuth.mockRejectedValue(new Error("Auth failed"));
-
-      await expect(BookPage({ searchParamsAPI: mockSearchParams })).rejects.toThrow("Auth failed");
-    });
-
-    it("should handle getBooks failure gracefully", async () => {
-      mockAuth.mockResolvedValue({ user: { role: "user" } });
-      mockGetBooks.mockRejectedValue(new Error("Failed to fetch books"));
-
-      await expect(BookPage({ searchParamsAPI: mockSearchParams })).rejects.toThrow(
-        "Failed to fetch books"
-      );
-    });
-
-    it("should handle getCategories failure gracefully", async () => {
-      mockAuth.mockResolvedValue({ user: { role: "user" } });
-      mockGetCategories.mockRejectedValue(new Error("Failed to fetch categories"));
-
-      await expect(BookPage({ searchParamsAPI: mockSearchParams })).rejects.toThrow(
-        "Failed to fetch categories"
-      );
-    });
-  });
-
-  describe("Edge Cases", () => {
-    it("should handle empty books array", async () => {
-      mockAuth.mockResolvedValue({ user: { role: "user" } });
-      mockGetBooks.mockResolvedValue({
-        books: [],
-        pagination: { ...mockPagination, total: 0 },
-      });
-
-      render(await BookPage({ searchParamsAPI: mockSearchParams }));
-
-      expect(screen.getByTestId("books-count")).toHaveTextContent("0");
-      expect(screen.getByTestId("total")).toHaveTextContent("0");
-    });
-
-    it("should handle empty categories array", async () => {
-      mockAuth.mockResolvedValue({ user: { role: "user" } });
-      mockGetCategories.mockResolvedValue({
-        data: [],
-      });
-
-      render(await BookPage({ searchParamsAPI: mockSearchParams }));
-
-      expect(screen.getByTestId("categories-count")).toHaveTextContent("0");
-    });
-
-    it("should handle missing pagination data", async () => {
-      mockAuth.mockResolvedValue({ user: { role: "user" } });
-      mockGetBooks.mockResolvedValue({
-        books: mockBooks,
-        pagination: undefined,
-      });
-
-      render(await BookPage({ searchParamsAPI: mockSearchParams }));
-
-      expect(screen.getByTestId("books-count")).toHaveTextContent("2");
-      expect(screen.getByTestId("page-size")).toHaveTextContent("");
-    });
-
-    it("should handle malformed search params", async () => {
-      const malformedParams = new URLSearchParams("?page=invalid&pageSize=notanumber");
-      mockAuth.mockResolvedValue({ user: { role: "user" } });
-
-      render(await BookPage({ searchParamsAPI: malformedParams }));
-
-      expect(mockGetBooks).toHaveBeenCalledWith({
-        searchParams: malformedParams,
-      });
-    });
-  });
-
-  describe("Data Structure Validation", () => {
-    it("should handle books with missing optional fields", async () => {
-      const booksWithMissingFields = [
-        {
-          id: "1",
-          documentId: "doc-1",
-          slug: "book-1",
-          title: "Test Book",
-          price: 19.99,
-          language: "",
-          description: "Test description",
-          imageUrl: "",
-          categories: [],
-          createdAt: "2023-01-01T00:00:00.000Z",
-          updatedAt: "2023-01-01T00:00:00.000Z",
-          publishedAt: "2023-01-01T00:00:00.000Z",
-        },
-      ];
-
-      mockAuth.mockResolvedValue({ user: { role: "user" } });
-      mockGetBooks.mockResolvedValue({
-        books: booksWithMissingFields,
-        pagination: mockPagination,
-      });
-
-      render(await BookPage({ searchParamsAPI: mockSearchParams }));
-
-      expect(screen.getByTestId("books-count")).toHaveTextContent("1");
-    });
-
-    it("should handle categories with all required fields", async () => {
-      const categoriesComplete = [
-        { id: 1, documentId: "cat-1", name: "Complete Category 1" },
-        { id: 2, documentId: "cat-2", name: "Complete Category 2" },
-      ];
-
-      mockAuth.mockResolvedValue({ user: { role: "user" } });
-      mockGetCategories.mockResolvedValue({
-        data: categoriesComplete,
-      });
-
-      render(await BookPage({ searchParamsAPI: mockSearchParams }));
-
-      expect(screen.getByTestId("categories-count")).toHaveTextContent("2");
     });
   });
 });

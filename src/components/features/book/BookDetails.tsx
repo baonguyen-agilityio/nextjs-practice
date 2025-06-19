@@ -70,7 +70,6 @@ export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
       addToast({
         title: "You must be logged in to add items to your cart",
         color: "danger",
-        shouldShowTimeoutProgress: true,
       });
       router.push("/login");
     }
@@ -81,10 +80,9 @@ export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
       addToast({
         title: result.message,
         color: "success",
-        shouldShowTimeoutProgress: true,
       });
     }
-    if (result?.success === false) {
+    if (result?.success === false && result?.message !== "UNAUTHORIZED") {
       addToast({
         title: "Failed to add item to cart",
         color: "danger",

@@ -2,6 +2,8 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import EditBookModal from "../EditBookModal";
 import type { Book, Category } from "@/types";
 
+let mockOnOpenChange: any = null;
+
 jest.mock("@/components/ui/Button", () => ({
   Button: function MockButton({ children, onPress, size, color, variant, fullWidth }: any) {
     return (
@@ -21,19 +23,22 @@ jest.mock("@/components/ui/Button", () => ({
 
 jest.mock("@heroui/react", () => ({
   Modal: function MockModal({ children, isOpen, placement, onOpenChange }: any) {
+    mockOnOpenChange = onOpenChange;
     return isOpen ? (
       <div data-testid="modal" data-placement={placement}>
-        {typeof children === "function" ? children(jest.fn()) : children}
-        <button data-testid="modal-close" onClick={() => onOpenChange(false)}>
-          Close Modal
-        </button>
+        {children}
       </div>
     ) : null;
   },
   ModalContent: function MockModalContent({ children }: any) {
+    const onClose = () => {
+      if (mockOnOpenChange) {
+        mockOnOpenChange(false);
+      }
+    };
     return (
       <div data-testid="modal-content">
-        {typeof children === "function" ? children(jest.fn()) : children}
+        {typeof children === "function" ? children(onClose) : children}
       </div>
     );
   },
@@ -47,11 +52,7 @@ jest.mock("@heroui/react", () => ({
   ModalBody: function MockModalBody({ children }: any) {
     return <div data-testid="modal-body">{children}</div>;
   },
-  useDisclosure: jest.fn(() => ({
-    isOpen: false,
-    onOpen: jest.fn(),
-    onOpenChange: jest.fn(),
-  })),
+  useDisclosure: jest.fn(),
 }));
 
 jest.mock("../EditBookForm", () => {
@@ -100,6 +101,8 @@ describe("EditBookModal", () => {
   ];
 
   const mockFormAction = jest.fn();
+  const mockOnOpen = jest.fn();
+  const mockOnOpenChangeFunc = jest.fn();
 
   const defaultProps = {
     book: mockBook,
@@ -113,85 +116,95 @@ describe("EditBookModal", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-
     mockUseDisclosure = require("@heroui/react").useDisclosure;
-    mockUseDisclosure.mockReturnValue({
-      isOpen: false,
-      onOpen: jest.fn(),
-      onOpenChange: jest.fn(),
-    });
   });
 
-  describe("Component Rendering", () => {
-    it("should render trigger button", () => {
+  describe("Trigger Button", () => {
+    it("should render trigger button with correct props and open modal when clicked", () => {
+      mockUseDisclosure.mockReturnValue({
+        isOpen: false,
+        onOpen: mockOnOpen,
+        onOpenChange: mockOnOpenChangeFunc,
+      });
+
       render(<EditBookModal {...defaultProps} />);
 
       const triggerButton = screen.getByTestId("trigger-button");
       expect(triggerButton).toBeInTheDocument();
       expect(triggerButton).toHaveTextContent("Edit");
-    });
+      expect(triggerButton).toHaveAttribute("data-size", "lg");
+      expect(triggerButton).toHaveAttribute("data-color", "primary");
+      expect(triggerButton).toHaveAttribute("data-variant", "ghost");
+      expect(triggerButton).toHaveAttribute("data-full-width", "true");
 
+      fireEvent.click(triggerButton);
+      expect(mockOnOpen).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("Modal Rendering", () => {
     it("should not render modal when closed", () => {
+      mockUseDisclosure.mockReturnValue({
+        isOpen: false,
+        onOpen: mockOnOpen,
+        onOpenChange: mockOnOpenChangeFunc,
+      });
+
       render(<EditBookModal {...defaultProps} />);
 
       expect(screen.queryByTestId("modal")).not.toBeInTheDocument();
     });
 
-    it("should render modal when open", () => {
+    it("should render modal with correct structure when open", () => {
       mockUseDisclosure.mockReturnValue({
         isOpen: true,
-        onOpen: jest.fn(),
-        onOpenChange: jest.fn(),
+        onOpen: mockOnOpen,
+        onOpenChange: mockOnOpenChangeFunc,
       });
 
       render(<EditBookModal {...defaultProps} />);
 
       expect(screen.getByTestId("modal")).toBeInTheDocument();
+      expect(screen.getByTestId("modal")).toHaveAttribute("data-placement", "top-center");
+      expect(screen.getByTestId("modal-content")).toBeInTheDocument();
+      expect(screen.getByTestId("modal-header")).toBeInTheDocument();
+      expect(screen.getByTestId("modal-body")).toBeInTheDocument();
+      expect(screen.getByTestId("modal-header")).toHaveTextContent("Edit book");
       expect(screen.getByTestId("edit-book-form")).toBeInTheDocument();
     });
   });
 
-  describe("Modal Interaction", () => {
-    it("should call onOpen when trigger button is clicked", () => {
-      const mockOnOpen = jest.fn();
-      mockUseDisclosure.mockReturnValue({
-        isOpen: false,
-        onOpen: mockOnOpen,
-        onOpenChange: jest.fn(),
-      });
-
-      render(<EditBookModal {...defaultProps} />);
-
-      const triggerButton = screen.getByTestId("trigger-button");
-      fireEvent.click(triggerButton);
-
-      expect(mockOnOpen).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe("Form Integration", () => {
+  describe("EditBookForm Integration", () => {
     beforeEach(() => {
       mockUseDisclosure.mockReturnValue({
         isOpen: true,
-        onOpen: jest.fn(),
-        onOpenChange: jest.fn(),
+        onOpen: mockOnOpen,
+        onOpenChange: mockOnOpenChangeFunc,
       });
     });
 
-    it("should call formAction when form triggers submit", () => {
-      render(<EditBookModal {...defaultProps} />);
-
-      const formSubmitButton = screen.getByTestId("form-submit-button");
-      fireEvent.click(formSubmitButton);
-
-      expect(mockFormAction).toHaveBeenCalledTimes(1);
-    });
-
-    it("should pass correct props to EditBookForm", () => {
+    it("should pass correct props to EditBookForm and handle form actions", () => {
       render(<EditBookModal {...defaultProps} />);
 
       expect(screen.getByTestId("form-book-id")).toHaveTextContent("doc-123");
       expect(screen.getByTestId("form-pending-state")).toHaveTextContent("false");
+
+      fireEvent.click(screen.getByTestId("form-submit-button"));
+      expect(mockFormAction).toHaveBeenCalledTimes(1);
+      expect(mockFormAction).toHaveBeenCalledWith(expect.any(FormData));
+    });
+
+    it("should handle form close action", () => {
+      render(<EditBookModal {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId("form-close-button"));
+      expect(mockOnOpenChangeFunc).toHaveBeenCalledWith(false);
+    });
+
+    it("should pass isPending state to form", () => {
+      render(<EditBookModal {...defaultProps} isPending={true} />);
+
+      expect(screen.getByTestId("form-pending-state")).toHaveTextContent("true");
     });
   });
 });
