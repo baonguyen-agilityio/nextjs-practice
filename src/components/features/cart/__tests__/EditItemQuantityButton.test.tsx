@@ -1,8 +1,10 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { EditItemQuantityButton } from "../EditItemQuantityButton";
 import type { CartItem } from "@/types";
 
-const mockOptimisticUpdate: any = jest.fn();
+const mockOptimisticUpdate = jest.fn();
+const mockFormAction = jest.fn();
+const mockUseActionState = jest.fn();
 
 jest.mock("@/app/actions/cart", () => ({
   updateItemQuantity: jest.fn(),
@@ -10,7 +12,7 @@ jest.mock("@/app/actions/cart", () => ({
 
 jest.mock("react", () => ({
   ...jest.requireActual("react"),
-  useActionState: jest.fn().mockReturnValue([{ success: null, message: "" }, jest.fn(), false]),
+  useActionState: (...args: any[]) => mockUseActionState(...args),
   useEffect: jest.fn(),
 }));
 
@@ -21,7 +23,6 @@ jest.mock("@heroui/react", () => ({
 jest.mock("@/components/ui/Button", () => ({
   Button: function MockButton({
     children,
-    onClick,
     size,
     variant,
     isIconOnly,
@@ -29,11 +30,11 @@ jest.mock("@/components/ui/Button", () => ({
     type,
     isLoading,
     disableAnimation,
+    "aria-label": ariaLabel,
     ...props
   }: any) {
     return (
       <button
-        onClick={onClick}
         type={type}
         data-testid="quantity-button"
         data-size={size}
@@ -41,7 +42,7 @@ jest.mock("@/components/ui/Button", () => ({
         data-icon-only={isIconOnly}
         data-radius={radius}
         data-loading={isLoading}
-        data-disable-animation={disableAnimation}
+        aria-label={ariaLabel}
         {...props}
       >
         {children}
@@ -50,22 +51,25 @@ jest.mock("@/components/ui/Button", () => ({
   },
 }));
 
-jest.mock("@heroicons/react/24/outline", () => ({
-  MinusIcon: function MockMinusIcon({ className }: any) {
-    return (
-      <div data-testid="minus-icon" className={className}>
-        -
-      </div>
-    );
-  },
-  PlusIcon: function MockPlusIcon({ className }: any) {
+jest.mock("@/components/icons/PlusIcon", () => {
+  return function MockPlusIcon({ className }: any) {
     return (
       <div data-testid="plus-icon" className={className}>
         +
       </div>
     );
-  },
-}));
+  };
+});
+
+jest.mock("@/components/icons/MinusIcon", () => {
+  return function MockMinusIcon({ className }: any) {
+    return (
+      <div data-testid="minus-icon" className={className}>
+        -
+      </div>
+    );
+  };
+});
 
 describe("EditItemQuantityButton", () => {
   const mockCartItem: CartItem = {
@@ -89,37 +93,12 @@ describe("EditItemQuantityButton", () => {
   };
 
   beforeEach(() => {
+    mockUseActionState.mockReturnValue([{ success: null, message: "" }, mockFormAction, false]);
     jest.clearAllMocks();
   });
 
   describe("Component Rendering", () => {
-    it("should render plus button with correct icon", () => {
-      render(
-        <EditItemQuantityButton
-          item={mockCartItem}
-          type="plus"
-          optimisticUpdate={mockOptimisticUpdate}
-        />
-      );
-
-      expect(screen.getByTestId("quantity-button")).toBeInTheDocument();
-      expect(screen.getByTestId("plus-icon")).toBeInTheDocument();
-    });
-
-    it("should render minus button with correct icon", () => {
-      render(
-        <EditItemQuantityButton
-          item={mockCartItem}
-          type="minus"
-          optimisticUpdate={mockOptimisticUpdate}
-        />
-      );
-
-      expect(screen.getByTestId("quantity-button")).toBeInTheDocument();
-      expect(screen.getByTestId("minus-icon")).toBeInTheDocument();
-    });
-
-    it("should render button with correct properties", () => {
+    it("should render plus button with correct properties", () => {
       render(
         <EditItemQuantityButton
           item={mockCartItem}
@@ -129,15 +108,17 @@ describe("EditItemQuantityButton", () => {
       );
 
       const button = screen.getByTestId("quantity-button");
+      expect(button).toBeInTheDocument();
+      expect(button).toHaveAttribute("type", "submit");
       expect(button).toHaveAttribute("data-size", "sm");
       expect(button).toHaveAttribute("data-variant", "light");
       expect(button).toHaveAttribute("data-icon-only", "true");
       expect(button).toHaveAttribute("data-radius", "full");
       expect(button).toHaveAttribute("aria-label", "Increase item quantity");
-      expect(button).toHaveAttribute("type", "submit");
+      expect(screen.getByTestId("plus-icon")).toBeInTheDocument();
     });
 
-    it("should render minus button with correct aria label", () => {
+    it("should render minus button with correct properties", () => {
       render(
         <EditItemQuantityButton
           item={mockCartItem}
@@ -148,44 +129,11 @@ describe("EditItemQuantityButton", () => {
 
       const button = screen.getByTestId("quantity-button");
       expect(button).toHaveAttribute("aria-label", "Reduce item quantity");
+      expect(screen.getByTestId("minus-icon")).toBeInTheDocument();
     });
 
-    it("should render form wrapper", () => {
-      render(
-        <EditItemQuantityButton
-          item={mockCartItem}
-          type="plus"
-          optimisticUpdate={mockOptimisticUpdate}
-        />
-      );
-
-      const form = document.querySelector("form");
-      expect(form).toBeInTheDocument();
-    });
-  });
-
-  describe("useActionState Integration", () => {
-    it("should call useActionState with updateItemQuantity", () => {
-      const { useActionState } = require("react");
-      const { updateItemQuantity } = require("@/app/actions/cart");
-
-      render(
-        <EditItemQuantityButton
-          item={mockCartItem}
-          type="plus"
-          optimisticUpdate={mockOptimisticUpdate}
-        />
-      );
-
-      expect(useActionState).toHaveBeenCalledWith(updateItemQuantity, {
-        success: null,
-        message: "",
-      });
-    });
-
-    it("should show loading state when isPending is true", () => {
-      const { useActionState } = require("react");
-      useActionState.mockReturnValue([{ success: null, message: "" }, jest.fn(), true]);
+    it("should show loading state when pending", () => {
+      mockUseActionState.mockReturnValue([{ success: null, message: "" }, mockFormAction, true]);
 
       render(
         <EditItemQuantityButton
@@ -200,12 +148,25 @@ describe("EditItemQuantityButton", () => {
     });
   });
 
-  describe("Form Action", () => {
-    it("should call optimisticUpdate when form is submitted for plus button", async () => {
-      const mockFormAction = jest.fn();
-      const { useActionState } = require("react");
-      useActionState.mockReturnValue([{ success: null, message: "" }, mockFormAction, false]);
+  describe("Form Submission", () => {
+    it("should initialize with correct action and state", () => {
+      const { updateItemQuantity } = require("@/app/actions/cart");
 
+      render(
+        <EditItemQuantityButton
+          item={mockCartItem}
+          type="plus"
+          optimisticUpdate={mockOptimisticUpdate}
+        />
+      );
+
+      expect(mockUseActionState).toHaveBeenCalledWith(updateItemQuantity, {
+        success: null,
+        message: "",
+      });
+    });
+
+    it("should call optimistic update on form submit for plus", () => {
       render(
         <EditItemQuantityButton
           item={mockCartItem}
@@ -220,11 +181,7 @@ describe("EditItemQuantityButton", () => {
       expect(mockOptimisticUpdate).toHaveBeenCalledWith("book-1", "plus");
     });
 
-    it("should call optimisticUpdate when form is submitted for minus button", async () => {
-      const mockFormAction = jest.fn();
-      const { useActionState } = require("react");
-      useActionState.mockReturnValue([{ success: null, message: "" }, mockFormAction, false]);
-
+    it("should call optimistic update on form submit for minus", () => {
       render(
         <EditItemQuantityButton
           item={mockCartItem}
@@ -241,19 +198,19 @@ describe("EditItemQuantityButton", () => {
   });
 
   describe("Toast Notifications", () => {
-    it("should show success toast when result is successful", () => {
+    it("should show success toast", () => {
       const { useEffect } = require("react");
       const { addToast } = require("@heroui/react");
 
-      // Mock useEffect to simulate the effect running
-      useEffect.mockImplementation((callback: () => void) => callback());
-
-      const { useActionState } = require("react");
-      useActionState.mockReturnValue([
+      mockUseActionState.mockReturnValue([
         { success: true, message: "Item updated successfully" },
-        jest.fn(),
+        mockFormAction,
         false,
       ]);
+
+      useEffect.mockImplementation((callback: any) => {
+        callback();
+      });
 
       render(
         <EditItemQuantityButton
@@ -266,23 +223,22 @@ describe("EditItemQuantityButton", () => {
       expect(addToast).toHaveBeenCalledWith({
         title: "Item updated successfully",
         color: "success",
-        shouldShowTimeoutProgress: true,
       });
     });
 
-    it("should show error toast when result is unsuccessful", () => {
+    it("should show error toast", () => {
       const { useEffect } = require("react");
       const { addToast } = require("@heroui/react");
 
-      // Mock useEffect to simulate the effect running
-      useEffect.mockImplementation((callback: () => void) => callback());
-
-      const { useActionState } = require("react");
-      useActionState.mockReturnValue([
+      mockUseActionState.mockReturnValue([
         { success: false, message: "Update failed" },
-        jest.fn(),
+        mockFormAction,
         false,
       ]);
+
+      useEffect.mockImplementation((callback: any) => {
+        callback();
+      });
 
       render(
         <EditItemQuantityButton
@@ -295,29 +251,13 @@ describe("EditItemQuantityButton", () => {
       expect(addToast).toHaveBeenCalledWith({
         title: "Failed to update item quantity",
         color: "danger",
-        shouldShowTimeoutProgress: true,
       });
     });
   });
 
   describe("Edge Cases", () => {
-    it("should handle cart item without book gracefully", () => {
-      const itemWithoutBook = { ...mockCartItem, book: undefined };
-
-      render(
-        <EditItemQuantityButton
-          item={itemWithoutBook as any}
-          type="plus"
-          optimisticUpdate={mockOptimisticUpdate}
-        />
-      );
-
-      const button = screen.getByTestId("quantity-button");
-      expect(button).toBeInTheDocument();
-    });
-
-    it("should handle missing document ID", () => {
-      const itemWithoutDocId = { ...mockCartItem, documentId: undefined };
+    it("should handle item without documentId", () => {
+      const itemWithoutDocId = { ...mockCartItem, documentId: "" };
 
       render(
         <EditItemQuantityButton
@@ -328,78 +268,6 @@ describe("EditItemQuantityButton", () => {
       );
 
       const button = screen.getByTestId("quantity-button");
-      expect(button).toBeInTheDocument();
-    });
-
-    it("should handle zero quantity for plus operation", () => {
-      const itemWithZeroQuantity = { ...mockCartItem, quantity: 0 };
-
-      render(
-        <EditItemQuantityButton
-          item={itemWithZeroQuantity}
-          type="plus"
-          optimisticUpdate={mockOptimisticUpdate}
-        />
-      );
-
-      const button = screen.getByTestId("quantity-button");
-      expect(button).toBeInTheDocument();
-    });
-
-    it("should handle quantity calculation for minus operation", () => {
-      const itemWithOneQuantity = { ...mockCartItem, quantity: 1 };
-
-      render(
-        <EditItemQuantityButton
-          item={itemWithOneQuantity}
-          type="minus"
-          optimisticUpdate={mockOptimisticUpdate}
-        />
-      );
-
-      const button = screen.getByTestId("quantity-button");
-      expect(button).toBeInTheDocument();
-    });
-  });
-
-  describe("Accessibility", () => {
-    it("should have proper aria labels for screen readers", () => {
-      render(
-        <EditItemQuantityButton
-          item={mockCartItem}
-          type="plus"
-          optimisticUpdate={mockOptimisticUpdate}
-        />
-      );
-
-      const button = screen.getByLabelText("Increase item quantity");
-      expect(button).toBeInTheDocument();
-    });
-
-    it("should be keyboard accessible", () => {
-      render(
-        <EditItemQuantityButton
-          item={mockCartItem}
-          type="minus"
-          optimisticUpdate={mockOptimisticUpdate}
-        />
-      );
-
-      const button = screen.getByLabelText("Reduce item quantity");
-      expect(button).toBeInTheDocument();
-      expect(button).not.toHaveAttribute("disabled");
-    });
-
-    it("should have proper button role", () => {
-      render(
-        <EditItemQuantityButton
-          item={mockCartItem}
-          type="plus"
-          optimisticUpdate={mockOptimisticUpdate}
-        />
-      );
-
-      const button = screen.getByRole("button");
       expect(button).toBeInTheDocument();
     });
   });

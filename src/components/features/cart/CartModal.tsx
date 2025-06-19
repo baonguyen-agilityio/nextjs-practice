@@ -10,7 +10,7 @@ import type { CartItem } from "@/types";
 import { useCart } from "@/hooks/useCart";
 import { EditItemQuantityButton } from "./EditItemQuantityButton";
 import { createCart } from "@/services/cart";
-import { ShoppingCartIcon } from "@heroicons/react/24/outline";
+import ShoppingCartIcon from "@/components/icons/ShoppingCartIcon";
 import { DeleteItemButton } from "./DeleteItemButton";
 import { createImageUrl } from "@/utils";
 

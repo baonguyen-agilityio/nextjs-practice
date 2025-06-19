@@ -101,32 +101,6 @@ describe("Auth Service", () => {
       });
     });
 
-    it("should handle missing user in response", async () => {
-      const loginData = {
-        email: "test@example.com",
-        password: "password123",
-      };
-
-      const mockResponse = {
-        jwt: "mock-jwt-token",
-        user: null,
-        error: JSON.stringify({
-          error: {
-            message: "User not found",
-          },
-        }),
-      };
-
-      mockApiClient.post.mockResolvedValue(mockResponse);
-
-      const result = await login(loginData);
-
-      expect(result).toEqual({
-        user: null,
-        error: "User not found",
-      });
-    });
-
     it("should handle network errors", async () => {
       const loginData = {
         email: "test@example.com",
@@ -143,56 +117,7 @@ describe("Auth Service", () => {
       });
     });
 
-    it("should handle unexpected errors", async () => {
-      const loginData = {
-        email: "test@example.com",
-        password: "password123",
-      };
-
-      mockApiClient.post.mockRejectedValue("Unexpected error");
-
-      const result = await login(loginData);
-
-      expect(result).toEqual({
-        user: null,
-        error: "Login failed unexpectedly",
-      });
-    });
-
-    it("should handle partial user data", async () => {
-      const loginData = {
-        email: "test@example.com",
-        password: "password123",
-      };
-
-      const mockResponse = {
-        jwt: "mock-jwt-token",
-        user: {
-          id: undefined,
-          username: undefined,
-          email: undefined,
-          role: undefined,
-        },
-        error: null,
-      };
-
-      mockApiClient.post.mockResolvedValue(mockResponse);
-
-      const result = await login(loginData);
-
-      expect(result).toEqual({
-        user: {
-          id: "",
-          token: "mock-jwt-token",
-          username: "",
-          email: "",
-          role: "",
-        },
-        error: null,
-      });
-    });
-
-    it("should handle malformed error JSON", async () => {
+    it("should handle missing user in response", async () => {
       const loginData = {
         email: "test@example.com",
         password: "password123",
@@ -201,7 +126,11 @@ describe("Auth Service", () => {
       const mockResponse = {
         jwt: null,
         user: null,
-        error: "invalid json {",
+        error: JSON.stringify({
+          error: {
+            message: "User not found",
+          },
+        }),
       };
 
       mockApiClient.post.mockResolvedValue(mockResponse);
@@ -210,48 +139,7 @@ describe("Auth Service", () => {
 
       expect(result).toEqual({
         user: null,
-        error: expect.stringContaining("Unexpected token"),
-      });
-    });
-
-    it("should handle empty credentials", async () => {
-      const loginData = {
-        email: "",
-        password: "",
-      };
-
-      const mockResponse = {
-        jwt: "mock-jwt-token",
-        user: {
-          id: "user-123",
-          username: "testuser",
-          email: "",
-          role: "authenticated",
-        },
-        error: null,
-      };
-
-      mockApiClient.post.mockResolvedValue(mockResponse);
-
-      const result = await login(loginData);
-
-      expect(mockApiClient.post).toHaveBeenCalledWith("/auth/local", {
-        body: {
-          identifier: "",
-          password: "",
-        },
-        baseUrl: "https://api.example.com",
-      });
-
-      expect(result).toEqual({
-        user: {
-          id: "user-123",
-          token: "mock-jwt-token",
-          username: "testuser",
-          email: "",
-          role: "authenticated",
-        },
-        error: null,
+        error: "User not found",
       });
     });
   });

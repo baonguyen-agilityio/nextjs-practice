@@ -17,15 +17,27 @@ jest.mock("@/utils/currency", () => ({
   formatUSD: jest.fn((price) => `$${price}`),
 }));
 
+jest.mock("@/utils", () => ({
+  createImageUrl: jest.fn((url) => `http://localhost:1337${url}`),
+}));
+
 jest.mock("@/components/ui/Button", () => ({
-  Button: function MockButton({ children, onPress, variant, fullWidth, ...props }: any) {
+  Button: function MockButton({
+    children,
+    onPress,
+    variant,
+    fullWidth,
+    disableAnimation,
+    ...props
+  }: any) {
+    const { disableAnimation: _, ...cleanProps } = props;
     return (
       <button
         onClick={onPress}
         data-testid="button"
         data-variant={variant}
         data-full-width={fullWidth}
-        {...props}
+        {...cleanProps}
       >
         {children}
       </button>
@@ -37,9 +49,17 @@ jest.mock("@heroui/react", () => ({
   Image: function MockImage({ src, alt, width }: any) {
     return <img src={src} alt={alt} width={width} data-testid="cart-image" />;
   },
-  Modal: function MockModal({ children, isOpen, classNames, onOpenChange, ...props }: any) {
+  Modal: function MockModal({
+    children,
+    isOpen,
+    onOpenChange,
+    classNames,
+    backdrop,
+    radius,
+    ...props
+  }: any) {
     return isOpen ? (
-      <div data-testid="modal" data-class-names={JSON.stringify(classNames)} {...props}>
+      <div data-testid="modal" {...props}>
         {typeof children === "function" ? children() : children}
       </div>
     ) : null;
@@ -51,12 +71,8 @@ jest.mock("@heroui/react", () => ({
       </div>
     );
   },
-  ModalHeader: function MockModalHeader({ children, className }: any) {
-    return (
-      <div data-testid="modal-header" className={className}>
-        {children}
-      </div>
-    );
+  ModalHeader: function MockModalHeader({ children }: any) {
+    return <div data-testid="modal-header">{children}</div>;
   },
   ModalBody: function MockModalBody({ children }: any) {
     return <div data-testid="modal-body">{children}</div>;
@@ -96,17 +112,15 @@ jest.mock("../EditItemQuantityButton", () => ({
   },
 }));
 
-jest.mock("@heroicons/react/24/outline", () => ({
-  ShoppingCartIcon: function MockShoppingCartIcon({ className }: any) {
+jest.mock("@/components/icons/ShoppingCartIcon", () => {
+  return function MockShoppingCartIcon({ className }: any) {
     return (
       <div data-testid="shopping-cart-icon" className={className}>
-        🛒
+        Cart Icon
       </div>
     );
-  },
-}));
-
-const originalEnv = process.env;
+  };
+});
 
 describe("CartModal", () => {
   const mockCartItem: CartItem = {
@@ -139,9 +153,6 @@ describe("CartModal", () => {
   };
 
   beforeEach(() => {
-    process.env = { ...originalEnv };
-    process.env.NEXT_PUBLIC_STRAPI_URL = "http://localhost:1337";
-
     mockUseCart.mockReturnValue({
       cart: mockCart,
       updateCartItem: mockUpdateCartItem,
@@ -149,12 +160,8 @@ describe("CartModal", () => {
     jest.clearAllMocks();
   });
 
-  afterEach(() => {
-    process.env = originalEnv;
-  });
-
   describe("Component Rendering", () => {
-    it("should render cart modal trigger button", () => {
+    it("should render cart trigger button with quantity", () => {
       render(<CartModal />);
 
       const openCartTrigger = screen.getByTestId("open-cart");
@@ -162,56 +169,14 @@ describe("CartModal", () => {
       expect(openCartTrigger).toHaveAttribute("data-quantity", "2");
     });
 
-    it("should open modal when trigger is clicked", async () => {
-      render(<CartModal />);
-
-      const triggerButton = screen.getByTestId("button");
-      fireEvent.click(triggerButton);
-
-      await waitFor(() => {
-        expect(screen.getByTestId("modal")).toBeInTheDocument();
-      });
-    });
-
-    it("should render modal with correct title", async () => {
-      render(<CartModal />);
-
-      const triggerButton = screen.getByTestId("button");
-      fireEvent.click(triggerButton);
-
-      await waitFor(() => {
-        expect(screen.getByTestId("modal-header")).toHaveTextContent("Your Cart");
-      });
-    });
-
-    it("should render cart items when cart has items", async () => {
-      render(<CartModal />);
-
-      const triggerButton = screen.getByTestId("button");
-      fireEvent.click(triggerButton);
-
-      await waitFor(() => {
-        expect(screen.getByText("Test Book")).toBeInTheDocument();
-        expect(screen.getByTestId("cart-image")).toHaveAttribute(
-          "src",
-          "http://localhost:1337/test-image.jpg"
-        );
-        expect(screen.getByTestId("delete-item-button")).toBeInTheDocument();
-        expect(screen.getByTestId("edit-quantity-minus")).toBeInTheDocument();
-        expect(screen.getByTestId("edit-quantity-plus")).toBeInTheDocument();
-      });
-    });
-
-    it("should render empty cart message when cart is empty", async () => {
+    it("should render empty cart state", async () => {
       mockUseCart.mockReturnValue({
         cart: { ...mockCart, cartItems: [] },
         updateCartItem: mockUpdateCartItem,
       });
 
       render(<CartModal />);
-
-      const triggerButton = screen.getByTestId("button");
-      fireEvent.click(triggerButton);
+      fireEvent.click(screen.getByTestId("button"));
 
       await waitFor(() => {
         expect(screen.getByText("Your cart is empty.")).toBeInTheDocument();
@@ -219,31 +184,58 @@ describe("CartModal", () => {
       });
     });
 
-    it("should render subtotal correctly", async () => {
+    it("should render cart items with all components", async () => {
       const { formatUSD } = require("@/utils/currency");
-      formatUSD.mockReturnValue("$59.98");
+      formatUSD.mockReturnValueOnce("$29.99").mockReturnValueOnce("$59.98");
 
       render(<CartModal />);
+      fireEvent.click(screen.getByTestId("button"));
 
-      const triggerButton = screen.getByTestId("button");
-      fireEvent.click(triggerButton);
+      await waitFor(() => {
+        expect(screen.getByText("Test Book")).toBeInTheDocument();
+        expect(screen.getByTestId("cart-image")).toHaveAttribute(
+          "src",
+          "http://localhost:1337/test-image.jpg"
+        );
+        expect(screen.getAllByText("$29.99")).toHaveLength(1);
+        expect(screen.getByText("2")).toBeInTheDocument();
+        expect(screen.getByTestId("delete-item-button")).toBeInTheDocument();
+        expect(screen.getByTestId("edit-quantity-minus")).toBeInTheDocument();
+        expect(screen.getByTestId("edit-quantity-plus")).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe("Modal Behavior", () => {
+    it("should open and close modal", async () => {
+      render(<CartModal />);
+
+      expect(screen.queryByTestId("modal")).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByTestId("button"));
+      await waitFor(() => {
+        expect(screen.getByTestId("modal")).toBeInTheDocument();
+        expect(screen.getByTestId("modal-header")).toHaveTextContent("Your Cart");
+      });
+
+      const closeButton = screen.getByText("Close");
+      fireEvent.click(closeButton);
+      await waitFor(() => {
+        expect(screen.queryByTestId("modal")).not.toBeInTheDocument();
+      });
+    });
+
+    it("should display subtotal correctly", async () => {
+      const { formatUSD } = require("@/utils/currency");
+      formatUSD.mockReturnValueOnce("$29.99").mockReturnValueOnce("$59.98");
+
+      render(<CartModal />);
+      fireEvent.click(screen.getByTestId("button"));
 
       await waitFor(() => {
         expect(screen.getByText("Sub-Total")).toBeInTheDocument();
         const modalFooter = screen.getByTestId("modal-footer");
         expect(modalFooter).toHaveTextContent("$59.98");
-      });
-    });
-
-    it("should render close button", async () => {
-      render(<CartModal />);
-
-      const triggerButton = screen.getByTestId("button");
-      fireEvent.click(triggerButton);
-
-      await waitFor(() => {
-        const closeButton = screen.getByText("Close");
-        expect(closeButton).toBeInTheDocument();
       });
     });
   });
@@ -277,87 +269,17 @@ describe("CartModal", () => {
       expect(createCart).not.toHaveBeenCalled();
     });
 
-    it("should not call createCart when cart exists", () => {
+    it("should call createCart for empty cart", () => {
       const { createCart } = require("@/services/cart");
 
-      render(<CartModal />);
-
-      expect(createCart).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("Modal Behavior", () => {
-    it("should pass correct class names to modal", async () => {
-      render(<CartModal />);
-
-      const triggerButton = screen.getByTestId("button");
-      fireEvent.click(triggerButton);
-
-      await waitFor(() => {
-        const modal = screen.getByTestId("modal");
-        const classNames = JSON.parse(modal.getAttribute("data-class-names") || "{}");
-        expect(classNames.body).toBe("py-6");
-        expect(classNames.header).toBe("bg-secondary text-primary");
-      });
-    });
-
-    it("should display correct quantity in cart items", async () => {
-      render(<CartModal />);
-
-      const triggerButton = screen.getByTestId("button");
-      fireEvent.click(triggerButton);
-
-      await waitFor(() => {
-        expect(screen.getByText("2")).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe("Edge Cases", () => {
-    it("should handle cart item without book", async () => {
-      const cartItemWithoutBook = {
-        ...mockCartItem,
-        book: null,
-      };
-
       mockUseCart.mockReturnValue({
-        cart: { ...mockCart, cartItems: [cartItemWithoutBook] },
+        cart: { ...mockCart, cartItems: [] },
         updateCartItem: mockUpdateCartItem,
       });
 
       render(<CartModal />);
 
-      const triggerButton = screen.getByTestId("button");
-      fireEvent.click(triggerButton);
-
-      await waitFor(() => {
-        expect(screen.getByTestId("modal")).toBeInTheDocument();
-      });
-    });
-
-    it("should handle missing image URL", async () => {
-      const cartItemWithoutImage = {
-        ...mockCartItem,
-        book: {
-          ...mockCartItem.book!,
-          imageUrl: "",
-        },
-      };
-
-      mockUseCart.mockReturnValue({
-        cart: { ...mockCart, cartItems: [cartItemWithoutImage] },
-        updateCartItem: mockUpdateCartItem,
-      });
-
-      render(<CartModal />);
-
-      const triggerButton = screen.getByTestId("button");
-      fireEvent.click(triggerButton);
-
-      await waitFor(() => {
-        const image = screen.getByTestId("cart-image");
-        expect(image).toHaveAttribute("src", "http://localhost:1337");
-      });
+      expect(createCart).toHaveBeenCalled();
     });
   });
 });

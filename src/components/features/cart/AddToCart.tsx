@@ -47,7 +47,6 @@ export function AddToCart({ book, variant }: { book: Book; variant: "order" | "a
       addToast({
         title: "You must be logged in to add items to your cart",
         color: "danger",
-        shouldShowTimeoutProgress: true,
       });
       router.push("/login");
     }
@@ -58,14 +57,12 @@ export function AddToCart({ book, variant }: { book: Book; variant: "order" | "a
       addToast({
         title: result.message,
         color: "success",
-        shouldShowTimeoutProgress: true,
       });
     }
     if (result?.success === false && result?.message !== "UNAUTHORIZED") {
       addToast({
         title: "Failed to add item to cart",
         color: "danger",
-        shouldShowTimeoutProgress: true,
       });
     }
   }, [result]);

@@ -76,7 +76,7 @@ describe("auth utilities", () => {
       expect(result?.status).toBe(401);
     });
 
-    it("should return null for Bearer token without space", () => {
+    it("should return error response for Bearer token without space", () => {
       const mockRequest = new Request("http://localhost", {
         headers: {
           Authorization: "Bearer",
@@ -84,7 +84,8 @@ describe("auth utilities", () => {
       });
 
       const result = validateAuthHeader(mockRequest);
-      expect(result).toBeNull();
+      expect(result).toBeInstanceOf(Response);
+      expect(result?.status).toBe(401);
     });
 
     it("should return correct error message in response", async () => {

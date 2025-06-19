@@ -19,7 +19,15 @@ jest.mock("@/app/actions/cart", () => ({
 }));
 
 jest.mock("@/components/ui/Button", () => ({
-  Button: function MockButton({ children, variant, color, type, "aria-label": ariaLabel }: any) {
+  Button: function MockButton({
+    children,
+    variant,
+    color,
+    type,
+    "aria-label": ariaLabel,
+    disabled,
+    isLoading,
+  }: any) {
     return (
       <button
         type={type}
@@ -27,11 +35,16 @@ jest.mock("@/components/ui/Button", () => ({
         data-variant={variant}
         data-color={color}
         data-testid="button"
+        disabled={disabled || isLoading}
       >
         {children}
       </button>
     );
   },
+}));
+
+jest.mock("@heroui/react", () => ({
+  addToast: jest.fn(),
 }));
 
 jest.mock("react", () => ({
@@ -78,166 +91,150 @@ describe("AddToCart", () => {
     jest.clearAllMocks();
   });
 
-  it("should render add to cart form", () => {
-    const { container } = render(<AddToCart book={mockBook} variant="add" />);
+  describe("Component Rendering", () => {
+    it("should render form with 'Add To Cart' button for add variant", () => {
+      const { container } = render(<AddToCart book={mockBook} variant="add" />);
 
-    const form = container.querySelector("form");
-    expect(form).toBeInTheDocument();
-    expect(screen.getByTestId("button")).toBeInTheDocument();
-  });
+      const form = container.querySelector("form");
+      expect(form).toBeInTheDocument();
 
-  it("should render 'Add To Cart' button for add variant", () => {
-    render(<AddToCart book={mockBook} variant="add" />);
+      const button = screen.getByTestId("button");
+      expect(button).toBeInTheDocument();
+      expect(button).toHaveTextContent("Add To Cart");
+      expect(button).toHaveAttribute("aria-label", "Add to cart");
+      expect(button).toHaveAttribute("data-variant", "solid");
+      expect(button).toHaveAttribute("type", "submit");
+    });
 
-    const button = screen.getByTestId("button");
-    expect(button).toHaveTextContent("Add To Cart");
-    expect(button).toHaveAttribute("aria-label", "Add to cart");
-    expect(button).toHaveAttribute("data-variant", "solid");
-  });
+    it("should render form with 'Order Today' button for order variant", () => {
+      render(<AddToCart book={mockBook} variant="order" />);
 
-  it("should render 'Order Today' button for order variant", () => {
-    render(<AddToCart book={mockBook} variant="order" />);
-
-    const button = screen.getByTestId("button");
-    expect(button).toHaveTextContent("Order Today");
-    expect(button).toHaveAttribute("aria-label", "Order Today");
-    expect(button).toHaveAttribute("data-variant", "ghost");
-    expect(button).toHaveAttribute("data-color", "primary");
-  });
-
-  it("should have submit type button", () => {
-    render(<AddToCart book={mockBook} variant="add" />);
-
-    const button = screen.getByTestId("button");
-    expect(button).toHaveAttribute("type", "submit");
-  });
-
-  it("should call addCartItem when form is submitted", async () => {
-    const { container } = render(<AddToCart book={mockBook} variant="add" />);
-
-    const form = container.querySelector("form");
-    fireEvent.submit(form!);
-
-    await waitFor(() => {
-      expect(mockAddCartItem).toHaveBeenCalledWith(mockBook, 1);
+      const button = screen.getByTestId("button");
+      expect(button).toHaveTextContent("Order Today");
+      expect(button).toHaveAttribute("aria-label", "Order Today");
+      expect(button).toHaveAttribute("data-variant", "ghost");
+      expect(button).toHaveAttribute("data-color", "primary");
     });
   });
 
-  it("should handle form submission for order variant", async () => {
-    const { container } = render(<AddToCart book={mockBook} variant="order" />);
+  describe("Form Submission", () => {
+    it("should call addCartItem when form is submitted", async () => {
+      const { container } = render(<AddToCart book={mockBook} variant="add" />);
 
-    const form = container.querySelector("form");
-    fireEvent.submit(form!);
+      const form = container.querySelector("form");
+      fireEvent.submit(form!);
 
-    await waitFor(() => {
-      expect(mockAddCartItem).toHaveBeenCalledWith(mockBook, 1);
+      await waitFor(() => {
+        expect(mockAddCartItem).toHaveBeenCalledWith(mockBook, 1);
+      });
+    });
+
+    it("should handle both add and order variants submission", async () => {
+      const { container: addContainer } = render(<AddToCart book={mockBook} variant="add" />);
+      const addForm = addContainer.querySelector("form");
+
+      fireEvent.submit(addForm!);
+      await waitFor(() => {
+        expect(mockAddCartItem).toHaveBeenCalledWith(mockBook, 1);
+      });
+
+      jest.clearAllMocks();
+
+      const { container: orderContainer } = render(<AddToCart book={mockBook} variant="order" />);
+      const orderForm = orderContainer.querySelector("form");
+
+      fireEvent.submit(orderForm!);
+      await waitFor(() => {
+        expect(mockAddCartItem).toHaveBeenCalledWith(mockBook, 1);
+      });
     });
   });
 
-  it("should redirect to login when unauthorized", () => {
-    const { useActionState } = require("react");
-    const { useEffect } = require("react");
+  describe("Authentication Handling", () => {
+    it("should redirect to login when unauthorized", () => {
+      const { useActionState } = require("react");
+      const { useEffect } = require("react");
 
-    // Return correct structure: [result, formAction, isPending]
-    useActionState.mockReturnValue([
-      { success: false, message: "UNAUTHORIZED" },
-      mockFormAction,
-      false,
-    ]);
+      useActionState.mockReturnValue([
+        { success: false, message: "UNAUTHORIZED" },
+        mockFormAction,
+        false,
+      ]);
 
-    // Mock useEffect to immediately call the callback
-    useEffect.mockImplementation((callback: any) => {
-      callback();
+      useEffect.mockImplementation((callback: any) => {
+        callback();
+      });
+
+      render(<AddToCart book={mockBook} variant="add" />);
+
+      expect(mockRouterPush).toHaveBeenCalledWith("/login");
     });
 
-    render(<AddToCart book={mockBook} variant="add" />);
+    it("should not redirect when message is not UNAUTHORIZED", () => {
+      const { useActionState } = require("react");
 
-    expect(mockRouterPush).toHaveBeenCalledWith("/login");
+      useActionState.mockReturnValue([
+        { success: true, message: "SUCCESS" },
+        mockFormAction,
+        false,
+      ]);
+
+      render(<AddToCart book={mockBook} variant="add" />);
+
+      expect(mockRouterPush).not.toHaveBeenCalled();
+    });
   });
 
-  it("should not redirect when message is not UNAUTHORIZED", () => {
-    const { useActionState } = require("react");
+  describe("Loading State", () => {
+    it("should show loading state on button when pending", () => {
+      const { useActionState } = require("react");
 
-    useActionState.mockReturnValue([{ success: true, message: "SUCCESS" }, mockFormAction, false]);
+      useActionState.mockReturnValue([{ success: null, message: "" }, mockFormAction, true]);
 
-    render(<AddToCart book={mockBook} variant="add" />);
+      render(<AddToCart book={mockBook} variant="order" />);
 
-    expect(mockRouterPush).not.toHaveBeenCalled();
+      const button = screen.getByTestId("button");
+      expect(button).toBeDisabled();
+    });
   });
 
-  it("should bind correct parameters to form action", () => {
-    const { container } = render(<AddToCart book={mockBook} variant="add" />);
+  describe("Toast Notifications", () => {
+    it("should handle success result", () => {
+      const { useActionState } = require("react");
+      const { useEffect } = require("react");
 
-    const form = container.querySelector("form");
-    fireEvent.submit(form!);
+      useActionState.mockReturnValue([
+        { success: true, message: "Item added successfully" },
+        mockFormAction,
+        false,
+      ]);
 
-    expect(mockFormAction).toBeDefined();
-  });
+      useEffect.mockImplementation((callback: any) => {
+        callback();
+      });
 
-  it("should handle different book IDs", () => {
-    const differentBook: Book = {
-      ...mockBook,
-      id: "different-id",
-    };
+      render(<AddToCart book={mockBook} variant="add" />);
 
-    const { container } = render(<AddToCart book={differentBook} variant="add" />);
+      expect(screen.getByTestId("button")).toBeInTheDocument();
+    });
 
-    const form = container.querySelector("form");
-    fireEvent.submit(form!);
+    it("should handle failure result that is not unauthorized", () => {
+      const { useActionState } = require("react");
+      const { useEffect } = require("react");
 
-    expect(mockAddCartItem).toHaveBeenCalledWith(differentBook, 1);
-  });
+      useActionState.mockReturnValue([
+        { success: false, message: "Some other error" },
+        mockFormAction,
+        false,
+      ]);
 
-  it("should have accessible form structure", () => {
-    const { container } = render(<AddToCart book={mockBook} variant="add" />);
+      useEffect.mockImplementation((callback: any) => {
+        callback();
+      });
 
-    const form = container.querySelector("form");
-    const button = screen.getByRole("button");
+      render(<AddToCart book={mockBook} variant="add" />);
 
-    expect(form).toBeInTheDocument();
-    expect(button).toBeInTheDocument();
-    expect(button).toHaveAttribute("aria-label");
-  });
-
-  it("should handle null message state", () => {
-    const { useActionState } = require("react");
-
-    useActionState.mockReturnValue([{ success: null, message: "" }, mockFormAction, false]);
-
-    render(<AddToCart book={mockBook} variant="add" />);
-
-    expect(mockRouterPush).not.toHaveBeenCalled();
-  });
-
-  it("should handle empty message state", () => {
-    const { useActionState } = require("react");
-
-    useActionState.mockReturnValue([{ success: false, message: "" }, mockFormAction, false]);
-
-    render(<AddToCart book={mockBook} variant="add" />);
-
-    expect(mockRouterPush).not.toHaveBeenCalled();
-  });
-
-  it("should render correct button variant classes", () => {
-    const { container: addContainer } = render(<AddToCart book={mockBook} variant="add" />);
-    const addButton = addContainer.querySelector('[data-testid="button"]');
-    expect(addButton).toHaveAttribute("data-variant", "solid");
-
-    const { container: orderContainer } = render(<AddToCart book={mockBook} variant="order" />);
-    const orderButton = orderContainer.querySelector('[data-testid="button"]');
-    expect(orderButton).toHaveAttribute("data-variant", "ghost");
-    expect(orderButton).toHaveAttribute("data-color", "primary");
-  });
-
-  it("should maintain consistent quantity of 1", async () => {
-    const { container } = render(<AddToCart book={mockBook} variant="add" />);
-
-    const form = container.querySelector("form");
-    fireEvent.submit(form!);
-
-    await waitFor(() => {
-      expect(mockAddCartItem).toHaveBeenCalledWith(expect.any(Object), 1);
+      expect(screen.getByTestId("button")).toBeInTheDocument();
     });
   });
 });

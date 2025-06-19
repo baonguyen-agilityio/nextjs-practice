@@ -31,14 +31,12 @@ export function DeleteItemButton({ item, optimisticUpdate }: DeleteItemButtonPro
       addToast({
         title: result.message,
         color: "success",
-        shouldShowTimeoutProgress: true,
       });
     }
     if (result?.success === false) {
       addToast({
         title: result.message,
         color: "danger",
-        shouldShowTimeoutProgress: true,
       });
     }
   }, [result]);

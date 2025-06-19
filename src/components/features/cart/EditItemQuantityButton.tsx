@@ -49,14 +49,12 @@ export function EditItemQuantityButton({
       addToast({
         title: result.message,
         color: "success",
-        shouldShowTimeoutProgress: true,
       });
     }
     if (result?.success === false) {
       addToast({
         title: "Failed to update item quantity",
         color: "danger",
-        shouldShowTimeoutProgress: true,
       });
     }
   }, [result]);

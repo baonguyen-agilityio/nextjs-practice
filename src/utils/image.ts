@@ -1,5 +1,12 @@
 export const createImageUrl = (url: string) => {
-  return url.startsWith("http") ? url : `${process.env.NEXT_PUBLIC_STRAPI_URL}${url}`;
+  if (url.startsWith("http")) return url;
+
+  const baseUrl = process.env.NEXT_PUBLIC_STRAPI_URL;
+  if (!baseUrl || baseUrl === "undefined") {
+    return url.startsWith("/") ? url : `/${url}`;
+  }
+
+  return `${baseUrl}${url}`;
 };
 
 export const createImageUrlFromId = (id: string) => {
