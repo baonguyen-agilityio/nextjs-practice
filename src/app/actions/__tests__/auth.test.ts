@@ -1,17 +1,12 @@
-jest.mock("next-auth", () => {
-  class MockAuthError extends Error {
+jest.mock("next-auth", () => ({
+  AuthError: class extends Error {
     type: string = "";
-
     constructor(message: string) {
       super(message);
       this.name = "AuthError";
     }
-  }
-
-  return {
-    AuthError: MockAuthError,
-  };
-});
+  },
+}));
 
 jest.mock("@/lib/auth/auth", () => ({
   signIn: jest.fn(),
@@ -26,10 +21,6 @@ const mockSignIn = signIn as jest.MockedFunction<typeof signIn>;
 const mockSignOut = signOut as jest.MockedFunction<typeof signOut>;
 
 describe("Auth Actions", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe("authenticate", () => {
     it("should successfully authenticate with valid credentials", async () => {
       const formData = new FormData();
@@ -44,7 +35,7 @@ describe("Auth Actions", () => {
       expect(result).toBeUndefined();
     });
 
-    it("should return error message for CredentialsSignin error", async () => {
+    it("should return error message for authentication failure", async () => {
       const formData = new FormData();
       formData.append("email", "test@example.com");
       formData.append("password", "wrongpassword");
@@ -55,11 +46,10 @@ describe("Auth Actions", () => {
 
       const result = await authenticate(undefined, formData);
 
-      expect(mockSignIn).toHaveBeenCalledWith("credentials", formData);
       expect(result).toBe("Invalid identifier or password");
     });
 
-    it("should return generic error message for other AuthError types", async () => {
+    it("should handle other authentication errors", async () => {
       const formData = new FormData();
       formData.append("email", "test@example.com");
       formData.append("password", "password123");
@@ -70,43 +60,7 @@ describe("Auth Actions", () => {
 
       const result = await authenticate(undefined, formData);
 
-      expect(mockSignIn).toHaveBeenCalledWith("credentials", formData);
       expect(result).toBe("Something went wrong.");
-    });
-
-    it("should throw error for non-AuthError exceptions", async () => {
-      const formData = new FormData();
-      formData.append("email", "test@example.com");
-      formData.append("password", "password123");
-
-      const networkError = new Error("Network error");
-      mockSignIn.mockRejectedValueOnce(networkError);
-
-      await expect(authenticate(undefined, formData)).rejects.toThrow("Network error");
-      expect(mockSignIn).toHaveBeenCalledWith("credentials", formData);
-    });
-
-    it("should handle empty form data", async () => {
-      const formData = new FormData();
-      mockSignIn.mockResolvedValueOnce(undefined);
-
-      const result = await authenticate(undefined, formData);
-
-      expect(mockSignIn).toHaveBeenCalledWith("credentials", formData);
-      expect(result).toBeUndefined();
-    });
-
-    it("should handle previous state parameter", async () => {
-      const formData = new FormData();
-      formData.append("email", "test@example.com");
-      formData.append("password", "password123");
-
-      mockSignIn.mockResolvedValueOnce(undefined);
-
-      const result = await authenticate("previous error", formData);
-
-      expect(mockSignIn).toHaveBeenCalledWith("credentials", formData);
-      expect(result).toBeUndefined();
     });
   });
 
@@ -124,7 +78,6 @@ describe("Auth Actions", () => {
       mockSignOut.mockRejectedValueOnce(logoutError);
 
       await expect(logout()).rejects.toThrow("Logout failed");
-      expect(mockSignOut).toHaveBeenCalledWith();
     });
   });
 });

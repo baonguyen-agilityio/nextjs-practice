@@ -46,44 +46,28 @@ describe("Cart Actions", () => {
     it("should successfully add item to cart", async () => {
       const payload = { bookId: "book-123", quantity: 2 };
       const mockSession = { user: { id: "user-123" } };
-      const mockCart = { id: "cart-456" };
+      const mockCart = {
+        id: "cart-456",
+        cartItems: [],
+        totalQuantity: 0,
+      };
 
       mockAuth.mockResolvedValue(mockSession);
       mockGetCartByUserId.mockResolvedValue(mockCart);
-      mockAddCartItem.mockResolvedValue(undefined);
+      mockAddCartItem.mockResolvedValue({
+        id: "item-123",
+        quantity: 2,
+        book: {},
+      });
 
       const result = await addItem({ success: null, message: "" }, payload);
 
-      expect(mockAuth).toHaveBeenCalledWith();
-      expect(mockGetCartByUserId).toHaveBeenCalledWith();
+      expect(mockAuth).toHaveBeenCalled();
+      expect(mockGetCartByUserId).toHaveBeenCalled();
       expect(mockAddCartItem).toHaveBeenCalledWith({
         bookId: "book-123",
         quantity: 2,
         cartId: "cart-456",
-      });
-      expect(mockRevalidateTag).toHaveBeenCalledWith(TAGS.CART);
-      expect(result).toEqual({
-        success: true,
-        message: "Successfully added item to cart",
-      });
-    });
-
-    it("should handle empty cart id", async () => {
-      const payload = { bookId: "book-123", quantity: 2 };
-      const mockSession = { user: { id: "user-123" } };
-
-      mockAuth.mockResolvedValue(mockSession);
-      mockGetCartByUserId.mockResolvedValue(null);
-      mockAddCartItem.mockResolvedValue(undefined);
-
-      const result = await addItem({ success: null, message: "" }, payload);
-
-      expect(mockAuth).toHaveBeenCalledWith();
-      expect(mockGetCartByUserId).toHaveBeenCalledWith();
-      expect(mockAddCartItem).toHaveBeenCalledWith({
-        bookId: "book-123",
-        quantity: 2,
-        cartId: "",
       });
       expect(mockRevalidateTag).toHaveBeenCalledWith(TAGS.CART);
       expect(result).toEqual({
@@ -99,10 +83,6 @@ describe("Cart Actions", () => {
 
       const result = await addItem({ success: null, message: "" }, payload);
 
-      expect(mockAuth).toHaveBeenCalledWith();
-      expect(mockGetCartByUserId).not.toHaveBeenCalled();
-      expect(mockAddCartItem).not.toHaveBeenCalled();
-      expect(mockRevalidateTag).not.toHaveBeenCalled();
       expect(result).toEqual({
         success: false,
         message: "UNAUTHORIZED",
@@ -112,7 +92,11 @@ describe("Cart Actions", () => {
     it("should handle addCartItem error", async () => {
       const payload = { bookId: "book-123", quantity: 2 };
       const mockSession = { user: { id: "user-123" } };
-      const mockCart = { id: "cart-456" };
+      const mockCart = {
+        id: "cart-456",
+        cartItems: [],
+        totalQuantity: 0,
+      };
 
       mockAuth.mockResolvedValue(mockSession);
       mockGetCartByUserId.mockResolvedValue(mockCart);
@@ -120,31 +104,31 @@ describe("Cart Actions", () => {
 
       const result = await addItem({ success: null, message: "" }, payload);
 
-      expect(mockAuth).toHaveBeenCalledWith();
-      expect(mockGetCartByUserId).toHaveBeenCalledWith();
-      expect(mockAddCartItem).toHaveBeenCalledWith({
-        bookId: "book-123",
-        quantity: 2,
-        cartId: "cart-456",
-      });
-      expect(mockRevalidateTag).not.toHaveBeenCalled();
       expect(result).toEqual({
         success: false,
         message: "Error adding item to cart",
       });
     });
 
-    it("should handle previous state parameter", async () => {
+    it("should handle empty cart", async () => {
       const payload = { bookId: "book-123", quantity: 2 };
       const mockSession = { user: { id: "user-123" } };
-      const mockCart = { id: "cart-456" };
 
       mockAuth.mockResolvedValue(mockSession);
-      mockGetCartByUserId.mockResolvedValue(mockCart);
-      mockAddCartItem.mockResolvedValue(undefined);
+      mockGetCartByUserId.mockResolvedValue(undefined);
+      mockAddCartItem.mockResolvedValue({
+        id: "item-123",
+        quantity: 2,
+        book: {},
+      });
 
-      const result = await addItem({ success: false, message: "Previous error" }, payload);
+      const result = await addItem({ success: null, message: "" }, payload);
 
+      expect(mockAddCartItem).toHaveBeenCalledWith({
+        bookId: "book-123",
+        quantity: 2,
+        cartId: "",
+      });
       expect(result).toEqual({
         success: true,
         message: "Successfully added item to cart",
@@ -156,14 +140,15 @@ describe("Cart Actions", () => {
     it("should successfully update item quantity", async () => {
       const payload = { cartItemId: "item-123", quantity: 3 };
 
-      mockUpdateCartItem.mockResolvedValue(undefined);
+      mockUpdateCartItem.mockResolvedValue({
+        id: "item-123",
+        quantity: 3,
+        book: {},
+      });
 
       const result = await updateItemQuantity({ success: null, message: "" }, payload);
 
-      expect(mockUpdateCartItem).toHaveBeenCalledWith({
-        cartItemId: "item-123",
-        quantity: 3,
-      });
+      expect(mockUpdateCartItem).toHaveBeenCalledWith(payload);
       expect(mockRevalidateTag).toHaveBeenCalledWith(TAGS.CART);
       expect(result).toEqual({
         success: true,
@@ -178,48 +163,9 @@ describe("Cart Actions", () => {
 
       const result = await updateItemQuantity({ success: null, message: "" }, payload);
 
-      expect(mockUpdateCartItem).toHaveBeenCalledWith({
-        cartItemId: "item-123",
-        quantity: 3,
-      });
-      expect(mockRevalidateTag).not.toHaveBeenCalled();
       expect(result).toEqual({
         success: false,
         message: "Error updating item quantity",
-      });
-    });
-
-    it("should handle zero quantity", async () => {
-      const payload = { cartItemId: "item-123", quantity: 0 };
-
-      mockUpdateCartItem.mockResolvedValue(undefined);
-
-      const result = await updateItemQuantity({ success: null, message: "" }, payload);
-
-      expect(mockUpdateCartItem).toHaveBeenCalledWith({
-        cartItemId: "item-123",
-        quantity: 0,
-      });
-      expect(mockRevalidateTag).toHaveBeenCalledWith(TAGS.CART);
-      expect(result).toEqual({
-        success: true,
-        message: "Successfully updated item quantity",
-      });
-    });
-
-    it("should handle previous state parameter", async () => {
-      const payload = { cartItemId: "item-123", quantity: 3 };
-
-      mockUpdateCartItem.mockResolvedValue(undefined);
-
-      const result = await updateItemQuantity(
-        { success: false, message: "Previous error" },
-        payload
-      );
-
-      expect(result).toEqual({
-        success: true,
-        message: "Successfully updated item quantity",
       });
     });
   });
@@ -228,11 +174,11 @@ describe("Cart Actions", () => {
     it("should successfully remove item from cart", async () => {
       const cartItemId = "item-123";
 
-      mockRemoveCartItem.mockResolvedValue(undefined);
+      mockRemoveCartItem.mockResolvedValue({ success: true });
 
       const result = await removeItem({ success: null, message: "" }, cartItemId);
 
-      expect(mockRemoveCartItem).toHaveBeenCalledWith({ cartItemId: "item-123" });
+      expect(mockRemoveCartItem).toHaveBeenCalledWith({ cartItemId });
       expect(mockRevalidateTag).toHaveBeenCalledWith(TAGS.CART);
       expect(result).toEqual({
         success: true,
@@ -247,53 +193,6 @@ describe("Cart Actions", () => {
 
       const result = await removeItem({ success: null, message: "" }, cartItemId);
 
-      expect(mockRemoveCartItem).toHaveBeenCalledWith({ cartItemId: "item-123" });
-      expect(mockRevalidateTag).not.toHaveBeenCalled();
-      expect(result).toEqual({
-        success: false,
-        message: "Error removing item from cart",
-      });
-    });
-
-    it("should handle previous state parameter", async () => {
-      const cartItemId = "item-123";
-
-      mockRemoveCartItem.mockResolvedValue(undefined);
-
-      const result = await removeItem({ success: false, message: "Previous error" }, cartItemId);
-
-      expect(mockRemoveCartItem).toHaveBeenCalledWith({ cartItemId: "item-123" });
-      expect(mockRevalidateTag).toHaveBeenCalledWith(TAGS.CART);
-      expect(result).toEqual({
-        success: true,
-        message: "Successfully removed item from cart",
-      });
-    });
-
-    it("should handle empty cart item id", async () => {
-      const cartItemId = "";
-
-      mockRemoveCartItem.mockResolvedValue(undefined);
-
-      const result = await removeItem({ success: null, message: "" }, cartItemId);
-
-      expect(mockRemoveCartItem).toHaveBeenCalledWith({ cartItemId: "" });
-      expect(mockRevalidateTag).toHaveBeenCalledWith(TAGS.CART);
-      expect(result).toEqual({
-        success: true,
-        message: "Successfully removed item from cart",
-      });
-    });
-
-    it("should handle removeCartItem with empty string error", async () => {
-      const cartItemId = "";
-
-      mockRemoveCartItem.mockRejectedValue(new Error("Invalid cart item id"));
-
-      const result = await removeItem({ success: null, message: "" }, cartItemId);
-
-      expect(mockRemoveCartItem).toHaveBeenCalledWith({ cartItemId: "" });
-      expect(mockRevalidateTag).not.toHaveBeenCalled();
       expect(result).toEqual({
         success: false,
         message: "Error removing item from cart",

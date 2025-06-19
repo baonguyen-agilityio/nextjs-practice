@@ -1,4 +1,7 @@
+import { render, screen } from "@testing-library/react";
 import { generateMetadata } from "../page";
+import Page from "../page";
+import { PAGE_DEFAULT, PAGE_SIZE_DEFAULT } from "@/constants";
 
 jest.mock("@/components/features/book/BookPage", () => {
   return function MockBooks({ searchParamsAPI }: { searchParamsAPI: URLSearchParams }) {
@@ -10,172 +13,145 @@ jest.mock("@/components/features/book/BookPage", () => {
   };
 });
 
-jest.mock("@/constants", () => ({
-  PAGE_DEFAULT: 1,
-  PAGE_SIZE_DEFAULT: 10,
-}));
-
 describe("Books Page (@books)", () => {
   describe("generateMetadata", () => {
     it("should return correct metadata", () => {
       const metadata = generateMetadata();
+      expect(metadata).toEqual({ title: "Books" });
+    });
+  });
 
-      expect(metadata).toEqual({
-        title: "Books",
+  describe("Page Component", () => {
+    it("should render with default search params", async () => {
+      const searchParams = Promise.resolve({});
+      const component = await Page({ searchParams });
+      render(component);
+
+      expect(screen.getByTestId("books-component")).toBeInTheDocument();
+
+      const searchParamsText = screen.getByTestId("search-params").textContent;
+      expect(searchParamsText).toContain(`pagination%5Bpage%5D=${PAGE_DEFAULT}`);
+      expect(searchParamsText).toContain(`pagination%5BpageSize%5D=${PAGE_SIZE_DEFAULT}`);
+      expect(searchParamsText).toContain("populate=*");
+    });
+
+    it("should handle custom page parameter", async () => {
+      const searchParams = Promise.resolve({ page: 3 });
+      const component = await Page({ searchParams });
+      render(component);
+
+      const searchParamsText = screen.getByTestId("search-params").textContent;
+      expect(searchParamsText).toContain("pagination%5Bpage%5D=3");
+    });
+
+    it("should handle categories filter", async () => {
+      const searchParams = Promise.resolve({ categories: "fiction" });
+      const component = await Page({ searchParams });
+      render(component);
+
+      const searchParamsText = screen.getByTestId("search-params").textContent;
+      expect(searchParamsText).toContain(
+        "filters%5Bcategories%5D%5BdocumentId%5D%5B%24eq%5D=fiction"
+      );
+    });
+
+    it("should handle search filter", async () => {
+      const searchParams = Promise.resolve({ search: "harry potter" });
+      const component = await Page({ searchParams });
+      render(component);
+
+      const searchParamsText = screen.getByTestId("search-params").textContent;
+      expect(searchParamsText).toContain("filters%5Btitle%5D%5B%24containsi%5D=harry+potter");
+    });
+
+    it("should handle multiple filters", async () => {
+      const searchParams = Promise.resolve({
+        page: 2,
+        categories: "mystery",
+        search: "detective",
       });
+      const component = await Page({ searchParams });
+      render(component);
+
+      const searchParamsText = screen.getByTestId("search-params").textContent;
+      expect(searchParamsText).toContain("pagination%5Bpage%5D=2");
+      expect(searchParamsText).toContain(
+        "filters%5Bcategories%5D%5BdocumentId%5D%5B%24eq%5D=mystery"
+      );
+      expect(searchParamsText).toContain("filters%5Btitle%5D%5B%24containsi%5D=detective");
     });
 
-    it("should have a string title", () => {
-      const metadata = generateMetadata();
+    it("should not add empty filters", async () => {
+      const searchParams = Promise.resolve({ categories: "", search: "" });
+      const component = await Page({ searchParams });
+      render(component);
 
-      expect(typeof metadata.title).toBe("string");
-      expect(metadata.title).toBe("Books");
-    });
-  });
-
-  describe("Component Structure", () => {
-    it("should define proper component exports", () => {
-      const pageModule = require("../page");
-
-      expect(typeof pageModule.generateMetadata).toBe("function");
-      expect(typeof pageModule.default).toBe("function");
+      const searchParamsText = screen.getByTestId("search-params").textContent;
+      expect(searchParamsText).not.toContain("filters%5Bcategories%5D");
+      expect(searchParamsText).not.toContain("filters%5Btitle%5D");
     });
 
-    it("should handle SearchParams type correctly", () => {
-      const searchParams = {
-        page: "2",
-        categories: "fiction",
-        search: "fantasy",
-      };
+    it("should handle null searchParams", async () => {
+      const searchParams = Promise.resolve(null as any);
+      const component = await Page({ searchParams });
+      render(component);
 
-      expect(typeof searchParams).toBe("object");
-      expect(searchParams.page).toBe("2");
-      expect(searchParams.categories).toBe("fiction");
-      expect(searchParams.search).toBe("fantasy");
-    });
-  });
+      expect(screen.getByTestId("books-component")).toBeInTheDocument();
 
-  describe("Search Params Handling", () => {
-    it("should handle undefined search params", async () => {
-      const searchParams = undefined;
-      const { PAGE_DEFAULT } = require("@/constants");
-
-      const result: any = (await searchParams) || {};
-      const page = result.page || PAGE_DEFAULT;
-      const categories = result.categories || "";
-      const search = result.search || "";
-
-      expect(page).toBe(PAGE_DEFAULT);
-      expect(categories).toBe("");
-      expect(search).toBe("");
+      const searchParamsText = screen.getByTestId("search-params").textContent;
+      expect(searchParamsText).toContain(`pagination%5Bpage%5D=${PAGE_DEFAULT}`);
     });
 
-    it("should handle empty search params", async () => {
-      const searchParams: any = Promise.resolve({});
-      const { PAGE_DEFAULT } = require("@/constants");
+    it("should handle undefined searchParams", async () => {
+      const searchParams = Promise.resolve(undefined as any);
+      const component = await Page({ searchParams });
+      render(component);
 
-      const result = await searchParams;
-      const page = result.page || PAGE_DEFAULT;
-      const categories = result.categories || "";
-      const search = result.search || "";
-
-      expect(page).toBe(PAGE_DEFAULT);
-      expect(categories).toBe("");
-      expect(search).toBe("");
-    });
-
-    it("should handle search params with all values", async () => {
-      const searchParams: any = Promise.resolve({
-        page: "3",
-        categories: "science-fiction",
-        search: "dune",
-      });
-
-      const result = await searchParams;
-
-      expect(result.page).toBe("3");
-      expect(result.categories).toBe("science-fiction");
-      expect(result.search).toBe("dune");
-    });
-
-    it("should handle partial search params", async () => {
-      const searchParams: any = Promise.resolve({ page: "2" });
-      const { PAGE_DEFAULT } = require("@/constants");
-
-      const result = await searchParams;
-      const page = result.page || PAGE_DEFAULT;
-      const categories = result.categories || "";
-      const search = result.search || "";
-
-      expect(page).toBe("2");
-      expect(categories).toBe("");
-      expect(search).toBe("");
+      expect(screen.getByTestId("books-component")).toBeInTheDocument();
     });
   });
 
-  describe("URLSearchParams Construction", () => {
-    it("should construct basic search params correctly", () => {
-      const { PAGE_DEFAULT, PAGE_SIZE_DEFAULT } = require("@/constants");
-
+  describe("URLSearchParams Logic", () => {
+    it("should construct basic params correctly", () => {
       const searchParamsAPI = new URLSearchParams();
       searchParamsAPI.set("pagination[page]", PAGE_DEFAULT.toString());
       searchParamsAPI.set("pagination[pageSize]", PAGE_SIZE_DEFAULT.toString());
       searchParamsAPI.set("populate", "*");
 
       expect(searchParamsAPI.get("pagination[page]")).toBe("1");
-      expect(searchParamsAPI.get("pagination[pageSize]")).toBe("10");
+      expect(searchParamsAPI.get("pagination[pageSize]")).toBe("6");
       expect(searchParamsAPI.get("populate")).toBe("*");
     });
 
-    it("should add categories filter when provided", () => {
-      const categories = "mystery";
-
+    it("should add conditional filters correctly", () => {
       const searchParamsAPI = new URLSearchParams();
-      searchParamsAPI.set("pagination[page]", "1");
-      searchParamsAPI.set("pagination[pageSize]", "10");
-      searchParamsAPI.set("populate", "*");
-      searchParamsAPI.set("filters[categories][documentId][$eq]", categories);
+      const categories = "science-fiction";
+      const search = "dune";
 
-      expect(searchParamsAPI.get("filters[categories][documentId][$eq]")).toBe("mystery");
+      searchParamsAPI.set("pagination[page]", "1");
+      searchParamsAPI.set("pagination[pageSize]", "6");
+      searchParamsAPI.set("populate", "*");
+
+      if (categories) {
+        searchParamsAPI.set("filters[categories][documentId][$eq]", categories);
+      }
+
+      if (search) {
+        searchParamsAPI.set("filters[title][$containsi]", search);
+      }
+
+      expect(searchParamsAPI.get("filters[categories][documentId][$eq]")).toBe("science-fiction");
+      expect(searchParamsAPI.get("filters[title][$containsi]")).toBe("dune");
     });
 
-    it("should add search filter when provided", () => {
-      const search = "harry potter";
-
+    it("should skip empty filters", () => {
       const searchParamsAPI = new URLSearchParams();
-      searchParamsAPI.set("pagination[page]", "1");
-      searchParamsAPI.set("pagination[pageSize]", "10");
-      searchParamsAPI.set("populate", "*");
-      searchParamsAPI.set("filters[title][$containsi]", search);
-
-      expect(searchParamsAPI.get("filters[title][$containsi]")).toBe("harry potter");
-    });
-
-    it("should handle multiple filters simultaneously", () => {
-      const page = "2";
-      const categories = "romance";
-      const search = "love story";
-
-      const searchParamsAPI = new URLSearchParams();
-      searchParamsAPI.set("pagination[page]", page);
-      searchParamsAPI.set("pagination[pageSize]", "10");
-      searchParamsAPI.set("populate", "*");
-      searchParamsAPI.set("filters[categories][documentId][$eq]", categories);
-      searchParamsAPI.set("filters[title][$containsi]", search);
-
-      expect(searchParamsAPI.get("pagination[page]")).toBe("2");
-      expect(searchParamsAPI.get("filters[categories][documentId][$eq]")).toBe("romance");
-      expect(searchParamsAPI.get("filters[title][$containsi]")).toBe("love story");
-    });
-
-    it("should not add empty filters", () => {
-      const searchParamsAPI = new URLSearchParams();
-      searchParamsAPI.set("pagination[page]", "1");
-      searchParamsAPI.set("pagination[pageSize]", "10");
-      searchParamsAPI.set("populate", "*");
-
       const categories = "";
       const search = "";
+
+      searchParamsAPI.set("pagination[page]", "1");
+      searchParamsAPI.set("pagination[pageSize]", "6");
+      searchParamsAPI.set("populate", "*");
 
       if (categories) {
         searchParamsAPI.set("filters[categories][documentId][$eq]", categories);
@@ -190,91 +166,42 @@ describe("Books Page (@books)", () => {
     });
   });
 
-  describe("Constants", () => {
-    it("should use correct default values", () => {
-      const { PAGE_DEFAULT, PAGE_SIZE_DEFAULT } = require("@/constants");
+  describe("Search Params Processing", () => {
+    it("should extract page with fallback", async () => {
+      const emptyParams = Promise.resolve({}) as any;
+      const result = (await emptyParams) || {};
+      const page = result.page || PAGE_DEFAULT;
 
-      expect(PAGE_DEFAULT).toBe(1);
-      expect(PAGE_SIZE_DEFAULT).toBe(10);
+      expect(page).toBe(PAGE_DEFAULT);
     });
 
-    it("should handle page conversion to string", () => {
-      const page = 5;
-      const pageString = page.toString();
+    it("should extract categories with fallback", async () => {
+      const emptyParams = Promise.resolve({}) as any;
+      const result = (await emptyParams) || {};
+      const categories = result.categories || "";
 
-      expect(pageString).toBe("5");
-      expect(typeof pageString).toBe("string");
-    });
-  });
-
-  describe("Component Integration", () => {
-    it("should pass searchParamsAPI to Books component", () => {
-      const searchParamsAPI = new URLSearchParams();
-      searchParamsAPI.set("pagination[page]", "1");
-
-      expect(searchParamsAPI instanceof URLSearchParams).toBe(true);
-      expect(searchParamsAPI.get("pagination[page]")).toBe("1");
+      expect(categories).toBe("");
     });
 
-    it("should handle different page values", () => {
-      const testCases = [1, 5, 10, 100];
+    it("should extract search with fallback", async () => {
+      const emptyParams = Promise.resolve({}) as any;
+      const result = (await emptyParams) || {};
+      const search = result.search || "";
 
-      testCases.forEach((page) => {
-        const searchParams = new URLSearchParams();
-        searchParams.set("pagination[page]", page.toString());
+      expect(search).toBe("");
+    });
 
-        expect(searchParams.get("pagination[page]")).toBe(page.toString());
+    it("should handle all values present", async () => {
+      const fullParams = Promise.resolve({
+        page: 5,
+        categories: "romance",
+        search: "love story",
       });
-    });
-  });
+      const result = await fullParams;
 
-  describe("Type Safety", () => {
-    it("should handle SearchParams as Promise", async () => {
-      const searchParamsPromise = Promise.resolve({
-        page: "1",
-        categories: "fiction",
-      });
-
-      const result = await searchParamsPromise;
-
-      expect(result).toHaveProperty("page");
-      expect(result).toHaveProperty("categories");
-      expect(result.page).toBe("1");
-      expect(result.categories).toBe("fiction");
-    });
-
-    it("should handle null and undefined gracefully", async () => {
-      const nullParams = null;
-      const undefinedParams = undefined;
-
-      const nullResult = (await nullParams) || {};
-      const undefinedResult = (await undefinedParams) || {};
-
-      expect(nullResult).toEqual({});
-      expect(undefinedResult).toEqual({});
-    });
-  });
-
-  describe("URLSearchParams behavior", () => {
-    it("should properly encode special characters", () => {
-      const searchParams = new URLSearchParams();
-      searchParams.set("filters[title][$containsi]", "Lord of the Rings");
-
-      const encoded = searchParams.toString();
-      expect(encoded).toContain("filters");
-      expect(encoded).toContain("title");
-      expect(encoded).toContain("containsi");
-    });
-
-    it("should handle multiple values correctly", () => {
-      const searchParams = new URLSearchParams();
-      searchParams.set("pagination[page]", "1");
-      searchParams.set("pagination[pageSize]", "10");
-
-      expect(searchParams.has("pagination[page]")).toBe(true);
-      expect(searchParams.has("pagination[pageSize]")).toBe(true);
-      expect(searchParams.get("pagination[page]")).toBe("1");
-      expect(searchParams.get("pagination[pageSize]")).toBe("10");
+      expect(result.page).toBe(5);
+      expect(result.categories).toBe("romance");
+      expect(result.search).toBe("love story");
     });
   });
 });

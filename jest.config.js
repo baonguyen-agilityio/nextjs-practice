@@ -11,6 +11,7 @@ const customJestConfig = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
+  moduleDirectories: ["node_modules", "<rootDir>/"],
   testMatch: ["**/src/**/__tests__/**/*.test.[jt]s?(x)"],
   collectCoverage: true,
   collectCoverageFrom: [
@@ -22,7 +23,7 @@ const customJestConfig = {
     "!**/node_modules/**",
     "!**/*.stories.{js,jsx,ts,tsx}",
   ],
-  transformIgnorePatterns: ["node_modules/(?!(next-auth|@auth|@heroui)/)"],
+  transformIgnorePatterns: ["node_modules/(?!(next-auth|@auth|@heroui|oauth|jose|preact)/)"],
   extensionsToTreatAsEsm: [".ts", ".tsx"],
   globals: {
     "ts-jest": {

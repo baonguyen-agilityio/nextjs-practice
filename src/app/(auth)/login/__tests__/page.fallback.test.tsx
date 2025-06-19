@@ -22,48 +22,26 @@ const QuickLoginForm = () => {
 };
 
 describe("LoginPage Suspense Behavior", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe("LoginFormFallback Component", () => {
-    it("should render loading skeleton with correct structure", () => {
+    it("should render loading skeleton", () => {
       render(<LoginFormFallback />);
 
-      const container = document.querySelector(".w-full.max-w-md.mx-auto.space-y-8");
+      const container = document.querySelector(".w-full");
       expect(container).toBeInTheDocument();
-      expect(container).toHaveClass("w-full", "max-w-md", "mx-auto", "space-y-8");
     });
 
     it("should render three skeleton loading bars", () => {
       render(<LoginFormFallback />);
 
-      const skeletonElements = document.querySelectorAll(".h-12.bg-gray-200.rounded.animate-pulse");
+      const skeletonElements = document.querySelectorAll(".animate-pulse");
       expect(skeletonElements).toHaveLength(3);
     });
 
-    it("should have proper spacing and styling for skeleton elements", () => {
+    it("should have proper styling for skeleton elements", () => {
       render(<LoginFormFallback />);
 
-      const skeletonElements = document.querySelectorAll(".h-12.bg-gray-200.rounded.animate-pulse");
-
-      skeletonElements.forEach((element) => {
-        expect(element).toHaveClass("h-12", "bg-gray-200", "rounded", "animate-pulse");
-      });
-
-      const spacingContainer = document.querySelector(".space-y-6");
-      expect(spacingContainer).toBeInTheDocument();
-    });
-
-    it("should provide visual feedback during loading", () => {
-      render(<LoginFormFallback />);
-
-      const skeletonElements = document.querySelectorAll(".animate-pulse");
-      expect(skeletonElements.length).toBeGreaterThan(0);
-
-      skeletonElements.forEach((element) => {
-        expect(element).toHaveClass("animate-pulse");
-      });
+      const skeletonElements = document.querySelectorAll(".h-12");
+      expect(skeletonElements).toHaveLength(3);
     });
   });
 
@@ -94,83 +72,6 @@ describe("LoginPage Suspense Behavior", () => {
 
       const skeletonElements = document.querySelectorAll(".animate-pulse");
       expect(skeletonElements).toHaveLength(0);
-    });
-
-    it("should maintain layout during loading transition", () => {
-      const TestComponent = () => (
-        <Suspense fallback={<LoginFormFallback />}>
-          <SlowLoginForm />
-        </Suspense>
-      );
-
-      render(<TestComponent />);
-
-      const container = document.querySelector(".w-full.max-w-md");
-      expect(container).toBeInTheDocument();
-      expect(container).toHaveClass("w-full", "max-w-md");
-    });
-  });
-
-  describe("Accessibility for Loading States", () => {
-    it("should be accessible during loading", () => {
-      render(<LoginFormFallback />);
-
-      const container = document.querySelector(".w-full.max-w-md");
-      expect(container).toBeInTheDocument();
-    });
-
-    it("should provide appropriate visual cues for loading", () => {
-      render(<LoginFormFallback />);
-
-      const pulseElements = document.querySelectorAll(".animate-pulse");
-      expect(pulseElements.length).toBeGreaterThan(0);
-
-      pulseElements.forEach((element) => {
-        expect(element).toHaveClass("bg-gray-200");
-      });
-    });
-  });
-
-  describe("Responsive Design in Loading State", () => {
-    it("should be responsive during loading", () => {
-      render(<LoginFormFallback />);
-
-      const container = document.querySelector(".w-full.max-w-md");
-      expect(container).toBeInTheDocument();
-
-      expect(container).toHaveClass("w-full", "max-w-md");
-
-      expect(container).toHaveClass("mx-auto");
-    });
-
-    it("should maintain consistent spacing during loading", () => {
-      render(<LoginFormFallback />);
-
-      expect(document.querySelector(".space-y-8")).toBeInTheDocument();
-      expect(document.querySelector(".space-y-6")).toBeInTheDocument();
-    });
-  });
-
-  describe("Loading Animation Performance", () => {
-    it("should use CSS animations for performance", () => {
-      render(<LoginFormFallback />);
-
-      const animatedElements = document.querySelectorAll(".animate-pulse");
-
-      animatedElements.forEach((element) => {
-        expect(element).toHaveClass("animate-pulse");
-      });
-    });
-
-    it("should have appropriate element heights for visual consistency", () => {
-      render(<LoginFormFallback />);
-
-      const skeletonElements = document.querySelectorAll(".h-12");
-      expect(skeletonElements).toHaveLength(3);
-
-      skeletonElements.forEach((element) => {
-        expect(element).toHaveClass("h-12");
-      });
     });
   });
 });

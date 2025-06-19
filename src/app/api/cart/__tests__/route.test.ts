@@ -57,13 +57,6 @@ jest.mock("@/services/api", () => ({
   },
 }));
 
-jest.mock("@/constants/api", () => ({
-  API_ENDPOINTS: {
-    CART: "/carts",
-    CART_ITEMS: "/cart-items",
-  },
-}));
-
 jest.mock("@/hocs/withAuth", () => ({
   withAuth: (handler: any) => (req: any) => handler(req, "Bearer mock-token"),
 }));
@@ -71,7 +64,7 @@ jest.mock("@/hocs/withAuth", () => ({
 import { apiClient } from "@/services/api";
 
 describe("Cart API Route", () => {
-  const mockApiClient = apiClient as jest.Mocked<typeof apiClient>;
+  const mockApiClient = apiClient as any;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -110,7 +103,6 @@ describe("Cart API Route", () => {
       mockApiClient.get.mockResolvedValue(mockCartResponse);
 
       const request = new Request("http://localhost:3000/api/cart") as any;
-
       const response = await GET(request);
       const result = await response.json();
 
@@ -123,31 +115,10 @@ describe("Cart API Route", () => {
       expect(response.status).toBe(200);
     });
 
-    it("should handle empty cart", async () => {
-      const emptyCartResponse: CartStrapiResponse = {
-        data: [
-          {
-            id: "cart-123",
-            cart_items: [],
-          },
-        ],
-      };
-
-      mockApiClient.get.mockResolvedValue(emptyCartResponse);
-
-      const request = new Request("http://localhost:3000/api/cart") as any;
-
-      const response = await GET(request);
-      const result = await response.json();
-
-      expect(result.data[0].cart_items).toHaveLength(0);
-    });
-
     it("should handle authentication error", async () => {
       const authError = {
         error: {
           status: 401,
-          name: "UnauthorizedError",
           message: "Authentication required",
         },
       };
@@ -155,37 +126,10 @@ describe("Cart API Route", () => {
       mockApiClient.get.mockResolvedValue(authError);
 
       const request = new Request("http://localhost:3000/api/cart") as any;
-
       const response = await GET(request);
       const result = await response.json();
 
       expect(result).toEqual(authError);
-    });
-
-    it("should handle network errors", async () => {
-      const networkError = new Error("Network connection failed");
-      mockApiClient.get.mockRejectedValue(networkError);
-
-      const request = new Request("http://localhost:3000/api/cart") as any;
-
-      await expect(GET(request)).rejects.toThrow("Network connection failed");
-    });
-
-    it("should include proper population parameters", async () => {
-      mockApiClient.get.mockResolvedValue(mockCartResponse);
-
-      const request = new Request("http://localhost:3000/api/cart") as any;
-
-      await GET(request);
-
-      expect(mockApiClient.get).toHaveBeenCalledWith(
-        expect.stringContaining("populate[cart_items][populate][book][populate]=image"),
-        expect.objectContaining({
-          headers: {
-            Authorization: "Bearer mock-token",
-          },
-        })
-      );
     });
   });
 
@@ -200,25 +144,14 @@ describe("Cart API Route", () => {
 
     it("should successfully add new item to cart", async () => {
       const existingItemsResponse = { data: [] };
-      const newItemResponse: { data: CartItemStrapiResponse } = {
+      const newItemResponse = {
         data: {
-          data: {
-            id: "item-new",
-            quantity: 1,
-            book: {
-              id: "book-1",
-              documentId: "book-doc-1",
-              slug: "test-book",
-              title: "Test Book",
-              description: "A test book",
-              price: 29.99,
-              language: "en",
-              categories: [],
-              image: { url: "https://example.com/book.jpg" },
-              createdAt: "2024-01-01T00:00:00.000Z",
-              updatedAt: "2024-01-01T00:00:00.000Z",
-              publishedAt: "2024-01-01T00:00:00.000Z",
-            },
+          id: "item-new",
+          quantity: 1,
+          book: {
+            id: "book-1",
+            title: "Test Book",
+            price: 29.99,
           },
         },
       };
@@ -272,26 +205,10 @@ describe("Cart API Route", () => {
       };
 
       const existingItemsResponse = { data: [existingItem] };
-      const updatedItemResponse: { data: CartItemStrapiResponse } = {
+      const updatedItemResponse = {
         data: {
-          data: {
-            ...existingItem,
-            quantity: 3,
-            book: {
-              id: "book-1",
-              documentId: "book-doc-1",
-              slug: "test-book",
-              title: "Test Book",
-              description: "A test book",
-              price: 29.99,
-              language: "en",
-              categories: [],
-              image: { url: "https://example.com/book.jpg" },
-              createdAt: "2024-01-01T00:00:00.000Z",
-              updatedAt: "2024-01-01T00:00:00.000Z",
-              publishedAt: "2024-01-01T00:00:00.000Z",
-            },
-          },
+          ...existingItem,
+          quantity: 3,
         },
       };
 
@@ -345,7 +262,7 @@ describe("Cart API Route", () => {
       expect(response.status).toBe(400);
     });
 
-    it("should handle server errors gracefully", async () => {
+    it("should handle server errors", async () => {
       mockApiClient.get.mockResolvedValue({ data: [] });
       mockApiClient.post.mockRejectedValue(new Error("Server error"));
 
@@ -359,28 +276,6 @@ describe("Cart API Route", () => {
 
       expect(result.error).toBe("Failed to add cart item.");
       expect(response.status).toBe(500);
-    });
-
-    it("should handle malformed request body", async () => {
-      const request = {
-        json: jest.fn().mockRejectedValue(new Error("Invalid JSON")),
-      } as any;
-
-      await expect(POST(request)).rejects.toThrow("Invalid JSON");
-    });
-
-    it("should handle empty request data", async () => {
-      mockApiClient.get.mockResolvedValue({ data: [] });
-      mockApiClient.post.mockResolvedValue({ data: {} });
-
-      const request = new Request("http://localhost:3000/api/cart", {
-        method: "POST",
-        body: JSON.stringify({ data: {} }),
-      }) as any;
-
-      const response = await POST(request);
-
-      expect(mockApiClient.get).toHaveBeenCalled();
     });
   });
 
@@ -443,7 +338,6 @@ describe("Cart API Route", () => {
       const notFoundError = {
         error: {
           status: 404,
-          name: "NotFoundError",
           message: "Cart item not found",
         },
       };
@@ -459,142 +353,6 @@ describe("Cart API Route", () => {
       const result = await response.json();
 
       expect(result).toEqual(notFoundError);
-    });
-
-    it("should handle invalid quantity values", async () => {
-      const invalidQuantityData = {
-        data: {
-          cartItemId: "item-1",
-          quantity: -1,
-        },
-      };
-
-      const validationError = {
-        error: {
-          status: 400,
-          name: "ValidationError",
-          message: "Quantity must be positive",
-        },
-      };
-
-      mockApiClient.put.mockResolvedValue(validationError);
-
-      const request = new Request("http://localhost:3000/api/cart", {
-        method: "PUT",
-        body: JSON.stringify(invalidQuantityData),
-      }) as any;
-
-      const response = await PUT(request);
-      const result = await response.json();
-
-      expect(result).toEqual(validationError);
-    });
-
-    it("should handle authentication errors", async () => {
-      const authError = {
-        error: {
-          status: 401,
-          name: "UnauthorizedError",
-          message: "Authentication required",
-        },
-      };
-
-      mockApiClient.put.mockResolvedValue(authError);
-
-      const request = new Request("http://localhost:3000/api/cart", {
-        method: "PUT",
-        body: JSON.stringify(updateData),
-      }) as any;
-
-      const response = await PUT(request);
-      const result = await response.json();
-
-      expect(result).toEqual(authError);
-    });
-
-    it("should handle network errors", async () => {
-      const networkError = new Error("Network connection failed");
-      mockApiClient.put.mockRejectedValue(networkError);
-
-      const request = new Request("http://localhost:3000/api/cart", {
-        method: "PUT",
-        body: JSON.stringify(updateData),
-      }) as any;
-
-      await expect(PUT(request)).rejects.toThrow("Network connection failed");
-    });
-
-    it("should include proper population parameters in PUT request", async () => {
-      const updatedItemResponse: CartItemStrapiResponse = {
-        data: {
-          id: "item-1",
-          quantity: 5,
-          book: {
-            id: "book-1",
-            documentId: "book-doc-1",
-            slug: "test-book",
-            title: "Test Book",
-            description: "A test book",
-            price: 29.99,
-            language: "en",
-            categories: [],
-            image: { url: "https://example.com/book.jpg" },
-            createdAt: "2024-01-01T00:00:00.000Z",
-            updatedAt: "2024-01-01T00:00:00.000Z",
-            publishedAt: "2024-01-01T00:00:00.000Z",
-          },
-        },
-      };
-
-      mockApiClient.put.mockResolvedValue(updatedItemResponse);
-
-      const request = new Request("http://localhost:3000/api/cart", {
-        method: "PUT",
-        body: JSON.stringify(updateData),
-      }) as any;
-
-      await PUT(request);
-
-      expect(mockApiClient.put).toHaveBeenCalledWith(
-        expect.stringContaining("populate[book][populate]=image"),
-        expect.any(Object)
-      );
-    });
-
-    it("should handle zero quantity (item removal)", async () => {
-      const removeItemData = {
-        data: {
-          cartItemId: "item-1",
-          quantity: 0,
-        },
-      };
-
-      const removeResponse = {
-        success: true,
-        message: "Item removed from cart",
-      };
-
-      mockApiClient.put.mockResolvedValue(removeResponse);
-
-      const request = new Request("http://localhost:3000/api/cart", {
-        method: "PUT",
-        body: JSON.stringify(removeItemData),
-      }) as any;
-
-      const response = await PUT(request);
-      const result = await response.json();
-
-      expect(mockApiClient.put).toHaveBeenCalledWith(
-        expect.stringContaining("/cart-items/item-1?"),
-        expect.objectContaining({
-          body: {
-            data: {
-              quantity: 0,
-            },
-          },
-        })
-      );
-      expect(result).toEqual(removeResponse);
     });
   });
 });

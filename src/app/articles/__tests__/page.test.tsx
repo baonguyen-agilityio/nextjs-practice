@@ -1,4 +1,8 @@
+import { render, screen } from "@testing-library/react";
 import { generateMetadata } from "../page";
+import ArticlesPageWrapper from "../page";
+import { getArticles } from "@/services/article";
+import { PAGE_DEFAULT, PAGE_SIZE_DEFAULT_ARTICLE } from "@/constants";
 
 jest.mock("@/services/article", () => ({
   getArticles: jest.fn(),
@@ -8,296 +12,289 @@ jest.mock("@/components/features/article/ArticleList", () => {
   return function MockArticleList({ articles, pagination }: any) {
     return (
       <div data-testid="article-list">
-        <div data-testid="articles-count">{articles.length}</div>
-        <div data-testid="pagination-page">{pagination.page}</div>
+        <div>Articles: {articles.length}</div>
+        <div>Page: {pagination?.page}</div>
       </div>
     );
   };
 });
 
 jest.mock("@/components/ui/Banner", () => ({
-  Banner: function MockBanner({ title, description }: any) {
-    return (
-      <div data-testid="banner">
-        <h1>{title}</h1>
-        <p>{description}</p>
-      </div>
-    );
-  },
+  Banner: ({ title, description }: any) => (
+    <div data-testid="banner">
+      <h1>{title}</h1>
+      <p>{description}</p>
+    </div>
+  ),
 }));
 
 jest.mock("@/components/ui/SkeletonList", () => {
   return function MockSkeletonList({ length }: any) {
-    return <div data-testid="skeleton-list" data-length={length}></div>;
+    return <div data-testid="skeleton-list">Loading {length} items...</div>;
   };
 });
 
-jest.mock("@/constants", () => ({
-  PAGE_DEFAULT: 1,
-  PAGE_SIZE_DEFAULT_ARTICLE: 6,
-}));
+const mockGetArticles = jest.mocked(getArticles);
 
 describe("Articles Page", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe("generateMetadata", () => {
     it("should return correct metadata", () => {
       const metadata = generateMetadata();
-
-      expect(metadata).toEqual({
-        title: "Articles",
-      });
-    });
-
-    it("should have a string title", () => {
-      const metadata = generateMetadata();
-
-      expect(typeof metadata.title).toBe("string");
-      expect(metadata.title).toBe("Articles");
+      expect(metadata).toEqual({ title: "Articles" });
     });
   });
 
-  describe("Component Structure", () => {
-    it("should define proper component exports", () => {
-      const pageModule = require("../page");
+  describe("ArticlesPageWrapper component", () => {
+    const mockArticlesResponse = {
+      articles: [
+        {
+          id: "1",
+          title: "Test Article",
+          slug: "test-article",
+          description: "Test description",
+          content: "Test content",
+          publishedAt: "2024-01-01T00:00:00.000Z",
+          createdAt: "2024-01-01T00:00:00.000Z",
+          updatedAt: "2024-01-01T00:00:00.000Z",
+          author: { name: "Test Author" },
+          documentId: "doc1",
+          imageUrl: "/test.jpg",
+        },
+      ],
+      pagination: { page: 1, pageSize: 12, pageCount: 1, total: 1 },
+      error: null,
+    };
 
-      expect(typeof pageModule.generateMetadata).toBe("function");
-      expect(typeof pageModule.default).toBe("function");
+    it("should render Suspense fallback initially", () => {
+      mockGetArticles.mockResolvedValue(mockArticlesResponse);
+
+      render(<ArticlesPageWrapper searchParams={Promise.resolve({})} />);
+
+      expect(screen.getByTestId("banner")).toBeInTheDocument();
+      expect(screen.getByTestId("skeleton-list")).toBeInTheDocument();
+      expect(screen.getByText("Articles")).toBeInTheDocument();
+      expect(screen.getByText("Loading 6 items...")).toBeInTheDocument();
     });
 
-    it("should handle search params type", () => {
-      const searchParams = { page: "2" };
+    it("should render with empty search params", () => {
+      mockGetArticles.mockResolvedValue(mockArticlesResponse);
 
-      expect(typeof searchParams).toBe("object");
-      expect(searchParams.page).toBe("2");
-    });
-  });
+      render(<ArticlesPageWrapper searchParams={Promise.resolve({})} />);
 
-  describe("Constants", () => {
-    it("should use correct default values", () => {
-      const { PAGE_DEFAULT, PAGE_SIZE_DEFAULT_ARTICLE } = require("@/constants");
-
-      expect(PAGE_DEFAULT).toBe(1);
-      expect(PAGE_SIZE_DEFAULT_ARTICLE).toBe(6);
+      expect(screen.getByTestId("banner")).toBeInTheDocument();
     });
 
-    it("should construct proper search params", () => {
-      const searchParams = new URLSearchParams();
-      searchParams.set("pagination[page]", "1");
-      searchParams.set("pagination[pageSize]", "6");
-      searchParams.set("populate", "*");
+    it("should render with page parameter", () => {
+      mockGetArticles.mockResolvedValue(mockArticlesResponse);
 
-      expect(searchParams.get("pagination[page]")).toBe("1");
-      expect(searchParams.get("pagination[pageSize]")).toBe("6");
-      expect(searchParams.get("populate")).toBe("*");
-    });
-  });
+      render(<ArticlesPageWrapper searchParams={Promise.resolve({ page: 2 })} />);
 
-  describe("Mock Component Behavior", () => {
-    it("should render Banner component with correct props", () => {
-      const { Banner } = require("@/components/ui/Banner");
-      const bannerProps = {
-        title: "Articles",
-        description:
-          "There are many variations of passages of Lorem Ipsum available,  have suffered alteration in some form.",
-      };
-
-      expect(typeof Banner).toBe("function");
-      expect(bannerProps.title).toBe("Articles");
-      expect(bannerProps.description).toContain("Lorem Ipsum");
+      expect(screen.getByTestId("banner")).toBeInTheDocument();
     });
 
-    it("should render SkeletonList with correct length", () => {
-      const skeletonProps = { length: 6 };
+    it("should render with null search params", () => {
+      mockGetArticles.mockResolvedValue(mockArticlesResponse);
 
-      expect(skeletonProps.length).toBe(6);
-      expect(typeof jest.fn()).toBe("function");
-    });
+      render(<ArticlesPageWrapper searchParams={null as any} />);
 
-    it("should handle ArticleList props", () => {
-      const mockArticles = [
-        { id: "1", title: "Article 1" },
-        { id: "2", title: "Article 2" },
-      ];
-      const mockPagination = {
-        page: 1,
-        pageSize: 6,
-        total: 2,
-      };
-
-      expect(Array.isArray(mockArticles)).toBe(true);
-      expect(mockArticles).toHaveLength(2);
-      expect(mockPagination.page).toBe(1);
-      expect(mockPagination.pageSize).toBe(6);
+      expect(screen.getByTestId("banner")).toBeInTheDocument();
     });
   });
 
-  describe("Search Params Handling", () => {
-    it("should handle undefined search params", async () => {
-      const searchParams = undefined;
-      const defaultPage = 1;
+  describe("ArticlesPage logic", () => {
+    it("should construct URLSearchParams with default page", () => {
+      const page = PAGE_DEFAULT;
+      const searchParamsAPI = new URLSearchParams();
+      searchParamsAPI.set("pagination[page]", page.toString());
+      searchParamsAPI.set("pagination[pageSize]", PAGE_SIZE_DEFAULT_ARTICLE.toString());
+      searchParamsAPI.set("populate", "*");
 
-      const result: any = searchParams || {};
-      const page = result.page || defaultPage;
+      expect(searchParamsAPI.get("pagination[page]")).toBe("1");
+      expect(searchParamsAPI.get("pagination[pageSize]")).toBe("12");
+      expect(searchParamsAPI.get("populate")).toBe("*");
+    });
 
-      expect(page).toBe(defaultPage);
+    it("should construct URLSearchParams with custom page", () => {
+      const page = 5;
+      const searchParamsAPI = new URLSearchParams();
+      searchParamsAPI.set("pagination[page]", page.toString());
+      searchParamsAPI.set("pagination[pageSize]", PAGE_SIZE_DEFAULT_ARTICLE.toString());
+      searchParamsAPI.set("populate", "*");
+
+      expect(searchParamsAPI.get("pagination[page]")).toBe("5");
+      expect(searchParamsAPI.get("pagination[pageSize]")).toBe("12");
+      expect(searchParamsAPI.get("populate")).toBe("*");
     });
 
     it("should handle empty search params", async () => {
-      const searchParams: any = {};
-      const defaultPage = 1;
+      const searchParams = Promise.resolve({});
+      const result = await searchParams;
+      const page = (result as any).page || PAGE_DEFAULT;
 
-      const page = searchParams.page || defaultPage;
-
-      expect(page).toBe(defaultPage);
+      expect(page).toBe(1);
     });
 
-    it("should handle search params with page", async () => {
-      const searchParams: any = { page: "3" };
+    it("should handle search params with page value", async () => {
+      const searchParams = Promise.resolve({ page: 3 });
+      const result = await searchParams;
+      const page = (result as any).page || PAGE_DEFAULT;
 
-      expect(searchParams.page).toBe("3");
-      expect(parseInt(searchParams.page)).toBe(3);
+      expect(page).toBe(3);
     });
 
-    it("should handle search params as Promise", async () => {
-      const searchParamsPromise = Promise.resolve({ page: "2" });
-      const resolvedParams = await searchParamsPromise;
+    it("should handle search params with zero page", async () => {
+      const searchParams = Promise.resolve({ page: 0 });
+      const result = await searchParams;
+      const page = (result as any).page || PAGE_DEFAULT;
 
-      expect(resolvedParams.page).toBe("2");
-    });
-  });
-
-  describe("API Search Params Construction", () => {
-    it("should construct URLSearchParams correctly", () => {
-      const page = 2;
-      const pageSize = 6;
-
-      const searchParamsAPI = new URLSearchParams();
-      searchParamsAPI.set("pagination[page]", page.toString());
-      searchParamsAPI.set("pagination[pageSize]", pageSize.toString());
-      searchParamsAPI.set("populate", "*");
-
-      expect(searchParamsAPI.toString()).toContain("pagination%5Bpage%5D=2");
-      expect(searchParamsAPI.toString()).toContain("pagination%5BpageSize%5D=6");
-      expect(searchParamsAPI.toString()).toContain("populate=");
+      expect(page).toBe(1);
     });
 
-    it("should handle different page values", () => {
-      const testCases = [1, 5, 10, 100];
+    it("should handle search params with negative page", async () => {
+      const searchParams = Promise.resolve({ page: -1 });
+      const result = await searchParams;
+      const page = (result as any).page || PAGE_DEFAULT;
 
-      testCases.forEach((page) => {
-        const searchParams = new URLSearchParams();
-        searchParams.set("pagination[page]", page.toString());
-
-        expect(searchParams.get("pagination[page]")).toBe(page.toString());
-      });
+      expect(page).toBe(-1);
     });
 
-    it("should handle populate parameter", () => {
-      const searchParams = new URLSearchParams();
-      searchParams.set("populate", "*");
+    it("should handle search params with string page", async () => {
+      const searchParams = Promise.resolve({ page: "5" });
+      const result = await searchParams;
+      const page = (result as any).page || PAGE_DEFAULT;
 
-      expect(searchParams.get("populate")).toBe("*");
-      expect(searchParams.toString()).toBe("populate=*");
-    });
-  });
-
-  describe("Service Integration", () => {
-    it("should call getArticles with correct parameters", () => {
-      const { getArticles } = require("@/services/article");
-      const mockSearchParams = new URLSearchParams();
-      mockSearchParams.set("pagination[page]", "1");
-      mockSearchParams.set("pagination[pageSize]", "6");
-      mockSearchParams.set("populate", "*");
-
-      const expectedParams = {
-        searchParams: mockSearchParams,
-      };
-
-      expect(typeof getArticles).toBe("function");
-      expect(expectedParams.searchParams).toBeInstanceOf(URLSearchParams);
+      expect(page).toBe("5");
     });
 
-    it("should handle getArticles response structure", () => {
+    it("should handle null and undefined values", async () => {
+      expect((await null) || {}).toEqual({});
+      expect((await undefined) || {}).toEqual({});
+      expect((await Promise.resolve(null)) || {}).toEqual({});
+    });
+
+    it("should call getArticles with correct parameters", async () => {
       const mockResponse = {
         articles: [
-          { id: "1", title: "Article 1" },
-          { id: "2", title: "Article 2" },
+          {
+            id: "1",
+            title: "Test Article",
+            slug: "test-article",
+            description: "Test description",
+            content: "Test content",
+            publishedAt: "2024-01-01T00:00:00.000Z",
+            createdAt: "2024-01-01T00:00:00.000Z",
+            updatedAt: "2024-01-01T00:00:00.000Z",
+            author: { name: "Test Author" },
+            documentId: "doc1",
+            imageUrl: "/test.jpg",
+          },
         ],
-        pagination: {
-          page: 1,
-          pageSize: 6,
-          total: 2,
-        },
+        pagination: { page: 1, pageSize: 12, pageCount: 1, total: 1 },
+        error: null,
       };
+      mockGetArticles.mockResolvedValue(mockResponse);
 
-      expect(Array.isArray(mockResponse.articles)).toBe(true);
-      expect(mockResponse.pagination).toHaveProperty("page");
-      expect(mockResponse.pagination).toHaveProperty("pageSize");
-      expect(mockResponse.pagination).toHaveProperty("total");
-    });
-  });
+      const searchParamsAPI = new URLSearchParams();
+      searchParamsAPI.set("pagination[page]", "1");
+      searchParamsAPI.set("pagination[pageSize]", "12");
+      searchParamsAPI.set("populate", "*");
 
-  describe("Error Handling", () => {
-    it("should handle getArticles service errors", () => {
-      const { getArticles } = require("@/services/article");
+      const result = await getArticles({ searchParams: searchParamsAPI });
 
-      getArticles.mockRejectedValue(new Error("Service unavailable"));
-
-      expect(getArticles).toBeDefined();
-      expect(typeof getArticles).toBe("function");
-    });
-
-    it("should handle empty articles response", () => {
-      const emptyResponse = {
-        articles: [],
-        pagination: {
-          page: 1,
-          pageSize: 6,
-          total: 0,
-        },
-      };
-
-      expect(emptyResponse.articles).toHaveLength(0);
-      expect(emptyResponse.pagination.total).toBe(0);
-    });
-
-    it("should handle invalid page numbers", () => {
-      const invalidPages = ["invalid", "0", ""];
-      const defaultPage = 1;
-
-      invalidPages.forEach((invalidPage) => {
-        const page = parseInt(invalidPage) || defaultPage;
-        expect(page).toBe(defaultPage);
+      expect(mockGetArticles).toHaveBeenCalledWith({
+        searchParams: searchParamsAPI,
       });
+      expect(result.articles).toHaveLength(1);
+      expect(result.pagination?.page).toBe(1);
+    });
 
-      const negativePage = parseInt("-1") > 0 ? parseInt("-1") : defaultPage;
-      expect(negativePage).toBe(defaultPage);
+    it("should handle empty articles response", async () => {
+      const mockResponse = {
+        articles: [],
+        pagination: { page: 1, pageSize: 12, pageCount: 0, total: 0 },
+        error: null,
+      };
+      mockGetArticles.mockResolvedValue(mockResponse);
+
+      const searchParamsAPI = new URLSearchParams();
+      const result = await getArticles({ searchParams: searchParamsAPI });
+
+      expect(result.articles).toHaveLength(0);
+      expect(result.pagination?.total).toBe(0);
+    });
+
+    it("should handle API errors", async () => {
+      mockGetArticles.mockRejectedValue(new Error("API Error"));
+
+      const searchParamsAPI = new URLSearchParams();
+      searchParamsAPI.set("pagination[page]", "1");
+      searchParamsAPI.set("pagination[pageSize]", "12");
+      searchParamsAPI.set("populate", "*");
+
+      await expect(getArticles({ searchParams: searchParamsAPI })).rejects.toThrow("API Error");
+    });
+
+    it("should handle network timeout errors", async () => {
+      mockGetArticles.mockRejectedValue(new Error("Network timeout"));
+
+      const searchParamsAPI = new URLSearchParams();
+      await expect(getArticles({ searchParams: searchParamsAPI })).rejects.toThrow(
+        "Network timeout"
+      );
     });
   });
 
-  describe("Component Integration", () => {
-    it("should handle Suspense fallback", () => {
-      const fallbackProps = {
-        banner: {
-          title: "Articles",
-          description:
-            "There are many variations of passages of Lorem Ipsum available,  have suffered alteration in some form.",
-        },
-        skeletonList: {
-          length: 6,
-        },
-      };
-
-      expect(fallbackProps.banner.title).toBe("Articles");
-      expect(fallbackProps.skeletonList.length).toBe(6);
+  describe("Constants and utilities", () => {
+    it("should use correct default constants", () => {
+      expect(PAGE_DEFAULT).toBe(1);
+      expect(PAGE_SIZE_DEFAULT_ARTICLE).toBe(12);
+      expect(typeof PAGE_DEFAULT).toBe("number");
+      expect(typeof PAGE_SIZE_DEFAULT_ARTICLE).toBe("number");
     });
 
-    it("should handle ArticlesPage component props", () => {
-      const componentProps = {
-        searchParams: { page: "2" },
-      };
+    it("should convert numbers to strings correctly", () => {
+      expect((1).toString()).toBe("1");
+      expect((12).toString()).toBe("12");
+      expect(PAGE_DEFAULT.toString()).toBe("1");
+      expect(PAGE_SIZE_DEFAULT_ARTICLE.toString()).toBe("12");
+    });
 
-      expect(componentProps.searchParams).toHaveProperty("page");
-      expect(componentProps.searchParams.page).toBe("2");
+    it("should handle various numeric conversions", () => {
+      expect((0).toString()).toBe("0");
+      expect((100).toString()).toBe("100");
+      expect((-1).toString()).toBe("-1");
+    });
+  });
+
+  describe("URLSearchParams edge cases", () => {
+    it("should handle URLSearchParams with multiple parameters", () => {
+      const params = new URLSearchParams();
+      params.set("pagination[page]", "1");
+      params.set("pagination[pageSize]", "12");
+      params.set("populate", "*");
+      params.set("sort", "publishedAt:desc");
+
+      expect(params.get("pagination[page]")).toBe("1");
+      expect(params.get("sort")).toBe("publishedAt:desc");
+      expect(params.toString()).toContain("pagination");
+    });
+
+    it("should handle URLSearchParams encoding", () => {
+      const params = new URLSearchParams();
+      params.set("filter", "title contains space");
+
+      expect(params.toString()).toContain("filter=title+contains+space");
+    });
+
+    it("should handle empty URLSearchParams", () => {
+      const params = new URLSearchParams();
+
+      expect(params.toString()).toBe("");
+      expect(params.get("nonexistent")).toBeNull();
     });
   });
 });
