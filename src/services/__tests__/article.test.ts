@@ -31,30 +31,22 @@ describe("Article Service", () => {
   });
 
   describe("getArticles", () => {
-    it("should successfully fetch articles", async () => {
-      const mockArticlesData = [
-        {
-          id: "1",
-          title: "Test Article 1",
-          content: "Content 1",
-          image: { url: "https://example.com/image1.jpg" },
-        },
-        {
-          id: "2",
-          title: "Test Article 2",
-          content: "Content 2",
-          image: { url: "https://example.com/image2.jpg" },
-        },
-      ];
-
+    it("should fetch articles with pagination", async () => {
       const mockResponse = {
-        data: mockArticlesData,
+        data: [
+          {
+            id: "1",
+            title: "Test Article",
+            content: "Content",
+            image: { url: "https://example.com/image.jpg" },
+          },
+        ],
         meta: {
           pagination: {
             page: 1,
             pageSize: 10,
             pageCount: 1,
-            total: 2,
+            total: 1,
           },
         },
         error: null,
@@ -63,7 +55,6 @@ describe("Article Service", () => {
       mockApiClient.get.mockResolvedValue(mockResponse);
 
       const searchParams = new URLSearchParams("page=1");
-
       const result = await getArticles({ searchParams });
 
       expect(mockApiClient.get).toHaveBeenCalledWith(
@@ -81,28 +72,23 @@ describe("Article Service", () => {
         articles: [
           {
             id: "1",
-            title: "Test Article 1",
-            content: "Content 1",
-            imageUrl: "https://example.com/image1.jpg",
-          },
-          {
-            id: "2",
-            title: "Test Article 2",
-            content: "Content 2",
-            imageUrl: "https://example.com/image2.jpg",
+            title: "Test Article",
+            content: "Content",
+            imageUrl: "https://example.com/image.jpg",
           },
         ],
         pagination: {
           page: 1,
           pageSize: 10,
           pageCount: 1,
-          total: 2,
+          total: 1,
         },
         error: null,
       });
     });
 
-    it("should handle API error response", async () => {
+    it("should handle errors", async () => {
+      // Test API error response
       const mockErrorResponse = {
         data: [],
         meta: {},
@@ -112,19 +98,16 @@ describe("Article Service", () => {
       };
 
       mockApiClient.get.mockResolvedValue(mockErrorResponse);
-
-      const result = await getArticles({});
+      let result = await getArticles({});
 
       expect(result).toEqual({
         articles: [],
         error: "Server error",
       });
-    });
 
-    it("should handle network errors", async () => {
+      // Test network error
       mockApiClient.get.mockRejectedValue(new Error("Network error"));
-
-      const result = await getArticles({});
+      result = await getArticles({});
 
       expect(result).toEqual({
         articles: [],
@@ -134,7 +117,7 @@ describe("Article Service", () => {
   });
 
   describe("getArticle", () => {
-    it("should successfully fetch single article", async () => {
+    it("should fetch single article with image handling", async () => {
       const mockArticleData = {
         id: "1",
         title: "Test Article",
@@ -171,6 +154,13 @@ describe("Article Service", () => {
         },
         error: null,
       });
+
+      // Test missing image
+      mockResponse.data.image = {} as any;
+      mockApiClient.get.mockResolvedValue(mockResponse);
+
+      const resultWithoutImage = await getArticle({ id: "1" });
+      expect(resultWithoutImage.article?.imageUrl).toBe("");
     });
 
     it("should handle article not found", async () => {
@@ -189,26 +179,6 @@ describe("Article Service", () => {
         article: null,
         error: "Article not found",
       });
-    });
-
-    it("should handle missing image", async () => {
-      const mockArticleData = {
-        id: "1",
-        title: "Test Article",
-        content: "Test content",
-        image: {},
-      };
-
-      const mockResponse = {
-        data: mockArticleData,
-        error: null,
-      };
-
-      mockApiClient.get.mockResolvedValue(mockResponse);
-
-      const result = await getArticle({ id: "1" });
-
-      expect(result.article?.imageUrl).toBe("");
     });
   });
 });

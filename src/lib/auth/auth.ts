@@ -4,7 +4,10 @@ import Credentials from "next-auth/providers/credentials";
 import { login } from "@/services/auth";
 import { z } from "zod";
 
-export async function authorizeUser(credentials: any) {
+export async function authorizeUser(
+  credentials: Partial<Record<string, unknown>>,
+  _request: Request
+) {
   const parsedCredentials = z
     .object({ email: z.string().email(), password: z.string() })
     .safeParse(credentials);
@@ -38,7 +41,7 @@ export async function authorizeUser(credentials: any) {
     const userData = await meRes.json();
 
     return {
-      id: userData.id,
+      id: userData.id.toString(),
       email: userData.email,
       name: userData.username,
       token: user.token,

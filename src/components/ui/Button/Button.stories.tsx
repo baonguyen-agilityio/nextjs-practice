@@ -1,35 +1,54 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Button } from "@/components/ui/Button";
+import { fn } from "@storybook/test";
+import { Button } from "./index";
 
 const meta: Meta<typeof Button> = {
-  title: "Components/Button",
+  title: "UI Components/Button",
   component: Button,
   parameters: {
     layout: "centered",
   },
-  tags: ["autodocs"],
+  args: {
+    onPress: fn(),
+    children: "Button",
+  },
 };
 
 export default meta;
-type Story = StoryObj<typeof Button>;
+type Story = StoryObj<typeof meta>;
 
-export const Bordered: Story = {
+export const Default: Story = {
   args: {
-    variant: "bordered",
-    children: "Order Today",
+    children: "Default Button",
   },
 };
 
-export const Solid: Story = {
+export const Primary: Story = {
   args: {
-    variant: "solid",
-    children: "Order Today",
+    children: "Primary Button",
+    color: "primary",
   },
 };
 
-export const Light: Story = {
+export const Secondary: Story = {
   args: {
-    variant: "light",
-    children: "Order Today",
+    children: "Secondary Button",
+    color: "secondary",
+  },
+};
+
+export const Loading: Story = {
+  args: {
+    children: "Loading...",
+    isLoading: true,
+    color: "primary",
+  },
+};
+
+export const Disabled: Story = {
+  args: {
+    children: "Disabled Button",
+    isDisabled: true,
+    color: "primary",
   },
 };

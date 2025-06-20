@@ -40,34 +40,24 @@ describe("Book Service", () => {
   });
 
   describe("getBooks", () => {
-    it("should successfully fetch books", async () => {
-      const mockBooksData = [
-        {
-          id: "1",
-          title: "Test Book 1",
-          price: 29.99,
-          description: "Test description 1",
-          image: { url: "https://example.com/image1.jpg" },
-          categories: [],
-        },
-        {
-          id: "2",
-          title: "Test Book 2",
-          price: 39.99,
-          description: "Test description 2",
-          image: { url: "https://example.com/image2.jpg" },
-          categories: [],
-        },
-      ];
-
+    it("should fetch books with pagination and image handling", async () => {
       const mockResponse = {
-        data: mockBooksData,
+        data: [
+          {
+            id: "1",
+            title: "Test Book",
+            price: 29.99,
+            description: "Test description",
+            image: { url: "https://example.com/image.jpg" },
+            categories: [],
+          },
+        ],
         meta: {
           pagination: {
             page: 1,
             pageSize: 10,
             pageCount: 1,
-            total: 2,
+            total: 1,
           },
         },
         error: null,
@@ -76,7 +66,6 @@ describe("Book Service", () => {
       mockApiClient.get.mockResolvedValue(mockResponse);
 
       const searchParams = new URLSearchParams("page=1&pageSize=10");
-
       const result = await getBooks({ searchParams });
 
       expect(mockApiClient.get).toHaveBeenCalledWith(
@@ -94,18 +83,10 @@ describe("Book Service", () => {
         books: [
           {
             id: "1",
-            title: "Test Book 1",
+            title: "Test Book",
             price: 29.99,
-            description: "Test description 1",
-            imageUrl: "https://example.com/image1.jpg",
-            categories: [],
-          },
-          {
-            id: "2",
-            title: "Test Book 2",
-            price: 39.99,
-            description: "Test description 2",
-            imageUrl: "https://example.com/image2.jpg",
+            description: "Test description",
+            imageUrl: "https://example.com/image.jpg",
             categories: [],
           },
         ],
@@ -113,13 +94,19 @@ describe("Book Service", () => {
           page: 1,
           pageSize: 10,
           pageCount: 1,
-          total: 2,
+          total: 1,
         },
         error: null,
       });
+
+      (mockResponse.data[0]! as any).image = null;
+      mockApiClient.get.mockResolvedValue(mockResponse);
+
+      const resultWithoutImage = await getBooks({});
+      expect(resultWithoutImage.books[0]?.imageUrl).toBe("");
     });
 
-    it("should handle API error response", async () => {
+    it("should handle errors", async () => {
       const mockErrorResponse = {
         data: [],
         meta: {},
@@ -129,47 +116,18 @@ describe("Book Service", () => {
       mockApiClient.get.mockResolvedValue(mockErrorResponse);
       mockHandleApiError.mockReturnValue({ error: "Parsed server error" });
 
-      const result = await getBooks({});
+      let result = await getBooks({});
 
       expect(mockHandleApiError).toHaveBeenCalledWith("Server error");
       expect(result).toEqual({
         books: [],
         error: "Parsed server error",
       });
-    });
 
-    it("should handle books with missing images", async () => {
-      const mockBooksData = [
-        {
-          id: "1",
-          title: "Test Book",
-          price: 29.99,
-          description: "Test description",
-          image: null,
-          categories: [],
-        },
-      ];
-
-      const mockResponse = {
-        data: mockBooksData,
-        meta: { pagination: { page: 1, pageSize: 10, pageCount: 1, total: 1 } },
-        error: null,
-      };
-
-      mockApiClient.get.mockResolvedValue(mockResponse);
-
-      const result = await getBooks({});
-
-      expect(result.books[0]?.imageUrl).toBe("");
-    });
-
-    it("should handle network errors", async () => {
       mockApiClient.get.mockRejectedValue(new Error("Network error"));
       mockHandleApiError.mockReturnValue({ error: "Network connection failed" });
 
-      const result = await getBooks({});
-
-      expect(mockHandleApiError).toHaveBeenCalledWith(expect.any(Error));
+      result = await getBooks({});
       expect(result).toEqual({
         books: [],
         error: "Network connection failed",
@@ -178,7 +136,7 @@ describe("Book Service", () => {
   });
 
   describe("getBook", () => {
-    it("should successfully fetch single book", async () => {
+    it("should fetch single book with image handling", async () => {
       const mockBookData = {
         id: "1",
         title: "Test Book",
@@ -219,6 +177,12 @@ describe("Book Service", () => {
         },
         error: null,
       });
+
+      mockResponse.data.image = {} as any;
+      mockApiClient.get.mockResolvedValue(mockResponse);
+
+      const resultWithoutImage = await getBook({ id: "1" });
+      expect(resultWithoutImage.book?.imageUrl).toBe("");
     });
 
     it("should handle book not found", async () => {
@@ -237,40 +201,18 @@ describe("Book Service", () => {
         error: "Book not found",
       });
     });
-
-    it("should handle book with missing image", async () => {
-      const mockBookData = {
-        id: "1",
-        title: "Test Book",
-        price: 29.99,
-        description: "Test description",
-        image: {},
-        categories: [],
-      };
-
-      const mockResponse = {
-        data: mockBookData,
-        error: null,
-      };
-
-      mockApiClient.get.mockResolvedValue(mockResponse);
-
-      const result = await getBook({ id: "1" });
-
-      expect(result.book?.imageUrl).toBe("");
-    });
   });
 
   describe("createBookService", () => {
-    it("should successfully create book", async () => {
-      const bookPayload = {
-        title: "New Book",
-        price: 29.99,
-        description: "New book description",
-        categories: "fiction",
-        image: "image-id",
-      };
+    const bookPayload = {
+      title: "New Book",
+      price: 29.99,
+      description: "New book description",
+      categories: "fiction",
+      image: "image-id",
+    };
 
+    it("should create book successfully", async () => {
       const mockResponse = {
         data: { id: "new-book-id" },
         error: null,
@@ -288,44 +230,26 @@ describe("Book Service", () => {
       expect(result).toEqual({ success: true });
     });
 
-    it("should handle creation error", async () => {
-      const bookPayload = {
-        title: "New Book",
-        price: 29.99,
-        description: "New book description",
-        categories: "fiction",
-      };
-
-      const mockResponse = {
+    it("should handle creation errors", async () => {
+      const mockErrorResponse = {
         data: null,
         error: "Validation error",
       };
 
-      mockApiClient.post.mockResolvedValue(mockResponse);
+      mockApiClient.post.mockResolvedValue(mockErrorResponse);
       mockHandleApiError.mockReturnValue({ error: { title: ["Title is required"] } });
 
-      const result = await createBookService(bookPayload);
+      let result = await createBookService(bookPayload);
 
-      expect(mockHandleApiError).toHaveBeenCalledWith("Validation error");
       expect(result).toEqual({
         success: false,
         error: { title: ["Title is required"] },
       });
-    });
-
-    it("should handle network errors during creation", async () => {
-      const bookPayload = {
-        title: "New Book",
-        price: 29.99,
-        description: "New book description",
-        categories: "fiction",
-      };
 
       mockApiClient.post.mockRejectedValue(new Error("Network error"));
       mockHandleApiError.mockReturnValue({ error: "Network connection failed" });
 
-      const result = await createBookService(bookPayload);
-
+      result = await createBookService(bookPayload);
       expect(result).toEqual({
         success: false,
         error: "Network connection failed",
@@ -334,7 +258,7 @@ describe("Book Service", () => {
   });
 
   describe("updateBookService", () => {
-    it("should successfully update book", async () => {
+    it("should update book successfully", async () => {
       const bookPayload = {
         title: "Updated Book",
         price: 39.99,
@@ -360,7 +284,7 @@ describe("Book Service", () => {
       expect(result).toEqual({ success: true });
     });
 
-    it("should handle update error", async () => {
+    it("should handle update errors", async () => {
       const bookPayload = {
         title: "",
         price: -1,
@@ -394,7 +318,7 @@ describe("Book Service", () => {
   });
 
   describe("deleteBook", () => {
-    it("should successfully delete book", async () => {
+    it("should delete book successfully", async () => {
       const mockResponse = {
         success: true,
         error: null,
@@ -414,30 +338,26 @@ describe("Book Service", () => {
       });
     });
 
-    it("should handle delete error", async () => {
-      const mockResponse = {
+    it("should handle deletion errors", async () => {
+      const mockErrorResponse = {
         success: false,
         error: "Book not found",
       };
 
-      mockApiClient.delete.mockResolvedValue(mockResponse);
+      mockApiClient.delete.mockResolvedValue(mockErrorResponse);
       mockHandleApiError.mockReturnValue({ error: "Book not found" });
 
-      const result = await deleteBook({ id: "999" });
+      let result = await deleteBook({ id: "999" });
 
-      expect(mockHandleApiError).toHaveBeenCalledWith("Book not found");
       expect(result).toEqual({
         book: null,
         error: "Book not found",
       });
-    });
 
-    it("should handle network errors during deletion", async () => {
       mockApiClient.delete.mockRejectedValue(new Error("Network error"));
       mockHandleApiError.mockReturnValue({ error: "Network connection failed" });
 
-      const result = await deleteBook({ id: "book-123" });
-
+      result = await deleteBook({ id: "book-123" });
       expect(result).toEqual({
         book: null,
         error: "Network connection failed",

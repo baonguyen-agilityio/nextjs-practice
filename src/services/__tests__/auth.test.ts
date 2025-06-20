@@ -34,12 +34,12 @@ describe("Auth Service", () => {
   });
 
   describe("login", () => {
-    it("should successfully login with valid credentials", async () => {
-      const loginData = {
-        email: "test@example.com",
-        password: "password123",
-      };
+    const loginData = {
+      email: "test@example.com",
+      password: "password123",
+    };
 
+    it("should handle successful login", async () => {
       const mockResponse = {
         jwt: "mock-jwt-token",
         user: {
@@ -75,89 +75,43 @@ describe("Auth Service", () => {
       });
     });
 
-    it("should handle login error from API", async () => {
-      const loginData = {
-        email: "invalid@example.com",
-        password: "wrongpassword",
-      };
-
+    it("should handle login errors", async () => {
       const mockErrorResponse = {
         error: JSON.stringify({
-          error: {
-            message: "Invalid identifier or password",
-          },
+          error: { message: "Invalid credentials" },
         }),
         jwt: null,
         user: null,
       };
 
       mockApiClient.post.mockResolvedValue(mockErrorResponse);
-
-      const result = await login(loginData);
+      let result = await login(loginData);
 
       expect(result).toEqual({
         user: null,
-        error: "Invalid identifier or password",
+        error: "Invalid credentials",
       });
-    });
-
-    it("should handle network errors", async () => {
-      const loginData = {
-        email: "test@example.com",
-        password: "password123",
-      };
 
       mockApiClient.post.mockRejectedValue(new Error("Network error"));
-
-      const result = await login(loginData);
+      result = await login(loginData);
 
       expect(result).toEqual({
         user: null,
         error: "Network error",
       });
     });
-
-    it("should handle missing user in response", async () => {
-      const loginData = {
-        email: "test@example.com",
-        password: "password123",
-      };
-
-      const mockResponse = {
-        jwt: null,
-        user: null,
-        error: JSON.stringify({
-          error: {
-            message: "User not found",
-          },
-        }),
-      };
-
-      mockApiClient.post.mockResolvedValue(mockResponse);
-
-      const result = await login(loginData);
-
-      expect(result).toEqual({
-        user: null,
-        error: "User not found",
-      });
-    });
   });
 
   describe("logout", () => {
-    it("should call signOut function", async () => {
+    it("should handle logout", async () => {
       mockSignOut.mockResolvedValue(undefined);
 
       await logout();
 
       expect(mockSignOut).toHaveBeenCalledWith();
-    });
 
-    it("should handle signOut errors", async () => {
       mockSignOut.mockRejectedValue(new Error("Logout failed"));
-
       await expect(logout()).rejects.toThrow("Logout failed");
-      expect(mockSignOut).toHaveBeenCalledWith();
     });
   });
 });

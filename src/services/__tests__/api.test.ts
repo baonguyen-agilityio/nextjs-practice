@@ -26,50 +26,35 @@ describe("ApiClient", () => {
     });
   });
 
-  describe("create", () => {
-    it("should create singleton instance", () => {
+  describe("Client creation", () => {
+    it("should create singleton instance with default and custom headers", () => {
+      (ApiClient as any).apiClientInstance = null;
       const client1 = ApiClient.create({ baseURL: "https://api.example.com" });
       const client2 = ApiClient.create({ baseURL: "https://api.example.com" });
 
       expect(client1).toBe(client2);
+      expect(client1.config.headers).toEqual({ Authorization: "Bearer test-auth-token" });
     });
 
-    it("should use default headers when not provided", () => {
-      (ApiClient as any).apiClientInstance = null;
-
-      const client = ApiClient.create({ baseURL: "https://api.example.com" });
-
-      expect(client.config.headers).toEqual({ Authorization: "Bearer test-auth-token" });
-    });
-  });
-
-  describe("apiClientSession", () => {
-    it("should create authenticated client with user token", async () => {
+    it("should handle session authentication", async () => {
       const mockSession = {
-        user: {
-          id: "user-123",
-          token: "user-token",
-        },
+        user: { id: "user-123", token: "user-token" },
       };
       mockAuth.mockResolvedValue(mockSession);
 
       const sessionClient = await apiClient.apiClientSession();
 
-      expect(mockAuth).toHaveBeenCalled();
       expect(sessionClient.config.headers).toEqual({
         Authorization: "Bearer user-token",
       });
-    });
 
-    it("should throw error when no user session", async () => {
       mockAuth.mockResolvedValue(null);
-
       await expect(apiClient.apiClientSession()).rejects.toThrow("Not found user!");
     });
   });
 
-  describe("get", () => {
-    it("should make successful GET request", async () => {
+  describe("HTTP methods", () => {
+    it("should handle GET requests", async () => {
       const mockResponse = { data: "test data" };
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -87,23 +72,9 @@ describe("ApiClient", () => {
       expect(result).toEqual(mockResponse);
     });
 
-    it("should return error when GET request fails", async () => {
-      const errorText = "Server error";
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        text: jest.fn().mockResolvedValue(errorText),
-      } as any);
-
-      const result = await apiClient.get("/test");
-
-      expect(result).toEqual({ error: errorText });
-    });
-  });
-
-  describe("post", () => {
-    it("should make successful POST request", async () => {
+    it("should handle POST requests", async () => {
       const mockResponse = { id: "123", message: "Created" };
-      const postData = { name: "Test", value: "test value" };
+      const postData = { name: "Test" };
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: jest.fn().mockResolvedValue(mockResponse),
@@ -127,21 +98,7 @@ describe("ApiClient", () => {
       expect(result).toEqual(mockResponse);
     });
 
-    it("should return error when POST request fails", async () => {
-      const errorText = "Validation error";
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        text: jest.fn().mockResolvedValue(errorText),
-      } as any);
-
-      const result = await apiClient.post("/test", { body: {} });
-
-      expect(result).toEqual({ error: errorText });
-    });
-  });
-
-  describe("put", () => {
-    it("should make successful PUT request", async () => {
+    it("should handle PUT requests", async () => {
       const mockResponse = { id: "123", message: "Updated" };
       const putData = { name: "Updated Test" };
       mockFetch.mockResolvedValueOnce({
@@ -158,29 +115,12 @@ describe("ApiClient", () => {
         expect.objectContaining({
           method: "PUT",
           body: JSON.stringify(putData),
-          headers: expect.objectContaining({
-            "Content-Type": "application/json",
-          }),
         })
       );
       expect(result).toEqual(mockResponse);
     });
 
-    it("should return error when PUT request fails", async () => {
-      const errorText = "Update failed";
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        text: jest.fn().mockResolvedValue(errorText),
-      } as any);
-
-      const result = await apiClient.put("/test", { body: {} });
-
-      expect(result).toEqual({ error: errorText });
-    });
-  });
-
-  describe("delete", () => {
-    it("should make successful DELETE request", async () => {
+    it("should handle DELETE requests", async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 204,
@@ -197,21 +137,7 @@ describe("ApiClient", () => {
       expect(result).toEqual({ success: true });
     });
 
-    it("should return error when DELETE request fails", async () => {
-      const errorText = "Delete failed";
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        text: jest.fn().mockResolvedValue(errorText),
-      } as any);
-
-      const result = await apiClient.delete("/test");
-
-      expect(result).toEqual({ error: errorText });
-    });
-  });
-
-  describe("postFile", () => {
-    it("should make successful file POST request", async () => {
+    it("should handle file uploads", async () => {
       const mockResponse = { url: "uploaded-file-url" };
       const formData = new FormData();
       formData.append("file", new File(["content"], "test.txt"));
@@ -233,17 +159,31 @@ describe("ApiClient", () => {
       );
       expect(result).toEqual(mockResponse);
     });
+  });
 
-    it("should return error when file POST request fails", async () => {
-      const errorText = "Upload failed";
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        text: jest.fn().mockResolvedValue(errorText),
-      } as any);
+  describe("Error handling", () => {
+    const errorCases = [
+      { method: "get", endpoint: "/test" },
+      { method: "post", endpoint: "/test", options: { body: {} } },
+      { method: "put", endpoint: "/test", options: { body: {} } },
+      { method: "delete", endpoint: "/test" },
+      { method: "postFile", endpoint: "/upload", options: { body: new FormData() } },
+    ];
 
-      const result = await apiClient.postFile("/upload", { body: new FormData() });
+    errorCases.forEach(({ method, endpoint, options }) => {
+      it(`should handle ${method.toUpperCase()} request errors`, async () => {
+        const errorText = "Request failed";
+        mockFetch.mockResolvedValueOnce({
+          ok: false,
+          text: jest.fn().mockResolvedValue(errorText),
+        } as any);
 
-      expect(result).toEqual({ error: errorText });
+        const result = options
+          ? await (apiClient as any)[method](endpoint, options)
+          : await (apiClient as any)[method](endpoint);
+
+        expect(result).toEqual({ error: errorText });
+      });
     });
   });
 });

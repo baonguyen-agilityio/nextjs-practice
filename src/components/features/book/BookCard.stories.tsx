@@ -1,13 +1,147 @@
+import React, { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import BookCard from "./BookCard";
 import type { Book, Category } from "@/types";
+import type { ActionResult } from "@/app/actions/book";
+import { Card, CardFooter } from "@heroui/react";
+import { formatUSD } from "@/utils/currency";
+import Image from "next/image";
+import { createImageUrl } from "@/utils/image";
+import { Button } from "@/components/ui/Button";
 
-// Mock data for the book
+function StorybookBookCard(props: {
+  book: Book;
+  isAdmin: boolean;
+  categories: Category[];
+  formAction: (payload: FormData) => void;
+  isPendingUpdateBook: boolean;
+  result: ActionResult | undefined;
+  formActionDelete: (payload: FormData) => void;
+  isPendingDelete: boolean;
+}) {
+  const {
+    book,
+    isAdmin,
+    categories: _categories,
+    formAction: _formAction,
+    isPendingUpdateBook,
+    result: _result,
+    formActionDelete: _formActionDelete,
+    isPendingDelete,
+  } = props;
+
+  const [imageSrc, setImageSrc] = useState(createImageUrl(book.imageUrl));
+
+  const MockAddToCart = ({ book: mockBook, variant }: { book: Book; variant: "order" | "add" }) => {
+    const handleClick = () => {
+      console.log(`Adding book "${mockBook.title}" to cart with variant: ${variant}`);
+    };
+
+    if (variant === "order") {
+      return (
+        <Button
+          aria-label="Order Today"
+          color="primary"
+          onPress={handleClick}
+          variant="ghost"
+          className="w-full"
+        >
+          Order Today
+        </Button>
+      );
+    }
+
+    return (
+      <Button aria-label="Add to cart" variant="solid" onPress={handleClick} className="w-full">
+        Add To Cart
+      </Button>
+    );
+  };
+
+  const MockEditModal = () => {
+    const handleClick = () => {
+      console.log(`Editing book: ${book.title}`);
+    };
+
+    return (
+      <Button
+        color="secondary"
+        variant="bordered"
+        onPress={handleClick}
+        isLoading={isPendingUpdateBook}
+        className="w-full"
+      >
+        Edit Book
+      </Button>
+    );
+  };
+
+  const MockDeleteModal = () => {
+    const handleClick = () => {
+      console.log(`Deleting book: ${book.title}`);
+    };
+
+    return (
+      <Button
+        color="primary"
+        variant="bordered"
+        onPress={handleClick}
+        isLoading={isPendingDelete}
+        className="w-full"
+      >
+        Delete Book
+      </Button>
+    );
+  };
+
+  return (
+    <Card className="shadow-none rounded-none h-full flex flex-col">
+      <div className="p-0">
+        <div className="w-full h-[650px] relative overflow-hidden bg-background p-6">
+          <div className="w-full h-full relative">
+            <Image
+              data-testid="book-image"
+              alt={book.title}
+              src={imageSrc}
+              className="object-contain"
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              priority
+              onError={() => {
+                setImageSrc("/image-error.png");
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <CardFooter className="flex flex-col gap-5 text-left items-start py-5 px-0 flex-grow">
+        <div className="flex justify-between items-center w-full">
+          <p className="text-title text-5xl">{book.title}</p>
+          <p className="text-accent font-inter text-lg font-bold">{formatUSD(book.price)}</p>
+        </div>
+        <p className="text-description font-inter text-xs">{book.description}</p>
+
+        <div className="space-y-2 w-full mt-auto">
+          {isAdmin ? (
+            <>
+              <MockEditModal />
+              <MockDeleteModal />
+            </>
+          ) : (
+            <MockAddToCart book={book} variant="order" />
+          )}
+        </div>
+      </CardFooter>
+    </Card>
+  );
+}
+
 const mockBook: Book = {
   id: "1",
   title: "The Great Gatsby",
-  price: 14.99,
-  imageUrl: "/test-book-cover.jpg",
+  price: 1499,
+  imageUrl:
+    "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop&crop=center",
   description:
     "A classic American novel by F. Scott Fitzgerald about the decadent society of the 1920s.",
   slug: "the-great-gatsby",
@@ -48,58 +182,23 @@ const mockCategories: Category[] = [
   },
 ];
 
-// Mock the AddToCart component to avoid complex dependencies
-jest.mock("@/components/features/cart/AddToCart", () => ({
-  AddToCart: ({ book: _book, variant }: { book: Book; variant: string }) => (
-    <button className="w-full bg-blue-500 text-white p-2 rounded">
-      {variant === "order" ? "Add to Cart" : "Quick Add"}
-    </button>
-  ),
-}));
+const mockFormAction = () => {
+  console.log("Form action triggered");
+};
 
-// Mock the modal components
-jest.mock("./EditBookModal", () => ({
-  __esModule: true,
-  default: ({ book: _book }: { book: Book }) => (
-    <button className="w-full bg-yellow-500 text-white p-2 rounded">Edit {_book.title}</button>
-  ),
-}));
+const mockFormActionDelete = () => {
+  console.log("Delete action triggered");
+};
 
-jest.mock("./DeleteBookModal", () => ({
-  __esModule: true,
-  default: ({ book: _book }: { book: Book }) => (
-    <button className="w-full bg-red-500 text-white p-2 rounded">Delete {_book.title}</button>
-  ),
-}));
-
-// Mock the currency utility
-jest.mock("@/utils/currency", () => ({
-  formatUSD: (price: number) => `$${price.toFixed(2)}`,
-}));
-
-const meta: Meta<typeof BookCard> = {
-  title: "Features/BookCard",
-  component: BookCard,
+const meta: Meta<typeof StorybookBookCard> = {
+  title: "Feature Components/Book/BookCard",
+  component: StorybookBookCard,
   parameters: {
     layout: "centered",
-    backgrounds: {
-      default: "light",
-      values: [
-        { name: "light", value: "#ffffff" },
-        { name: "dark", value: "#000000" },
-      ],
-    },
-  },
-  tags: ["autodocs"],
-  argTypes: {
-    isAdmin: {
-      control: { type: "boolean" },
-      description: "Whether the user is an admin (shows edit/delete buttons)",
-    },
   },
   decorators: [
     (Story) => (
-      <div style={{ width: "300px", maxWidth: "100%" }}>
+      <div style={{ width: "350px", maxWidth: "100%" }}>
         <Story />
       </div>
     ),
@@ -107,13 +206,18 @@ const meta: Meta<typeof BookCard> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof BookCard>;
+type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
     book: mockBook,
     isAdmin: false,
     categories: mockCategories,
+    formAction: mockFormAction,
+    isPendingUpdateBook: false,
+    result: undefined,
+    formActionDelete: mockFormActionDelete,
+    isPendingDelete: false,
   },
 };
 
@@ -122,55 +226,11 @@ export const AdminView: Story = {
     book: mockBook,
     isAdmin: true,
     categories: mockCategories,
-  },
-};
-
-export const LongTitle: Story = {
-  args: {
-    book: {
-      ...mockBook,
-      title: "The Extremely Long and Detailed Title of a Book That Goes On and On",
-    },
-    isAdmin: false,
-    categories: mockCategories,
-  },
-};
-
-export const LongDescription: Story = {
-  args: {
-    book: {
-      ...mockBook,
-      description:
-        "This is a very long description that goes on and on to demonstrate how the card handles lengthy text content. It should wrap properly and maintain good visual hierarchy while not breaking the card layout. This description continues to be quite lengthy to test the boundaries of the design.",
-    },
-    isAdmin: false,
-    categories: mockCategories,
-  },
-};
-
-export const HighPrice: Story = {
-  args: {
-    book: {
-      ...mockBook,
-      title: "Premium Technical Manual",
-      price: 299.99,
-      description: "An expensive technical manual for professionals.",
-    },
-    isAdmin: false,
-    categories: mockCategories,
-  },
-};
-
-export const LowPrice: Story = {
-  args: {
-    book: {
-      ...mockBook,
-      title: "Budget Paperback",
-      price: 2.99,
-      description: "An affordable paperback edition.",
-    },
-    isAdmin: false,
-    categories: mockCategories,
+    formAction: mockFormAction,
+    isPendingUpdateBook: false,
+    result: undefined,
+    formActionDelete: mockFormActionDelete,
+    isPendingDelete: false,
   },
 };
 
@@ -182,5 +242,10 @@ export const WithoutImage: Story = {
     },
     isAdmin: false,
     categories: mockCategories,
+    formAction: mockFormAction,
+    isPendingUpdateBook: false,
+    result: undefined,
+    formActionDelete: mockFormActionDelete,
+    isPendingDelete: false,
   },
 };

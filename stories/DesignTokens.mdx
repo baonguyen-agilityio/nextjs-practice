@@ -1,0 +1,227 @@
+import { Meta, ColorPalette, ColorItem, Typeset } from '@storybook/blocks';
+
+<Meta title="Design System/Design Tokens" />
+
+# Design Tokens
+
+Design tokens are the visual design atoms of the design system — specifically, they are named entities that store visual design attributes. We use these tokens in place of hard-coded values (such as hex values for color or pixel values for spacing) in order to maintain a scalable and consistent visual system.
+
+## Colors
+
+Our color system is built around semantic naming that reflects the purpose and meaning of each color rather than their visual properties.
+
+### Primary Colors
+<ColorPalette>
+  <ColorItem
+    title="Primary"
+    subtitle="Main brand color for primary actions"
+    colors={{
+      primary: "#1B3764",
+    }}
+  />
+  <ColorItem
+    title="Secondary"
+    subtitle="Secondary brand color for supporting elements"
+    colors={{
+      secondary: "#FFCA42",
+    }}
+  />
+</ColorPalette>
+
+### Status Colors
+<ColorPalette>
+  <ColorItem
+    title="Success"
+    subtitle="Success states and positive actions"
+    colors={{
+      success: "#22c55e",
+    }}
+  />
+  <ColorItem
+    title="Warning"
+    subtitle="Warning states and caution messages"
+    colors={{
+      warning: "#f59e0b",
+    }}
+  />
+  <ColorItem
+    title="Error"
+    subtitle="Error states and destructive actions"
+    colors={{
+      error: "#ef4444",
+    }}
+  />
+</ColorPalette>
+
+### Neutral Colors
+<ColorPalette>
+  <ColorItem
+    title="Gray Scale"
+    subtitle="Neutral colors for text, borders, and backgrounds"
+    colors={{
+      "Gray 50": "#f9fafb",
+      "Gray 100": "#f3f4f6",
+      "Gray 200": "#e5e7eb",
+      "Gray 300": "#d1d5db",
+      "Gray 400": "#9ca3af",
+      "Gray 500": "#6b7280",
+      "Gray 600": "#4b5563",
+      "Gray 700": "#374151",
+      "Gray 800": "#1f2937",
+      "Gray 900": "#111827",
+    }}
+  />
+</ColorPalette>
+
+## Typography
+
+Our typography system uses two complementary font families to create hierarchy and improve readability.
+
+### Font Families
+
+#### Cardo (Serif)
+<Typeset
+  fontFamily="Cardo"
+  fontSizes={[12, 14, 16, 20, 24, 32, 40, 48]}
+  fontWeight={400}
+  sampleText="Elegant serif typography for headings and emphasis"
+/>
+
+**Usage:** Headlines, titles, and areas where a more traditional, elegant feel is desired.
+
+#### Inter (Sans-serif)
+<Typeset
+  fontFamily="Inter"
+  fontSizes={[12, 14, 16, 20, 24, 32, 40, 48]}
+  fontWeight={400}
+  sampleText="Modern sans-serif typography for body text and UI elements"
+/>
+
+**Usage:** Body text, UI components, labels, and general interface elements.
+
+### Font Sizes
+
+| Token | Size | Usage |
+|-------|------|--------|
+| `text-xs` | 12px | Small labels, captions |
+| `text-sm` | 14px | Secondary text, form labels |
+| `text-base` | 16px | Body text, paragraphs |
+| `text-lg` | 18px | Emphasized text |
+| `text-xl` | 20px | Small headings |
+| `text-2xl` | 24px | Section headings |
+| `text-3xl` | 30px | Page titles |
+| `text-4xl` | 36px | Major headings |
+
+### Font Weights
+
+| Token | Weight | Usage |
+|-------|--------|--------|
+| `font-normal` | 400 | Regular body text |
+| `font-medium` | 500 | Emphasized text, labels |
+| `font-semibold` | 600 | Subheadings, important text |
+| `font-bold` | 700 | Headings, strong emphasis |
+
+## Spacing
+
+Our spacing system follows a consistent scale that ensures visual harmony and proper information hierarchy.
+
+### Spacing Scale
+
+| Token | Size | Usage |
+|-------|------|--------|
+| `0` | 0px | No spacing |
+| `1` | 4px | Very tight spacing |
+| `2` | 8px | Tight spacing |
+| `3` | 12px | Small spacing |
+| `4` | 16px | Default spacing |
+| `6` | 24px | Medium spacing |
+| `8` | 32px | Large spacing |
+| `12` | 48px | Extra large spacing |
+| `16` | 64px | Section spacing |
+| `20` | 80px | Page-level spacing |
+
+### Spacing Usage
+
+- **Padding**: Use for internal component spacing
+- **Margin**: Use for spacing between components
+- **Gap**: Use for grid and flexbox layouts
+
+## Border Radius
+
+Our border radius system creates consistent rounded corners throughout the interface.
+
+| Token | Size | Usage |
+|-------|------|--------|
+| `rounded-none` | 0px | Sharp corners (default for our design) |
+| `rounded-sm` | 2px | Subtle rounding |
+| `rounded` | 4px | Standard rounding |
+| `rounded-md` | 6px | Medium rounding |
+| `rounded-lg` | 8px | Large rounding |
+| `rounded-full` | 50% | Circular elements |
+
+## Shadows
+
+Shadows provide depth and hierarchy to interface elements.
+
+| Token | Value | Usage |
+|-------|-------|--------|
+| `shadow-sm` | `0 1px 2px 0 rgb(0 0 0 / 0.05)` | Subtle elevation |
+| `shadow` | `0 1px 3px 0 rgb(0 0 0 / 0.1)` | Default card shadow |
+| `shadow-md` | `0 4px 6px -1px rgb(0 0 0 / 0.1)` | Medium elevation |
+| `shadow-lg` | `0 10px 15px -3px rgb(0 0 0 / 0.1)` | High elevation |
+| `shadow-xl` | `0 20px 25px -5px rgb(0 0 0 / 0.1)` | Maximum elevation |
+
+## Usage Guidelines
+
+### Do's
+- Use design tokens consistently across all components
+- Reference tokens by their semantic names, not their values
+- Maintain consistency with the established scale
+- Test color combinations for accessibility compliance
+
+### Don'ts
+- Don't use hard-coded values instead of tokens
+- Don't create new spacing values outside the established scale
+- Don't use colors that don't meet accessibility standards
+- Don't mix different typography hierarchies inconsistently
+
+## Implementation
+
+### CSS Custom Properties
+```css
+:root {
+  --color-primary: #1B3764;
+  --color-secondary: #FFCA42;
+  --font-family-serif: 'Cardo', serif;
+  --font-family-sans: 'Inter', sans-serif;
+  --spacing-4: 1rem;
+  --border-radius-none: 0px;
+}
+```
+
+### Tailwind CSS Classes
+```html
+<!-- Colors -->
+<div class="bg-primary text-white">Primary background</div>
+<div class="bg-secondary text-primary">Secondary background</div>
+
+<!-- Typography -->
+<h1 class="font-cardo text-3xl font-bold">Heading with Cardo</h1>
+<p class="font-inter text-base">Body text with Inter</p>
+
+<!-- Spacing -->
+<div class="p-4 m-6 gap-2">Consistent spacing</div>
+```
+
+## Accessibility
+
+All design tokens are chosen with accessibility in mind:
+
+- **Color Contrast**: All color combinations meet WCAG 2.1 AA standards
+- **Typography**: Font sizes ensure readability across devices
+- **Touch Targets**: Minimum 44px for interactive elements
+- **Focus States**: Clear focus indicators for keyboard navigation
+
+---
+
+*These design tokens form the foundation of our design system and should be used consistently across all components and interfaces.* 

@@ -31,66 +31,58 @@ global.Response = class MockResponse {
   }
 } as any;
 
-describe("auth utilities", () => {
+describe("Common Utilities", () => {
   describe("validateAuthHeader function", () => {
-    it("should return null for valid Authorization header", () => {
+    it("should validate Bearer tokens successfully", () => {
       const mockRequest = new Request("http://localhost", {
         headers: {
           Authorization: "Bearer valid-token-123",
         },
       });
 
-      const result = validateAuthHeader(mockRequest);
+      let result = validateAuthHeader(mockRequest);
+      expect(result).toBeNull();
+
+      const jwtRequest = new Request("http://localhost", {
+        headers: {
+          Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
+        },
+      });
+
+      result = validateAuthHeader(jwtRequest);
       expect(result).toBeNull();
     });
 
-    it("should return error response for missing Authorization header", () => {
+    it("should handle missing and invalid headers", () => {
       const mockRequest = new Request("http://localhost");
-
-      const result = validateAuthHeader(mockRequest);
+      let result = validateAuthHeader(mockRequest);
       expect(result).toBeInstanceOf(Response);
       expect(result?.status).toBe(401);
-    });
 
-    it("should return error response for empty Authorization header", () => {
-      const mockRequest = new Request("http://localhost", {
-        headers: {
-          Authorization: "",
-        },
+      const emptyRequest = new Request("http://localhost", {
+        headers: { Authorization: "" },
       });
-
-      const result = validateAuthHeader(mockRequest);
+      result = validateAuthHeader(emptyRequest);
       expect(result).toBeInstanceOf(Response);
       expect(result?.status).toBe(401);
-    });
 
-    it("should return error response for Authorization header without Bearer prefix", () => {
-      const mockRequest = new Request("http://localhost", {
-        headers: {
-          Authorization: "Basic dXNlcjpwYXNz",
-        },
+      const basicRequest = new Request("http://localhost", {
+        headers: { Authorization: "Basic dXNlcjpwYXNz" },
       });
-
-      const result = validateAuthHeader(mockRequest);
+      result = validateAuthHeader(basicRequest);
       expect(result).toBeInstanceOf(Response);
       expect(result?.status).toBe(401);
-    });
 
-    it("should return error response for Bearer token without space", () => {
-      const mockRequest = new Request("http://localhost", {
-        headers: {
-          Authorization: "Bearer",
-        },
+      const bearerOnlyRequest = new Request("http://localhost", {
+        headers: { Authorization: "Bearer" },
       });
-
-      const result = validateAuthHeader(mockRequest);
+      result = validateAuthHeader(bearerOnlyRequest);
       expect(result).toBeInstanceOf(Response);
       expect(result?.status).toBe(401);
     });
 
-    it("should return correct error message in response", async () => {
+    it("should return correct error message", async () => {
       const mockRequest = new Request("http://localhost");
-
       const result = validateAuthHeader(mockRequest);
       expect(result).not.toBeNull();
 
@@ -100,17 +92,6 @@ describe("auth utilities", () => {
           error: "Unauthorized: Missing or invalid token.",
         });
       }
-    });
-
-    it("should handle Authorization header with Bearer and valid token", () => {
-      const mockRequest = new Request("http://localhost", {
-        headers: {
-          Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
-        },
-      });
-
-      const result = validateAuthHeader(mockRequest);
-      expect(result).toBeNull();
     });
   });
 });

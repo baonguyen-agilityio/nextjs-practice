@@ -28,34 +28,20 @@ describe("Category Service", () => {
   });
 
   describe("getCategories", () => {
-    it("should successfully fetch categories", async () => {
+    it("should fetch categories successfully", async () => {
       const mockCategoriesData = [
-        {
-          id: "1",
-          name: "Fiction",
-          description: "Fiction books",
-        },
-        {
-          id: "2",
-          name: "Non-Fiction",
-          description: "Non-fiction books",
-        },
+        { id: "1", name: "Fiction", description: "Fiction books" },
+        { id: "2", name: "Non-Fiction", description: "Non-fiction books" },
       ];
 
-      const mockResponse = {
-        data: mockCategoriesData,
-        error: null,
-      };
-
+      const mockResponse = { data: mockCategoriesData, error: null };
       mockApiClient.get.mockResolvedValue(mockResponse);
 
       const result = await getCategories();
 
       expect(mockApiClient.get).toHaveBeenCalledWith("/api/categories", {
         cache: "force-cache",
-        next: {
-          tags: ["categories"],
-        },
+        next: { tags: ["categories"] },
         baseUrl: "https://api.example.com",
       });
 
@@ -65,77 +51,49 @@ describe("Category Service", () => {
       });
     });
 
-    it("should handle API error response", async () => {
-      const mockResponse = {
+    it("should handle empty data and API errors", async () => {
+      const mockResponse = { data: [], error: null };
+      mockApiClient.get.mockResolvedValue(mockResponse);
+
+      let result = await getCategories();
+      expect(result).toEqual({ data: [], error: null });
+
+      const errorResponse = {
         data: [],
         error: JSON.stringify({
-          error: {
-            message: "Categories not found",
-          },
+          error: { message: "Categories not found" },
         }),
       };
 
-      mockApiClient.get.mockResolvedValue(mockResponse);
-
-      const result = await getCategories();
-
+      mockApiClient.get.mockResolvedValue(errorResponse);
+      result = await getCategories();
       expect(result).toEqual({
         data: [],
         error: "Categories not found",
       });
     });
 
-    it("should handle network errors", async () => {
+    it("should handle errors and malformed JSON", async () => {
       mockApiClient.get.mockRejectedValue(new Error("Network error"));
-
-      const result = await getCategories();
-
+      let result = await getCategories();
       expect(result).toEqual({
         data: [],
         error: "Network error",
       });
-    });
 
-    it("should handle unexpected errors", async () => {
       mockApiClient.get.mockRejectedValue("Unexpected error");
-
-      const result = await getCategories();
-
+      result = await getCategories();
       expect(result).toEqual({
         data: [],
         error: "Failed to get category",
       });
-    });
 
-    it("should handle malformed error JSON", async () => {
-      const mockResponse = {
-        data: [],
-        error: "invalid json {",
-      };
-
-      mockApiClient.get.mockResolvedValue(mockResponse);
-
-      const result = await getCategories();
-
+      const malformedResponse = { data: [], error: "invalid json {" };
+      mockApiClient.get.mockResolvedValue(malformedResponse);
+      result = await getCategories();
       expect(result).toEqual({
         data: [],
         error: expect.stringContaining("Unexpected token"),
-      });
-    });
-
-    it("should handle empty categories response", async () => {
-      const mockResponse = {
-        data: [],
-        error: null,
-      };
-
-      mockApiClient.get.mockResolvedValue(mockResponse);
-
-      const result = await getCategories();
-
-      expect(result).toEqual({
-        data: [],
-        error: null,
       });
     });
   });

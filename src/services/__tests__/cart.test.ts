@@ -41,11 +41,8 @@ describe("Cart Service", () => {
   });
 
   describe("getCartByUserId", () => {
-    it("should successfully fetch user cart", async () => {
-      const mockSession = {
-        user: { id: "user-123" },
-      };
-
+    it("should fetch user cart with quantity filtering", async () => {
+      const mockSession = { user: { id: "user-123" } };
       const mockCartData = [
         {
           id: "cart-1",
@@ -62,7 +59,7 @@ describe("Cart Service", () => {
             },
             {
               id: "item-2",
-              quantity: 1,
+              quantity: 0,
               book: {
                 id: "book-2",
                 title: "Another Book",
@@ -112,87 +109,21 @@ describe("Cart Service", () => {
               imageUrl: "https://example.com/image.jpg",
             },
           },
-          {
-            id: "item-2",
-            quantity: 1,
-            book: {
-              id: "book-2",
-              title: "Another Book",
-              price: 19.99,
-              imageUrl: "https://example.com/image2.jpg",
-            },
-          },
         ],
-        totalQuantity: 3,
+        totalQuantity: 2,
         cost: {
-          totalAmount: 79.97,
+          totalAmount: 59.98,
         },
         error: null,
       });
     });
 
-    it("should return undefined when no user session", async () => {
+    it("should handle no session and API errors", async () => {
       mockAuth.mockResolvedValue(null);
-
-      const result = await getCartByUserId();
-
+      let result = await getCartByUserId();
       expect(result).toBeUndefined();
-    });
 
-    it("should filter out zero quantity items", async () => {
-      const mockSession = {
-        user: { id: "user-123" },
-      };
-
-      const mockCartData = [
-        {
-          id: "cart-1",
-          cart_items: [
-            {
-              id: "item-1",
-              quantity: 2,
-              book: {
-                id: "book-1",
-                title: "Test Book",
-                price: 29.99,
-                image: { url: "https://example.com/image.jpg" },
-              },
-            },
-            {
-              id: "item-2",
-              quantity: 0,
-              book: {
-                id: "book-2",
-                title: "Another Book",
-                price: 19.99,
-                image: { url: "https://example.com/image2.jpg" },
-              },
-            },
-          ],
-        },
-      ];
-
-      const mockApiClientSession = {
-        get: jest.fn().mockResolvedValue({
-          data: mockCartData,
-          error: null,
-        }),
-      };
-
-      mockAuth.mockResolvedValue(mockSession);
-      mockApiClient.apiClientSession.mockResolvedValue(mockApiClientSession as any);
-
-      const result = await getCartByUserId();
-
-      expect(result?.cartItems).toHaveLength(1);
-      expect(result?.totalQuantity).toBe(2);
-    });
-
-    it("should handle API error", async () => {
-      const mockSession = {
-        user: { id: "user-123" },
-      };
-
+      const mockSession = { user: { id: "user-123" } };
       const mockApiClientSession = {
         get: jest.fn().mockResolvedValue({
           data: [],
@@ -205,8 +136,7 @@ describe("Cart Service", () => {
       mockAuth.mockResolvedValue(mockSession);
       mockApiClient.apiClientSession.mockResolvedValue(mockApiClientSession as any);
 
-      const result = await getCartByUserId();
-
+      result = await getCartByUserId();
       expect(result).toEqual({
         id: "",
         cartItems: [],
@@ -217,11 +147,8 @@ describe("Cart Service", () => {
   });
 
   describe("createCart", () => {
-    it("should successfully create cart", async () => {
-      const mockSession = {
-        user: { id: "user-123" },
-      };
-
+    it("should create cart or handle user not found", async () => {
+      const mockSession = { user: { id: "user-123" } };
       const mockApiClientSession = {
         post: jest.fn().mockResolvedValue({
           data: { id: "new-cart-id" },
@@ -231,7 +158,7 @@ describe("Cart Service", () => {
       mockAuth.mockResolvedValue(mockSession);
       mockApiClient.apiClientSession.mockResolvedValue(mockApiClientSession as any);
 
-      const result = await createCart();
+      let result = await createCart();
 
       expect(mockApiClientSession.post).toHaveBeenCalledWith("/api/carts", {
         body: {
@@ -241,16 +168,10 @@ describe("Cart Service", () => {
         },
       });
 
-      expect(result).toEqual({
-        id: "new-cart-id",
-      });
-    });
+      expect(result).toEqual({ id: "new-cart-id" });
 
-    it("should handle user not found", async () => {
       mockAuth.mockResolvedValue(null);
-
-      const result = await createCart();
-
+      result = await createCart();
       expect(result).toEqual({
         id: "",
         error: "User not found",
@@ -259,13 +180,13 @@ describe("Cart Service", () => {
   });
 
   describe("addCartItem", () => {
-    it("should successfully add cart item", async () => {
-      const cartItemPayload = {
-        bookId: "book-123",
-        quantity: 2,
-        cartId: "cart-456",
-      };
+    const cartItemPayload = {
+      bookId: "book-123",
+      quantity: 2,
+      cartId: "cart-456",
+    };
 
+    it("should add cart item successfully", async () => {
       const mockResponse = {
         data: {
           id: "item-789",
@@ -310,12 +231,6 @@ describe("Cart Service", () => {
     });
 
     it("should handle add item error", async () => {
-      const cartItemPayload = {
-        bookId: "book-123",
-        quantity: 2,
-        cartId: "cart-456",
-      };
-
       const mockApiClientSession = {
         post: jest.fn().mockResolvedValue({
           data: null,
@@ -339,7 +254,7 @@ describe("Cart Service", () => {
   });
 
   describe("updateCartItem", () => {
-    it("should successfully update cart item", async () => {
+    it("should update cart item successfully", async () => {
       const updatePayload = {
         cartItemId: "item-123",
         quantity: 3,
@@ -389,7 +304,7 @@ describe("Cart Service", () => {
   });
 
   describe("removeCartItem", () => {
-    it("should successfully remove cart item", async () => {
+    it("should remove cart item successfully", async () => {
       const mockApiClientSession = {
         delete: jest.fn().mockResolvedValue({
           success: true,
@@ -407,7 +322,7 @@ describe("Cart Service", () => {
       expect(result).toEqual({ success: true });
     });
 
-    it("should handle remove item failure", async () => {
+    it("should handle removal errors", async () => {
       const mockApiClientSession = {
         delete: jest.fn().mockResolvedValue({
           success: false,
@@ -416,16 +331,11 @@ describe("Cart Service", () => {
 
       mockApiClient.apiClientSession.mockResolvedValue(mockApiClientSession as any);
 
-      const result = await removeCartItem({ cartItemId: "item-123" });
-
+      let result = await removeCartItem({ cartItemId: "item-123" });
       expect(result).toEqual({ error: "Failed to remove cart item" });
-    });
 
-    it("should handle network errors", async () => {
       mockApiClient.apiClientSession.mockRejectedValue(new Error("Network error"));
-
-      const result = await removeCartItem({ cartItemId: "item-123" });
-
+      result = await removeCartItem({ cartItemId: "item-123" });
       expect(result).toEqual({ error: "Network error" });
     });
   });

@@ -7,15 +7,6 @@ const meta: Meta<typeof Banner> = {
   parameters: {
     layout: "fullscreen",
   },
-  tags: ["autodocs"],
-  argTypes: {
-    title: {
-      control: "text",
-    },
-    description: {
-      control: "text",
-    },
-  },
 };
 
 export default meta;
@@ -31,21 +22,5 @@ export const Default: Story = {
 export const WithoutDescription: Story = {
   args: {
     title: "Books Collection",
-  },
-};
-
-export const LongTitle: Story = {
-  args: {
-    title: "Discover the World's Best Collection of Books",
-    description:
-      "From classic literature to modern bestsellers, find your next great read in our extensive collection.",
-  },
-};
-
-export const Promotional: Story = {
-  args: {
-    title: "50% Off All Books",
-    description:
-      "Limited time offer! Get your favorite books at half the price. Free shipping on orders over $50.",
   },
 };

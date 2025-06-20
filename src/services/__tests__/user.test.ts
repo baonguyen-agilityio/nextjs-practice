@@ -33,7 +33,7 @@ describe("User Service", () => {
   });
 
   describe("getUser", () => {
-    it("should successfully fetch user data", async () => {
+    it("should fetch user data successfully", async () => {
       const mockUserData = {
         id: "user-123",
         email: "test@example.com",
@@ -62,71 +62,45 @@ describe("User Service", () => {
       expect(result).toEqual(mockUserData);
     });
 
-    it("should handle API client session creation error", async () => {
+    it("should handle various response formats", async () => {
+      const mockApiClientSession = {
+        get: jest.fn(),
+      };
+
+      mockApiClient.apiClientSession.mockResolvedValue(mockApiClientSession as any);
+
+      const partialUserData = { id: "user-123" };
+      mockApiClientSession.get.mockResolvedValue(partialUserData);
+      let result = await getUser();
+      expect(result).toEqual(partialUserData);
+
+      mockApiClientSession.get.mockResolvedValue({});
+      result = await getUser();
+      expect(result).toEqual({});
+
+      mockApiClientSession.get.mockResolvedValue(null);
+      result = await getUser();
+      expect(result).toBeNull();
+    });
+
+    it("should handle session and request errors", async () => {
       const sessionError = new Error("Session creation failed");
       mockApiClient.apiClientSession.mockRejectedValue(sessionError);
 
       await expect(getUser()).rejects.toThrow("Session creation failed");
       expect(console.error).toHaveBeenCalledWith(sessionError);
-    });
 
-    it("should handle API request error", async () => {
       const requestError = new Error("Request failed");
       const mockApiClientSession = {
         get: jest.fn().mockRejectedValue(requestError),
       };
 
       mockApiClient.apiClientSession.mockResolvedValue(mockApiClientSession as any);
-
       await expect(getUser()).rejects.toThrow("Request failed");
       expect(console.error).toHaveBeenCalledWith(requestError);
-    });
 
-    it("should handle user data with missing fields", async () => {
-      const mockUserData = {
-        id: "user-123",
-        // Missing other fields ...
-      };
-
-      const mockApiClientSession = {
-        get: jest.fn().mockResolvedValue(mockUserData),
-      };
-
-      mockApiClient.apiClientSession.mockResolvedValue(mockApiClientSession as any);
-
-      const result = await getUser();
-
-      expect(result).toEqual(mockUserData);
-    });
-
-    it("should handle empty user response", async () => {
-      const mockApiClientSession = {
-        get: jest.fn().mockResolvedValue({}),
-      };
-
-      mockApiClient.apiClientSession.mockResolvedValue(mockApiClientSession as any);
-
-      const result = await getUser();
-
-      expect(result).toEqual({});
-    });
-
-    it("should handle null user response", async () => {
-      const mockApiClientSession = {
-        get: jest.fn().mockResolvedValue(null),
-      };
-
-      mockApiClient.apiClientSession.mockResolvedValue(mockApiClientSession as any);
-
-      const result = await getUser();
-
-      expect(result).toBeNull();
-    });
-
-    it("should handle unexpected error types", async () => {
       const unexpectedError = "String error";
       mockApiClient.apiClientSession.mockRejectedValue(unexpectedError);
-
       await expect(getUser()).rejects.toBe(unexpectedError);
       expect(console.error).toHaveBeenCalledWith(unexpectedError);
     });

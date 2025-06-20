@@ -7,12 +7,7 @@ const config: StorybookConfig = {
     "../src/components/**/*.stories.@(js|jsx|mjs|ts|tsx)",
   ],
   addons: [
-    {
-      name: "@storybook/addon-essentials",
-      options: {
-        docs: false,
-      },
-    },
+    "@storybook/addon-essentials",
     "@storybook/addon-onboarding",
     "@storybook/addon-interactions",
   ],
@@ -21,5 +16,16 @@ const config: StorybookConfig = {
     options: {},
   },
   staticDirs: ["../public"],
+  docs: {
+    autodocs: "tag",
+    defaultName: "Documentation",
+  },
+  typescript: {
+    reactDocgen: "react-docgen-typescript",
+    reactDocgenTypescriptOptions: {
+      shouldExtractLiteralValuesFromEnum: true,
+      propFilter: (prop) => (prop.parent ? !/node_modules/.test(prop.parent.fileName) : true),
+    },
+  },
 };
 export default config;

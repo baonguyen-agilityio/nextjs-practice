@@ -1,0 +1,150 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Introduction" />
+
+# Bookstore Component Library
+
+Welcome to the Bookstore Component Library documentation! This Storybook contains all the reusable components, patterns, and guidelines used in our Next.js bookstore application.
+
+## 🎯 Purpose
+
+This component library serves as:
+- **Living Documentation**: Interactive examples of all components
+- **Design System**: Consistent patterns and styling guidelines  
+- **Development Tool**: Isolated component development and testing
+- **Quality Assurance**: Visual regression testing and accessibility checks
+
+## 📁 Component Organization
+
+Our components are organized into the following categories:
+
+### UI Components (`/ui`)
+Foundation components that form the building blocks of our application:
+- **Button**: Primary interaction elements
+- **Card**: Content containers and layout elements
+- **Input**: Form input components
+- **Toast**: Notification and feedback components
+- **Banner**: Promotional and informational banners
+- **Pagination**: Navigation for paginated content
+- **Skeleton**: Loading state components
+
+### Feature Components (`/features`)
+Business-specific components that implement application functionality:
+- **Book**: Book display, creation, and management components
+- **Cart**: Shopping cart and e-commerce functionality
+- **Article**: Blog and article content components
+- **Login**: Authentication and user management
+
+### Layout Components (`/layouts`)
+Structural components that define the application layout:
+- **Header**: Navigation and branding
+- **Footer**: Site information and links
+
+### Icon Components (`/icons`)
+SVG icons and iconography used throughout the application
+
+## 🎨 Design Tokens
+
+Our design system is built on consistent tokens:
+
+### Colors
+- **Primary**: Main brand colors for key actions
+- **Secondary**: Supporting colors for less prominent elements
+- **Background**: Page and section backgrounds
+- **Foreground**: Text and content colors
+
+### Typography
+- **Font Family**: Cardo (serif) for headings, Inter (sans-serif) for body text
+- **Font Sizes**: Consistent scale from sm to xl
+- **Font Weights**: Regular, medium, and bold variants
+
+### Spacing
+- **Padding**: Consistent internal spacing
+- **Margin**: Consistent external spacing  
+- **Gap**: Grid and flexbox spacing
+
+## 🛠 Development Guidelines
+
+### Component Structure
+Each component follows a consistent structure:
+```
+ComponentName/
+├── index.tsx          # Main component file
+├── ComponentName.stories.tsx  # Storybook stories
+└── __tests__/
+    └── ComponentName.test.tsx # Unit tests
+```
+
+### Props Documentation
+- All props are typed with TypeScript interfaces
+- Required props are clearly marked
+- Default values are documented
+- Prop categories help organize complex components
+
+### Accessibility
+- Components follow WCAG 2.1 AA guidelines
+- Semantic HTML is used where possible
+- ARIA attributes are included when needed
+- Keyboard navigation is supported
+
+## 🧪 Testing
+
+Each component includes:
+- **Unit Tests**: Comprehensive Jest/React Testing Library tests
+- **Visual Tests**: Storybook for visual regression testing
+- **Accessibility Tests**: Built-in a11y checks in Storybook
+
+## 📱 Responsive Design
+
+All components are designed to work across:
+- **Mobile**: 375px and up
+- **Tablet**: 768px and up  
+- **Desktop**: 1200px and up
+- **Widescreen**: 1920px and up
+
+## 🚀 Getting Started
+
+### Running Storybook
+```bash
+npm run storybook
+```
+
+### Building Storybook
+```bash
+npm run build-storybook
+```
+
+### Using Components
+```tsx
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+
+function MyComponent() {
+  return (
+    <Card>
+      <Button variant="solid" color="primary">
+        Click me
+      </Button>
+    </Card>
+  );
+}
+```
+
+## 🔧 Customization
+
+Components use HeroUI as the base design system and are extended with custom variants. You can customize:
+- **Variants**: Different visual styles for the same component
+- **Colors**: Theme-based color schemes
+- **Sizes**: Different size options
+- **Styling**: Additional CSS classes via the `className` prop
+
+## 📚 Additional Resources
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [HeroUI Documentation](https://heroui.io)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+- [Storybook Documentation](https://storybook.js.org/docs)
+
+---
+
+*This documentation is automatically generated and updated with each component change.* 

@@ -18,155 +18,126 @@ describe("uploadImage", () => {
     process.env = originalEnv;
   });
 
-  it("should return null for null image", async () => {
-    const result = await uploadImage(null);
+  describe("Input validation", () => {
+    it("should return null for null or empty image", async () => {
+      expect(await uploadImage(null)).toBe(null);
 
-    expect(result).toBe(null);
-    expect(mockFetch).not.toHaveBeenCalled();
-  });
+      const emptyFile = new File([], "empty.jpg", { type: "image/jpeg" });
+      expect(await uploadImage(emptyFile)).toBe(null);
 
-  it("should return null for empty image", async () => {
-    const emptyFile = new File([], "empty.jpg", { type: "image/jpeg" });
-
-    const result = await uploadImage(emptyFile);
-
-    expect(result).toBe(null);
-    expect(mockFetch).not.toHaveBeenCalled();
-  });
-
-  it("should throw error for invalid file type", async () => {
-    const invalidFile = new File(["content"], "file.txt", { type: "text/plain" });
-
-    await expect(uploadImage(invalidFile)).rejects.toThrow("Only JPG and PNG formats are allowed.");
-    expect(mockFetch).not.toHaveBeenCalled();
-  });
-
-  it("should throw error for oversized image", async () => {
-    const largeContent = new Array(3 * 1024 * 1024).fill("a").join(""); // 3MB content
-    const largeFile = new File([largeContent], "large.jpg", { type: "image/jpeg" });
-
-    await expect(uploadImage(largeFile)).rejects.toThrow("Max image size is 2MB.");
-    expect(mockFetch).not.toHaveBeenCalled();
-  });
-
-  it("should successfully upload valid JPEG image", async () => {
-    const validFile = new File(["image content"], "test.jpg", { type: "image/jpeg" });
-    const mockResponse = [{ id: "uploaded-image-id" }];
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValue(mockResponse),
-    } as any);
-
-    const result = await uploadImage(validFile);
-
-    expect(result).toBe("uploaded-image-id");
-    expect(mockFetch).toHaveBeenCalledWith("https://api.example.com/api/upload", {
-      method: "POST",
-      body: expect.any(FormData),
+      expect(mockFetch).not.toHaveBeenCalled();
     });
 
-    const callArgs = mockFetch.mock.calls[0];
-    expect(callArgs).toBeDefined();
-    const formData = callArgs![1]?.body as FormData;
-    expect(formData.get("files")).toBe(validFile);
-  });
+    it("should throw error for invalid file type", async () => {
+      const invalidFile = new File(["content"], "file.txt", { type: "text/plain" });
 
-  it("should successfully upload valid PNG image", async () => {
-    const validFile = new File(["image content"], "test.png", { type: "image/png" });
-    const mockResponse = [{ id: "uploaded-png-id" }];
+      await expect(uploadImage(invalidFile)).rejects.toThrow(
+        "Only JPG and PNG formats are allowed."
+      );
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
 
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValue(mockResponse),
-    } as any);
+    it("should throw error for oversized image", async () => {
+      const largeContent = new Array(3 * 1024 * 1024).fill("a").join("");
+      const largeFile = new File([largeContent], "large.jpg", { type: "image/jpeg" });
 
-    const result = await uploadImage(validFile);
-
-    expect(result).toBe("uploaded-png-id");
-    expect(mockFetch).toHaveBeenCalledWith("https://api.example.com/api/upload", {
-      method: "POST",
-      body: expect.any(FormData),
+      await expect(uploadImage(largeFile)).rejects.toThrow("Max image size is 2MB.");
+      expect(mockFetch).not.toHaveBeenCalled();
     });
   });
 
-  it("should return null if upload response has no id", async () => {
-    const validFile = new File(["image content"], "test.jpg", { type: "image/jpeg" });
-    const mockResponse = [{}]; // No id property
+  describe("Successful uploads", () => {
+    it("should successfully upload JPEG and PNG images", async () => {
+      const jpegFile = new File(["image content"], "test.jpg", { type: "image/jpeg" });
+      const mockResponse = [{ id: "uploaded-image-id" }];
 
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValue(mockResponse),
-    } as any);
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      } as any);
 
-    const result = await uploadImage(validFile);
+      const result = await uploadImage(jpegFile);
 
-    expect(result).toBe(null);
+      expect(result).toBe("uploaded-image-id");
+      expect(mockFetch).toHaveBeenCalledWith("https://api.example.com/api/upload", {
+        method: "POST",
+        body: expect.any(FormData),
+      });
+
+      const formData = mockFetch.mock.calls[0]![1]?.body as FormData;
+      expect(formData.get("files")).toBe(jpegFile);
+    });
+
+    it("should handle response without id", async () => {
+      const validFile = new File(["image content"], "test.jpg", { type: "image/jpeg" });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue([{}]),
+      } as any);
+
+      expect(await uploadImage(validFile)).toBe(null);
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue([]),
+      } as any);
+
+      expect(await uploadImage(validFile)).toBe(null);
+    });
   });
 
-  it("should return null if upload response is empty array", async () => {
-    const validFile = new File(["image content"], "test.jpg", { type: "image/jpeg" });
-    const mockResponse: any[] = [];
+  describe("Error handling", () => {
+    it("should handle upload failures", async () => {
+      const validFile = new File(["image content"], "test.jpg", { type: "image/jpeg" });
 
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValue(mockResponse),
-    } as any);
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+      } as any);
 
-    const result = await uploadImage(validFile);
+      await expect(uploadImage(validFile)).rejects.toThrow("Image upload failed.");
+    });
 
-    expect(result).toBe(null);
+    it("should handle network errors", async () => {
+      const validFile = new File(["image content"], "test.jpg", { type: "image/jpeg" });
+
+      mockFetch.mockRejectedValueOnce(new Error("Network error"));
+
+      await expect(uploadImage(validFile)).rejects.toThrow("Network error");
+    });
+
+    it("should handle JSON parsing errors", async () => {
+      const validFile = new File(["image content"], "test.jpg", { type: "image/jpeg" });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockRejectedValue(new Error("Invalid JSON")),
+      } as any);
+
+      await expect(uploadImage(validFile)).rejects.toThrow("Invalid JSON");
+    });
   });
 
-  it("should throw error when upload fails", async () => {
-    const validFile = new File(["image content"], "test.jpg", { type: "image/jpeg" });
+  describe("Size validation edge cases", () => {
+    it("should accept file at exact size limit", async () => {
+      const exactLimitContent = new Array(2 * 1024 * 1024).fill("a").join("");
+      const exactLimitFile = new File([exactLimitContent], "limit.jpg", { type: "image/jpeg" });
+      const mockResponse = [{ id: "limit-image-id" }];
 
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 500,
-    } as any);
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      } as any);
 
-    await expect(uploadImage(validFile)).rejects.toThrow("Image upload failed.");
-  });
+      expect(await uploadImage(exactLimitFile)).toBe("limit-image-id");
+    });
 
-  it("should throw error when fetch throws", async () => {
-    const validFile = new File(["image content"], "test.jpg", { type: "image/jpeg" });
+    it("should reject file over size limit", async () => {
+      const overLimitContent = new Array(2 * 1024 * 1024 + 1).fill("a").join("");
+      const overLimitFile = new File([overLimitContent], "overlimit.jpg", { type: "image/jpeg" });
 
-    mockFetch.mockRejectedValueOnce(new Error("Network error"));
-
-    await expect(uploadImage(validFile)).rejects.toThrow("Network error");
-  });
-
-  it("should handle file exactly at size limit", async () => {
-    const exactLimitContent = new Array(2 * 1024 * 1024).fill("a").join(""); // Exactly 2MB
-    const exactLimitFile = new File([exactLimitContent], "limit.jpg", { type: "image/jpeg" });
-    const mockResponse = [{ id: "limit-image-id" }];
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValue(mockResponse),
-    } as any);
-
-    const result = await uploadImage(exactLimitFile);
-
-    expect(result).toBe("limit-image-id");
-  });
-
-  it("should reject file just over size limit", async () => {
-    const overLimitContent = new Array(2 * 1024 * 1024 + 1).fill("a").join(""); // Just over 2MB
-    const overLimitFile = new File([overLimitContent], "overlimit.jpg", { type: "image/jpeg" });
-
-    await expect(uploadImage(overLimitFile)).rejects.toThrow("Max image size is 2MB.");
-  });
-
-  it("should handle response with malformed JSON", async () => {
-    const validFile = new File(["image content"], "test.jpg", { type: "image/jpeg" });
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockRejectedValue(new Error("Invalid JSON")),
-    } as any);
-
-    await expect(uploadImage(validFile)).rejects.toThrow("Invalid JSON");
+      await expect(uploadImage(overLimitFile)).rejects.toThrow("Max image size is 2MB.");
+    });
   });
 });

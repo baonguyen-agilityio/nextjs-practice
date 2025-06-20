@@ -1,63 +1,61 @@
+import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { Toast } from "./index";
 
-const meta: Meta<typeof Toast> = {
-  title: "Components/Toast",
-  component: Toast,
+const ToastDemo = ({
+  title,
+  description,
+  color = "default",
+}: {
+  title: string;
+  description?: string;
+  color?: "default" | "primary" | "success" | "warning" | "danger";
+}) => (
+  <div
+    className={`
+      p-4 rounded-lg border max-w-sm
+      ${color === "success" ? "bg-green-50 border-green-200 text-green-800" : ""}
+      ${color === "danger" ? "bg-red-50 border-red-200 text-red-800" : ""}
+      ${color === "warning" ? "bg-yellow-50 border-yellow-200 text-yellow-800" : ""}
+      ${color === "primary" ? "bg-blue-50 border-blue-200 text-blue-800" : ""}
+      ${color === "default" ? "bg-gray-50 border-gray-200 text-gray-800" : ""}
+    `}
+  >
+    <div className="font-semibold text-sm">{title}</div>
+    {description && <div className="text-xs mt-1 opacity-80">{description}</div>}
+  </div>
+);
+
+const meta: Meta<typeof ToastDemo> = {
+  title: "UI Components/Toast",
+  component: ToastDemo,
   parameters: {
     layout: "centered",
   },
-  tags: ["autodocs"],
 };
 
 export default meta;
-type Story = StoryObj<typeof Toast>;
+type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: () => (
-    <div className="flex flex-col gap-4">
-      <p className="text-sm text-gray-600 mb-4">
-        Note: Toast components are typically triggered by actions. Below are static examples.
-      </p>
-      <Toast>
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-blue-500 rounded-full" />
-          <span>This is a default toast message</span>
-        </div>
-      </Toast>
-    </div>
-  ),
+  args: {
+    title: "Notification",
+    description: "This is a default toast message",
+    color: "default",
+  },
 };
 
 export const Success: Story = {
-  render: () => (
-    <Toast>
-      <div className="flex items-center gap-2">
-        <div className="w-2 h-2 bg-green-500 rounded-full" />
-        <span>Success! Your action was completed.</span>
-      </div>
-    </Toast>
-  ),
+  args: {
+    title: "Success!",
+    description: "Operation completed",
+    color: "success",
+  },
 };
 
 export const Error: Story = {
-  render: () => (
-    <Toast>
-      <div className="flex items-center gap-2">
-        <div className="w-2 h-2 bg-red-500 rounded-full" />
-        <span>Error! Something went wrong.</span>
-      </div>
-    </Toast>
-  ),
-};
-
-export const Warning: Story = {
-  render: () => (
-    <Toast>
-      <div className="flex items-center gap-2">
-        <div className="w-2 h-2 bg-yellow-500 rounded-full" />
-        <span>Warning! Please check your input.</span>
-      </div>
-    </Toast>
-  ),
+  args: {
+    title: "Error",
+    description: "Something went wrong",
+    color: "danger",
+  },
 };

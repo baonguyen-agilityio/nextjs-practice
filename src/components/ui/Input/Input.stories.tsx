@@ -1,65 +1,62 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Input } from ".";
+import { Input } from "./index";
 
 const meta: Meta<typeof Input> = {
-  title: "Components/Input",
+  title: "UI Components/Input",
   component: Input,
-  tags: ["autodocs"],
-  argTypes: {
-    type: {
-      control: "select",
-      options: ["text", "email", "password"],
-    },
-    required: {
-      control: "boolean",
-    },
-    onChange: { action: "changed" },
+  parameters: {
+    layout: "centered",
   },
 };
 
 export default meta;
-type Story = StoryObj<typeof Input>;
+type Story = StoryObj<typeof meta>;
 
-export const Text: Story = {
+export const Default: Story = {
   args: {
-    id: "text-input",
-    name: "text-input",
-    label: "Text Input",
-    type: "text",
-    value: "",
-    required: false,
+    placeholder: "Enter text...",
   },
 };
 
-export const Email: Story = {
+export const WithLabel: Story = {
   args: {
-    id: "email-input",
-    name: "email-input",
+    label: "Full Name",
+    placeholder: "Enter your full name",
+  },
+};
+
+export const Required: Story = {
+  args: {
     label: "Email Address",
+    placeholder: "Enter your email",
     type: "email",
-    value: "",
-    required: true,
+    isRequired: true,
   },
 };
 
-export const Password: Story = {
+export const WithError: Story = {
   args: {
-    id: "password-input",
-    name: "password-input",
+    label: "Username",
+    placeholder: "Enter username",
+    isInvalid: true,
+    errorMessage: "Username is already taken",
+    value: "invalid-username",
+  },
+};
+
+export const WithDescription: Story = {
+  args: {
     label: "Password",
+    placeholder: "Enter password",
     type: "password",
-    value: "",
-    required: true,
+    description: "Password must be at least 8 characters long",
   },
 };
 
-export const WithValue: Story = {
+export const Disabled: Story = {
   args: {
-    id: "filled-input",
-    name: "filled-input",
-    label: "Filled Input",
-    type: "text",
-    value: "This is a pre-filled value",
-    required: false,
+    label: "Disabled Input",
+    placeholder: "This input is disabled",
+    isDisabled: true,
   },
 };

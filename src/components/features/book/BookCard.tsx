@@ -8,6 +8,7 @@ import { LazyEditBookModal, LazyDeleteBookModal } from "./DynamicModals";
 import Image from "next/image";
 import type { ActionResult } from "@/app/actions/book";
 import { createImageUrl } from "@/utils/image";
+import { useState } from "react";
 
 export default function BookCard(props: {
   book: Book;
@@ -30,6 +31,8 @@ export default function BookCard(props: {
     isPendingDelete,
   } = props;
 
+  const [imageSrc, setImageSrc] = useState(createImageUrl(book.imageUrl));
+
   return (
     <Card className="shadow-none rounded-none h-full flex flex-col">
       <div className="p-0">
@@ -38,11 +41,14 @@ export default function BookCard(props: {
             <Image
               data-testid="book-image"
               alt={book.title}
-              src={createImageUrl(book.imageUrl)}
+              src={imageSrc}
               className="object-contain"
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               priority
+              onError={() => {
+                setImageSrc("/image-error.png");
+              }}
             />
           </div>
         </div>
