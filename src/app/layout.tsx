@@ -37,9 +37,19 @@ export default async function RootLayout({
       <body className={`${fontCardo.variable} ${fontInter.variable} font-cardo`}>
         <CartProvider cartPromise={cart}>
           <Providers>
-            <Header />
-            <main className="min-h-screen pt-20">{children}</main>
-            <Footer />
+            <div className="min-h-screen flex flex-col">
+              <Header />
+              <main
+                id="main-content"
+                className="flex-1 pt-20"
+                tabIndex={-1}
+                role="main"
+                aria-label="Main content"
+              >
+                {children}
+              </main>
+              <Footer />
+            </div>
           </Providers>
         </CartProvider>
       </body>

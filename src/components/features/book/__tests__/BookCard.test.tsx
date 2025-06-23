@@ -203,7 +203,7 @@ describe("BookCard", () => {
 
       const image = screen.getByTestId("book-image");
       expect(image).toHaveAttribute("src", expect.stringContaining("localhost:1337"));
-      expect(image).toHaveAttribute("alt", "Test Book");
+      expect(image).toHaveAttribute("alt", "Cover image of Test Book book");
     });
 
     it("should handle missing environment variable", () => {

@@ -21,14 +21,16 @@ export default function ArticleDetails({ article }: { article: Article }) {
           </Button>
         </div>
         <div className="py-10 md:p-16 lg:p-20">
-          <Image
-            src={createImageUrl(article.imageUrl)}
-            alt={`article`}
-            layout="responsive"
-            width={600}
-            height={400}
-            objectFit="contain"
-          />
+          <div className="relative w-full aspect-[3/2]">
+            <Image
+              src={createImageUrl(article.imageUrl)}
+              alt={`article`}
+              fill
+              className="object-contain"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+              priority
+            />
+          </div>
           <div className="space-y-4 mt-5">
             <p className="text-xl font-semibold text-primary">{article.publishedAt} / Author</p>
             <div
