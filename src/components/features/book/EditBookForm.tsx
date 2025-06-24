@@ -1,20 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import type { Book, Category } from "@/types";
 import { Form } from "@heroui/react";
-import { startTransition, useRef, useState } from "react";
-import ImagePicker from "./ImagePicker";
-import { Select, SelectItem } from "@heroui/react";
+import { startTransition, useRef, useState, useMemo } from "react";
 import type { ActionResult } from "@/app/actions/book";
-
-const fields = [
-  { name: "title", label: "Title", type: "text", required: true },
-  { name: "price", label: "Price", type: "number", required: true },
-  { name: "language", label: "Language", type: "text", required: false },
-  { name: "description", label: "Description", type: "text", required: true },
-];
+import { useFormValidation } from "@/hooks/useFormValidation";
+import { updateBookSchema } from "@/schemas/book.schema";
+import { BookFormFields, bookFields } from "./BookFormFields";
 
 export default function EditBookForm({
   book,
@@ -34,6 +27,39 @@ export default function EditBookForm({
   const formRef = useRef<HTMLFormElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
+  const initialValues = {
+    title: book.title || "",
+    price: book.price?.toString() || "",
+    language: book.language || "",
+    description: book.description || "",
+    categories: book.categories[0]?.documentId || "",
+  };
+
+  const { formData, handleFieldChange, combineErrors } = useFormValidation({
+    schema: updateBookSchema,
+    fields: [
+      ...bookFields,
+      { name: "categories", label: "Category", type: "select", required: true },
+    ],
+    initialValues,
+  });
+
+  const handleCategoryChange = (value: string) => {
+    handleFieldChange("categories", value);
+  };
+
+  const hasEmptyRequiredFields = useMemo(() => {
+    const requiredFields = [
+      ...bookFields.filter((field) => field.required),
+      { name: "categories", label: "Category", type: "select", required: true },
+    ];
+
+    return requiredFields.some((field) => {
+      const value = formData[field.name];
+      return !value || value.toString().trim() === "";
+    });
+  }, [formData]);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!formRef.current) return;
@@ -48,7 +74,7 @@ export default function EditBookForm({
     });
   };
 
-  const fieldErrors =
+  const serverFieldErrors =
     typeof result === "object" && result?.success === false && typeof result.error === "object"
       ? result.error
       : {};
@@ -58,58 +84,34 @@ export default function EditBookForm({
       ? result.error
       : null;
 
+  const combinedErrors = combineErrors(serverFieldErrors);
+
+  const isFormInvalid =
+    isPending || Object.keys(combinedErrors).length > 0 || hasEmptyRequiredFields;
+
   return (
     <Form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full" ref={formRef}>
       <input type="hidden" name="documentId" value={book.documentId} />
-      {fields.map((field) => (
-        <div key={field.name} className="w-full">
-          <Input
-            id={field.name}
-            name={field.name}
-            label={field.label}
-            type={field.type}
-            isRequired={field.required}
-            defaultValue={String(book[field.name as keyof Book] || "")}
-            isDisabled={isPending}
-            size="lg"
-            errorMessage={fieldErrors?.[field.name]?.[0]}
-          />
-        </div>
-      ))}
 
-      <div className="w-full">
-        <Select
-          name="categories"
-          label="Category"
-          placeholder="Select a category"
-          isRequired
-          isDisabled={isPending}
-          size="lg"
-          defaultSelectedKeys={[book.categories[0]?.documentId || ""]}
-        >
-          {categories.map((category) => (
-            <SelectItem aria-label={category.name} key={category.documentId}>
-              {category.name}
-            </SelectItem>
-          ))}
-        </Select>
-        {fieldErrors?.["categories"]?.[0] && (
-          <p className="text-red-500 text-sm mt-1">{fieldErrors["categories"][0]}</p>
-        )}
-      </div>
-
-      <ImagePicker imageUrl={book.imageUrl} onFileChange={setSelectedFile} />
-      {fieldErrors?.["image"]?.[0] && (
-        <p className="text-red-500 text-sm mt-1">{fieldErrors["image"][0]}</p>
-      )}
+      <BookFormFields
+        fields={bookFields}
+        formData={formData}
+        validationErrors={combinedErrors}
+        onFieldChange={handleFieldChange}
+        onCategoryChange={handleCategoryChange}
+        onFileChange={setSelectedFile}
+        categories={categories}
+        isDisabled={isPending}
+        imageUrl={book.imageUrl}
+      />
 
       {generalError && <p className="text-red-500 text-sm">{generalError}</p>}
 
       <div className="flex justify-end gap-4 mt-4 w-full">
-        <Button color="danger" variant="flat" onPress={onClose}>
+        <Button color="primary" variant="ghost" onPress={onClose}>
           Cancel
         </Button>
-        <Button color="primary" variant="flat" type="submit" isLoading={isPending}>
+        <Button color="primary" type="submit" isLoading={isPending} isDisabled={isFormInvalid}>
           Update
         </Button>
       </div>

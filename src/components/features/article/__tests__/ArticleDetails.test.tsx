@@ -19,15 +19,15 @@ jest.mock("@/components/ui/Button", () => ({
 }));
 
 jest.mock("next/image", () => {
-  return function MockImage({ src, alt, layout, width, height, objectFit }: any) {
+  return function MockImage({ src, alt, fill, className, sizes, priority }: any) {
     return (
       <img
         src={src}
         alt={alt}
-        data-layout={layout}
-        data-width={width}
-        data-height={height}
-        data-object-fit={objectFit}
+        data-fill={fill}
+        className={className}
+        data-sizes={sizes}
+        data-priority={priority}
         data-testid="article-image"
       />
     );
@@ -107,10 +107,13 @@ describe("ArticleDetails", () => {
       const image = screen.getByTestId("article-image");
       expect(image).toHaveAttribute("src", "http://localhost:1337/test-image.jpg");
       expect(image).toHaveAttribute("alt", "article");
-      expect(image).toHaveAttribute("data-layout", "responsive");
-      expect(image).toHaveAttribute("data-width", "600");
-      expect(image).toHaveAttribute("data-height", "400");
-      expect(image).toHaveAttribute("data-object-fit", "contain");
+      expect(image).toHaveAttribute("data-fill", "true");
+      expect(image).toHaveClass("object-contain");
+      expect(image).toHaveAttribute(
+        "data-sizes",
+        "(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+      );
+      expect(image).toHaveAttribute("data-priority", "true");
     });
 
     it("should handle missing environment variable", () => {
