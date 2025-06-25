@@ -108,10 +108,10 @@ export default function EditBookForm({
       {generalError && <p className="text-red-500 text-sm">{generalError}</p>}
 
       <div className="flex justify-end gap-4 mt-4 w-full">
-        <Button color="primary" variant="ghost" onPress={onClose}>
+        <Button variant="primaryGhost" onPress={onClose}>
           Cancel
         </Button>
-        <Button color="primary" type="submit" isLoading={isPending} isDisabled={isFormInvalid}>
+        <Button variant="primary" type="submit" isLoading={isPending} isDisabled={isFormInvalid}>
           Update
         </Button>
       </div>

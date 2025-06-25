@@ -1,6 +1,7 @@
-import { Button, Modal, ModalBody, ModalContent, ModalHeader, useDisclosure } from "@heroui/react";
 import type { Book } from "@/types";
 import DeleteBookForm from "./DeleteBookForm";
+import { Modal, useModal, ModalContent, ModalHeader, ModalBody } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
 
 export default function DeleteBookModal({
   book,
@@ -11,14 +12,14 @@ export default function DeleteBookModal({
   formActionDelete: (payload: FormData) => void;
   isPendingDelete: boolean;
 }) {
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { isOpen, onOpen, onOpenChange } = useModal();
 
   return (
     <>
-      <Button size="lg" color="danger" variant="ghost" fullWidth onPress={onOpen}>
+      <Button variant="secondaryGhost" fullWidth onPress={onOpen}>
         Delete
       </Button>
-      <Modal isOpen={isOpen} placement="top-center" onOpenChange={onOpenChange}>
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (
             <>

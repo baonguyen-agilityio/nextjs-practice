@@ -5,23 +5,35 @@ import { Button as HeroButton, extendVariants } from "@heroui/react";
 export const Button = extendVariants(HeroButton, {
   variants: {
     variant: {
-      solid:
-        "data-[color=primary]:text-white data-[color=secondary]:text-primary data-[color=default]:text-primary",
-      ghost:
-        "data-[color=primary]:text-primary data-[color=secondary]:text-primary data-[color=default]:text-primary",
-      bordered:
-        "data-[color=primary]:text-primary data-[color=secondary]:text-primary data-[color=default]:text-primary",
-    },
-    color: {
-      default: "default",
-      primary: "primary",
-      secondary: "secondary",
+      primary: `
+        font-bold
+        bg-primary text-white border-2 border-primary
+        data-[hover]:bg-transparent data-[hover]:text-primary
+      `,
+      primaryGhost: `
+        font-bold
+        bg-transparent text-primary border-2 border-primary
+        data-[hover]:bg-primary data-[hover]:text-white
+      `,
+      secondary: `
+        font-bold
+        bg-secondary text-primary border-2 border-secondary
+        data-[hover]:bg-transparent data-[hover]:text-primary
+      `,
+      secondaryGhost: `
+        font-bold
+        bg-transparent text-primary border-2 border-secondary
+        data-[hover]:bg-secondary data-[hover]:text-primary
+      `,
+      light: `
+        text-primary
+        data-[hover]:bg-secondary/50
+      `,
     },
   },
   defaultVariants: {
     radius: "none",
-    variant: "solid",
-    color: "secondary",
+    variant: "primary",
     size: "lg",
   },
 });

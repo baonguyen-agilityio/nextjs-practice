@@ -49,7 +49,7 @@ export const getCartByUserId = async (): Promise<Cart | undefined> => {
       .filter((item) => item.quantity > 0)
       .map(({ quantity, book, ...rest }) => {
         const { image, ...bookData } = book || {};
-        const imageUrl = image.url;
+        const imageUrl = image?.url || "";
 
         return {
           quantity,

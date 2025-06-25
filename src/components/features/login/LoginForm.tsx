@@ -56,7 +56,13 @@ export default function LoginForm() {
 
         <input type="hidden" name="redirectTo" value={callbackUrl} />
 
-        <Button fullWidth type="submit" isLoading={isPending} isDisabled={isPending}>
+        <Button
+          variant="primary"
+          fullWidth
+          type="submit"
+          isLoading={isPending}
+          isDisabled={isPending}
+        >
           {isPending ? "Signing in..." : "Sign in"}
         </Button>
       </form>

@@ -24,8 +24,7 @@ export default function EditBookModal({
     <>
       <Button
         size="lg"
-        color="primary"
-        variant="ghost"
+        variant="primaryGhost"
         fullWidth
         onPress={onOpen}
         data-testid="trigger-button"

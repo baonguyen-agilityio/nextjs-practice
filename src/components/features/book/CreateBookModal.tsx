@@ -8,7 +8,7 @@ export default function CreateBookModal({ categories }: { categories: Category[]
 
   return (
     <>
-      <Button onPress={onOpen} color="primary" aria-label="Add New Book">
+      <Button onPress={onOpen} variant="primary" aria-label="Add New Book">
         Add New Book
       </Button>
       <Modal
@@ -16,6 +16,7 @@ export default function CreateBookModal({ categories }: { categories: Category[]
         onOpenChange={onOpenChange}
         title="Add New Book"
         size="5xl"
+        color="secondary"
         scrollBehavior="outside"
         description="Add a new book to the library"
       >

@@ -14,18 +14,17 @@ function SubmitButton({ variant, isPending }: { variant: "order" | "add"; isPend
     return (
       <Button
         aria-label="Order Today"
-        color="primary"
         disabled={isPending}
         isLoading={isPending}
         type="submit"
-        variant="ghost"
+        variant="secondaryGhost"
       >
         Order Today
       </Button>
     );
   }
   return (
-    <Button disabled={isPending} type="submit" aria-label="Add to cart" variant="solid">
+    <Button disabled={isPending} type="submit" aria-label="Add to cart" variant="primary">
       Add To Cart
     </Button>
   );

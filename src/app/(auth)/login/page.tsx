@@ -20,7 +20,7 @@ function LoginFormFallback() {
 
 export default function LoginPage() {
   return (
-    <main className="flex items-center justify-center min-h-screen py-12 bg-gray-50 font-inter">
+    <main className="flex items-center justify-center min-h-screen py-12 bg-gray-50">
       <div className="p-8 bg-white rounded-lg shadow-md w-full max-w-md">
         <div className="flex flex-col items-center">
           <div className="flex items-center gap-2 mb-2">

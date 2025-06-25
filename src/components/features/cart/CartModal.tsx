@@ -69,7 +69,6 @@ export default function CartModal({ onCreateCart }: CartModalProps = {}) {
 
   const totalAmount = cart?.cost?.totalAmount || 0;
   const formattedTotal = formatUSD(totalAmount);
-  const cartItemCount = cart?.cartItems?.length || 0;
 
   const renderEmptyCart = () => (
     <div
@@ -77,8 +76,8 @@ export default function CartModal({ onCreateCart }: CartModalProps = {}) {
       role="status"
       aria-live="polite"
     >
-      <ShoppingCartIcon className="h-16" aria-hidden="true" />
-      <p className="mt-6 text-center text-2xl font-bold">Your cart is empty.</p>
+      <ShoppingCartIcon className="w-10 h-10" aria-hidden="true" />
+      <p className="mt-6 text-center text-lg font-bold">Your cart is empty.</p>
     </div>
   );
 
@@ -93,7 +92,14 @@ export default function CartModal({ onCreateCart }: CartModalProps = {}) {
         aria-labelledby={`cart-item-title-${item.documentId}`}
         aria-describedby={`cart-item-price-${item.documentId} cart-item-quantity-${item.documentId}`}
       >
-        <Image src={imageUrl} alt={`Cover of ${item.book?.title}`} width={100} role="img" />
+        <Image
+          src={imageUrl}
+          alt={`Cover of ${item.book?.title}`}
+          width={100}
+          height={100}
+          role="img"
+          className="w-20 h-20 object-contain"
+        />
         <div className="flex flex-col gap-1 justify-between">
           <div className="flex flex-col gap-1">
             <h4 id={`cart-item-title-${item.documentId}`} className="text-sm font-medium">
@@ -137,7 +143,9 @@ export default function CartModal({ onCreateCart }: CartModalProps = {}) {
 
     return (
       <div role="region" aria-label="Shopping cart items">
-        {cart!.cartItems.map(renderCartItem)}
+        <div className="flex flex-col gap-2 border-b border-neutral-200 dark:border-neutral-700 pb-4">
+          {cart!.cartItems.map((item) => renderCartItem(item))}
+        </div>
       </div>
     );
   };
@@ -160,14 +168,14 @@ export default function CartModal({ onCreateCart }: CartModalProps = {}) {
       </div>
 
       <Modal
-        backdrop="opaque"
+        backdrop="blur"
         classNames={{
           body: "py-6",
-          backdrop: "bg-primary/90 backdrop-opacity-40",
+          // backdrop: "bg-primary/90 backdrop-opacity-40",
           base: "text-primary",
           header: "bg-secondary text-primary",
           footer: "flex flex-col gap-4",
-          closeButton: "text-primary hover:bg-white/5 active:bg-white/10 top-3 right-2",
+          // closeButton: "text-primary hover:bg-white/5 active:bg-white/10 top-3 right-2",
         }}
         isOpen={isOpen}
         radius="lg"
@@ -182,11 +190,6 @@ export default function CartModal({ onCreateCart }: CartModalProps = {}) {
             <>
               <ModalHeader className="flex flex-col gap-1">
                 <h2 id="cart-modal-title">Your Cart</h2>
-                <p id="cart-modal-description" className="text-sm font-normal">
-                  {cartItemCount === 0
-                    ? "Your shopping cart is empty"
-                    : `You have ${cartItemCount} item${cartItemCount !== 1 ? "s" : ""} in your cart`}
-                </p>
               </ModalHeader>
               <ModalBody>
                 <div key={cart?.id} className="flex flex-col gap-2 overflow-y-auto" role="main">
@@ -207,8 +210,8 @@ export default function CartModal({ onCreateCart }: CartModalProps = {}) {
                     {formattedTotal}
                   </span>
                 </div>
-                <Button fullWidth variant="solid" onPress={closeCart} aria-label="Close cart modal">
-                  Close
+                <Button fullWidth variant="solid" onPress={closeCart} aria-label="Checkout">
+                  Checkout
                 </Button>
               </ModalFooter>
             </>

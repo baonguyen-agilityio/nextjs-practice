@@ -110,10 +110,15 @@ export default function CreateBookForm({
 
       <div className="flex justify-end gap-4 mt-4 w-full">
         <div className="flex gap-2">
-          <Button color="primary" variant="ghost" onPress={onClose}>
+          <Button variant="secondaryGhost" onPress={onClose}>
             Cancel
           </Button>
-          <Button color="primary" type="submit" isLoading={isPending} isDisabled={isFormInvalid}>
+          <Button
+            variant="secondary"
+            type="submit"
+            isLoading={isPending}
+            isDisabled={isFormInvalid}
+          >
             Create
           </Button>
         </div>

@@ -16,6 +16,7 @@ function SubmitButton({ type, isLoading }: { type: "plus" | "minus"; isLoading: 
       aria-label={type === "plus" ? "Increase item quantity" : "Reduce item quantity"}
       variant="light"
       disableAnimation
+      data-hover="bg-transparent"
       isIconOnly
       radius="full"
       isLoading={isLoading}

@@ -93,7 +93,7 @@ export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
   return (
     <section>
       <div className="flex justify-between mb-10">
-        <Button variant="light" onClick={handleBackClick} className="text-description text-lg">
+        <Button variant="secondaryGhost" onClick={handleBackClick}>
           ← Back to list
         </Button>
       </div>
@@ -153,7 +153,7 @@ export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
               isDisabled={quantity === 0}
               type="submit"
               fullWidth
-              color="secondary"
+              variant="secondary"
             >
               Add to Cart
             </Button>
