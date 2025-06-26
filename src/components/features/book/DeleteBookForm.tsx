@@ -17,12 +17,12 @@ export default function DeleteBookForm({
   return (
     <form action={formActionDelete}>
       <input type="hidden" name="id" value={book.documentId || ""} />
-      <p>Are you sure you want to delete this book?</p>
+      <p className="text-lg font-semibold">Are you sure you want to delete this book?</p>
       <div className="flex justify-end gap-4 mt-4">
-        <Button color="danger" variant="flat" onPress={onClose} type="button">
+        <Button variant="secondaryGhost" onPress={onClose} type="button">
           Cancel
         </Button>
-        <Button color="danger" variant="flat" type="submit" isLoading={isPendingDelete}>
+        <Button variant="secondary" type="submit" isLoading={isPendingDelete}>
           Delete
         </Button>
       </div>

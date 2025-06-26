@@ -48,8 +48,7 @@ export function DeleteItemButton({ item, optimisticUpdate }: DeleteItemButtonPro
         disabled={isPending}
         isLoading={isPending}
         type="submit"
-        variant="light"
-        color="danger"
+        variant="text"
       >
         Remove
       </Button>

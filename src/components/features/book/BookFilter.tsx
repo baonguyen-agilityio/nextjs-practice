@@ -1,7 +1,7 @@
 "use client";
 
 import { Input } from "@/components/ui/Input";
-import { Select, SelectItem } from "@heroui/react";
+import { Select, SelectItem } from "@/components/ui/Select";
 import { useSearchParams } from "next/navigation";
 import type { Category } from "@/types";
 import { useState, useEffect, useId } from "react";

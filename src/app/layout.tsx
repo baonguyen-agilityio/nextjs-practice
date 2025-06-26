@@ -6,6 +6,8 @@ import { Header } from "@/components/layouts/Header";
 import { Footer } from "@/components/layouts/Footer";
 import { CartProvider } from "@/hooks/useCart";
 import { getCartByUserId } from "@/services/cart";
+import Script from "next/script";
+import { getNonce } from "@/utils/csp";
 
 export const metadata: Metadata = {
   title: {
@@ -32,6 +34,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const cart = getCartByUserId();
+  const nonce = await getNonce();
+
   return (
     <html suppressHydrationWarning lang="en" className="myTheme">
       <body className={`${fontCardo.variable} ${fontInter.variable} font-cardo`}>
@@ -52,6 +56,15 @@ export default async function RootLayout({
             </div>
           </Providers>
         </CartProvider>
+
+        {/* Example of using nonce with Script component for analytics */}
+        {nonce && (
+          <Script
+            src="https://www.googletagmanager.com/gtag/js"
+            strategy="afterInteractive"
+            nonce={nonce}
+          />
+        )}
       </body>
     </html>
   );

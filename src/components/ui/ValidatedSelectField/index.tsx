@@ -1,5 +1,5 @@
 import React from "react";
-import { Select, SelectItem } from "@heroui/react";
+import { Select, SelectItem } from "@/components/ui/Select";
 
 interface SelectOption {
   key: string;

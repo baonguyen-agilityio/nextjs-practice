@@ -43,13 +43,13 @@ export default function BookCard(props: {
     >
       <Card className="shadow-none rounded-none h-full flex flex-col">
         <div className="p-0">
-          <div className="w-full h-[650px] relative overflow-hidden bg-background p-6">
+          <div className="w-full h-[550px] relative overflow-hidden bg-background p-6">
             <div className="w-full h-full relative">
               <Image
                 data-testid="book-image"
                 alt={`Cover image of ${book.title} book`}
                 src={imageSrc}
-                className="object-contain"
+                className="object-cover"
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 priority

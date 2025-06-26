@@ -29,6 +29,11 @@ export const Button = extendVariants(HeroButton, {
         text-primary
         data-[hover]:bg-secondary/50
       `,
+      text: `
+        font-inter text-sm
+        text-primary
+        data-[hover]:text-secondary
+      `,
     },
   },
   defaultVariants: {

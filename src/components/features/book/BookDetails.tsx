@@ -98,14 +98,15 @@ export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
         </Button>
       </div>
       <div className="flex flex-col md:flex-row justify-between gap-10">
-        <div className="flex justify-center w-full md:w-1/2 bg-background p-6 md:p-10">
-          <div className="w-full max-w-[580px] aspect-[580/660] relative">
+        <div className="flex justify-center bg-background p-6 md:p-10">
+          <div className="w-full relative overflow-hidden">
             <Image
               alt={book.title}
               src={imageUrl}
-              fill
               className="object-contain"
               sizes="(max-width: 768px) 100vw, 50vw"
+              width={480}
+              height={640}
               priority
             />
           </div>
@@ -120,7 +121,7 @@ export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
           <form action={handleFormSubmit} className="flex gap-2">
             <div className="ml-auto flex h-15 flex-row items-center border border-secondary">
               <Button
-                variant="light"
+                variant="text"
                 isIconOnly
                 aria-label="Decrease quantity"
                 onClick={() => handleButtonQuantityChange("minus")}
@@ -140,7 +141,7 @@ export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
                 onChange={handleQuantityChange}
               />
               <Button
-                variant="light"
+                variant="text"
                 isIconOnly
                 aria-label="Increase quantity"
                 onClick={() => handleButtonQuantityChange("plus")}

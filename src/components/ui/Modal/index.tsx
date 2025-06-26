@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
+import type { ModalProps as HeroModalProps } from "@heroui/react";
 import {
   Modal as HeroModal,
   ModalContent,
@@ -7,8 +9,10 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
+  extendVariants,
 } from "@heroui/react";
-import { cn } from "@/utils";
+import { Button } from "../Button";
+import CloseIcon from "@/components/icons/close-icon";
 
 export { ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure };
 
@@ -23,111 +27,51 @@ export const useModal = () => {
   };
 };
 
-export interface ModalProps {
-  isOpen: boolean;
-  onClose?: () => void;
-  onOpenChange?: (open: boolean) => void;
+const StyledModal = extendVariants(HeroModal, {
+  defaultVariants: {
+    color: "default",
+    size: "md",
+    backdrop: "blur",
+    placement: "center",
+    scrollBehavior: "inside",
+  },
+});
+
+export interface ModalProps extends HeroModalProps {
   title?: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
-  description?: string;
-  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "full";
-  color?: "default" | "primary" | "secondary";
-  backdrop?: "opaque" | "blur" | "transparent";
-  hideCloseButton?: boolean;
-  isDismissable?: boolean;
-  isKeyboardDismissDisabled?: boolean;
-  placement?: "center" | "top" | "top-center" | "bottom" | "bottom-center";
-  scrollBehavior?: "inside" | "outside" | "normal";
-  className?: string;
-  classNames?: {
-    wrapper?: string;
-    base?: string;
-    backdrop?: string;
-    header?: string;
-    body?: string;
-    footer?: string;
-    closeButton?: string;
-  };
 }
 
-const getColorClasses = (color: string) => {
-  switch (color) {
-    case "primary":
-      return {
-        base: "bg-white border border-primary/20",
-        header: "border-primary/20 bg-primary text-white",
-        footer: "border-primary/20 bg-primary/5",
-      };
-    case "secondary":
-      return {
-        base: "bg-white border border-secondary/20",
-        header: "border-secondary/20 bg-secondary text-primary",
-        footer: "border-secondary/20 bg-secondary/5",
-      };
-    default:
-      return {
-        base: "bg-white border border-gray-200",
-        header: "border-gray-200 bg-white",
-        footer: "border-gray-200 bg-gray-50",
-      };
-  }
-};
-
-export const Modal: React.FC<ModalProps> = ({
-  isOpen,
-  onOpenChange,
-  title,
-  children,
-  footer,
-  hideCloseButton = false,
-  isDismissable = true,
-  isKeyboardDismissDisabled = false,
-  size = "md",
-  color = "default",
-  backdrop = "blur",
-  placement = "center",
-  scrollBehavior = "inside",
-  className,
-  classNames,
-  description,
-}) => {
-  const colorClasses = getColorClasses(color);
-
+export const Modal: React.FC<ModalProps> = ({ title, children, footer, ...props }) => {
+  const { ref, ...restProps } = props;
   return (
-    <HeroModal
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      hideCloseButton={hideCloseButton}
-      isDismissable={isDismissable}
-      isKeyboardDismissDisabled={isKeyboardDismissDisabled}
-      size={size}
-      backdrop={backdrop}
-      placement={placement}
-      scrollBehavior={scrollBehavior}
-      className={cn(colorClasses.base, className)}
-      classNames={{
-        ...classNames,
-        header: cn(colorClasses.header, classNames?.header),
-        footer: cn(colorClasses.footer, classNames?.footer),
-      }}
-    >
+    <StyledModal hideCloseButton {...restProps}>
       <ModalContent>
-        {() => (
+        {(onClose) => (
           <>
             {title && (
-              <ModalHeader className="flex flex-col gap-1 text-lg font-semibold">
-                {title}
-                {description && <p className="text-sm text-gray-500">{description}</p>}
+              <ModalHeader className="flex flex-col gap-1 text-lg font-semibold bg-secondary text-primary">
+                <div className="flex justify-between items-center">
+                  {title}
+                  <Button
+                    variant="text"
+                    isIconOnly
+                    radius="full"
+                    size="sm"
+                    onPress={onClose}
+                    className="data-[hover]:text-primary"
+                  >
+                    <CloseIcon />
+                  </Button>
+                </div>
               </ModalHeader>
             )}
-            <ModalBody className="font-cardo">{children}</ModalBody>
+            <ModalBody className="p-4 pt-5">{children}</ModalBody>
             {footer && <ModalFooter>{footer}</ModalFooter>}
           </>
         )}
       </ModalContent>
-    </HeroModal>
+    </StyledModal>
   );
 };
-
-export const ModalComponent = Modal;

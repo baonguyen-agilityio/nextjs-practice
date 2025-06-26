@@ -56,7 +56,7 @@ export default function ImagePicker({
         onChange={handleChange}
         name="image"
       />
-      <Button data-testid="pick-button" onPress={handlePick} variant="flat" color="primary">
+      <Button data-testid="pick-button" onPress={handlePick} variant="secondary">
         Pick Image
       </Button>
     </div>

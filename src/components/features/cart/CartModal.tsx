@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect } from "react";
 
 import { Button } from "@/components/ui/Button";
-import { Image, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from "@heroui/react";
 import { OpenCart } from "./OpenCart";
 import { formatUSD } from "@/utils/currency";
 import type { CartItem } from "@/types";
@@ -13,59 +12,18 @@ import { createCart } from "@/services/cart";
 import ShoppingCartIcon from "@/components/icons/ShoppingCartIcon";
 import { DeleteItemButton } from "./DeleteItemButton";
 import { createImageUrl } from "@/utils";
+import Image from "next/image";
+import { Modal, useModal } from "@/components/ui/Modal";
 
-interface CartModalProps {
-  onCreateCart?: () => void;
-}
-
-export default function CartModal({ onCreateCart }: CartModalProps = {}) {
+export default function CartModal() {
   const { cart, updateCartItem } = useCart();
-  const [isOpen, setIsOpen] = useState(false);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
-
-  const openCart = useCallback(() => {
-    previousFocusRef.current = document.activeElement as HTMLElement;
-    setIsOpen(true);
-  }, []);
-
-  const closeCart = useCallback(() => {
-    setIsOpen(false);
-    setTimeout(() => {
-      if (previousFocusRef.current) {
-        previousFocusRef.current.focus();
-      }
-    }, 100);
-  }, []);
-
-  const handleCreateCart = useCallback(() => {
-    if (onCreateCart) {
-      onCreateCart();
-    } else {
-      createCart();
-    }
-  }, [onCreateCart]);
+  const { isOpen, onOpen, onClose, onOpenChange } = useModal();
 
   useEffect(() => {
     if (!cart || cart.cartItems.length === 0) {
-      handleCreateCart();
+      createCart();
     }
-  }, [cart, handleCreateCart]);
-
-  useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && isOpen) {
-        closeCart();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
-    }
-
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [isOpen, closeCart]);
+  }, [cart, createCart]);
 
   const totalAmount = cart?.cost?.totalAmount || 0;
   const formattedTotal = formatUSD(totalAmount);
@@ -102,7 +60,7 @@ export default function CartModal({ onCreateCart }: CartModalProps = {}) {
         />
         <div className="flex flex-col gap-1 justify-between">
           <div className="flex flex-col gap-1">
-            <h4 id={`cart-item-title-${item.documentId}`} className="text-sm font-medium">
+            <h4 id={`cart-item-title-${item.documentId}`} className="text-sm font-bold font-inter">
               {item.book?.title}
             </h4>
             <span
@@ -153,12 +111,13 @@ export default function CartModal({ onCreateCart }: CartModalProps = {}) {
   return (
     <>
       <Button
-        variant="light"
+        variant="text"
         data-hover="none"
         disableAnimation
-        onPress={openCart}
+        onPress={onOpen}
         aria-label={`Open shopping cart with ${cart?.totalQuantity || 0} items`}
         aria-describedby="cart-status"
+        className="bg-transparent"
       >
         <OpenCart quantity={cart?.totalQuantity} />
       </Button>
@@ -168,55 +127,36 @@ export default function CartModal({ onCreateCart }: CartModalProps = {}) {
       </div>
 
       <Modal
-        backdrop="blur"
-        classNames={{
-          body: "py-6",
-          // backdrop: "bg-primary/90 backdrop-opacity-40",
-          base: "text-primary",
-          header: "bg-secondary text-primary",
-          footer: "flex flex-col gap-4",
-          // closeButton: "text-primary hover:bg-white/5 active:bg-white/10 top-3 right-2",
-        }}
         isOpen={isOpen}
         radius="lg"
-        onOpenChange={closeCart}
+        onClose={onClose}
+        onOpenChange={onOpenChange}
         role="dialog"
         aria-modal="true"
         aria-labelledby="cart-modal-title"
         aria-describedby="cart-modal-description"
+        title="Your Cart"
+        footer={
+          <div className="flex flex-col gap-4 p-4 pt-0 w-full">
+            <div
+              className="flex justify-between w-full font-inter"
+              role="contentinfo"
+              aria-label="Cart total"
+            >
+              <span>Subtotal</span>
+              <span className="font-bold font-inter" aria-label={`Total amount: ${formattedTotal}`}>
+                {formattedTotal} USD
+              </span>
+            </div>
+            <Button fullWidth variant="secondary" onPress={onClose} aria-label="Checkout">
+              Continue To Checkout
+            </Button>
+          </div>
+        }
       >
-        <ModalContent>
-          {() => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                <h2 id="cart-modal-title">Your Cart</h2>
-              </ModalHeader>
-              <ModalBody>
-                <div key={cart?.id} className="flex flex-col gap-2 overflow-y-auto" role="main">
-                  {renderCartItems()}
-                </div>
-              </ModalBody>
-              <ModalFooter>
-                <div
-                  className="flex justify-between w-full"
-                  role="contentinfo"
-                  aria-label="Cart total"
-                >
-                  <span>Sub-Total</span>
-                  <span
-                    className="font-bold font-inter"
-                    aria-label={`Total amount: ${formattedTotal}`}
-                  >
-                    {formattedTotal}
-                  </span>
-                </div>
-                <Button fullWidth variant="solid" onPress={closeCart} aria-label="Checkout">
-                  Checkout
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
+        <div key={cart?.id} className="flex flex-col gap-2 overflow-y-auto" role="main">
+          {renderCartItems()}
+        </div>
       </Modal>
     </>
   );

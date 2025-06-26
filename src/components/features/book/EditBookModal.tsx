@@ -1,9 +1,8 @@
 import { Button } from "@/components/ui/Button";
-import { useDisclosure } from "@heroui/react";
 import type { Book, Category } from "@/types";
 import EditBookForm from "./EditBookForm";
 import type { ActionResult } from "@/app/actions/book";
-import { Modal } from "@/components/ui/Modal";
+import { Modal, useModal } from "@/components/ui/Modal";
 
 export default function EditBookModal({
   book,
@@ -18,7 +17,8 @@ export default function EditBookModal({
   isPending: boolean;
   result: ActionResult | undefined;
 }) {
-  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+  const { isOpen, onOpen, onOpenChange, onClose } = useModal();
+  console.log(isOpen);
 
   return (
     <>
@@ -35,9 +35,8 @@ export default function EditBookModal({
         isOpen={isOpen}
         onOpenChange={onOpenChange}
         size="5xl"
-        placement="top-center"
         title="Edit book"
-        description="Edit the book details"
+        onClose={onClose}
         data-testid="modal"
       >
         <EditBookForm
