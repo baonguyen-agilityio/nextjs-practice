@@ -30,6 +30,9 @@ export default function ArticlesPageWrapper({ searchParams }: { searchParams: Se
 }
 
 async function ArticlesPage({ searchParams }: { searchParams: SearchParams }) {
+  // TEST ERROR - Remove after testing
+  // throw new Error("Testing articles error page");
+
   const { page = PAGE_DEFAULT } = (await searchParams) || {};
   const searchParamsAPI = new URLSearchParams();
   searchParamsAPI.set("pagination[page]", page.toString());

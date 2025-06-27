@@ -2,13 +2,13 @@
 
 import { Card, CardFooter } from "@heroui/react";
 import { formatUSD } from "@/utils/currency";
-import { AddToCart } from "@/components/features/cart/AddToCart";
 import type { Book, Category } from "@/types";
 import { LazyEditBookModal, LazyDeleteBookModal } from "./DynamicModals";
-import Image from "next/image";
 import type { ActionResult } from "@/app/actions/book";
 import { createImageUrl } from "@/utils/image";
-import { useState } from "react";
+import ImageWithFallback from "@/components/ui/ImageWithFallback";
+import { Button } from "@/components/ui/Button";
+import { useRouter } from "next/navigation";
 
 export default function BookCard(props: {
   book: Book;
@@ -31,8 +31,14 @@ export default function BookCard(props: {
     isPendingDelete,
   } = props;
 
-  const [imageSrc, setImageSrc] = useState(createImageUrl(book.imageUrl));
+  const imageSrc = createImageUrl(book.imageUrl);
   const formattedPrice = formatUSD(book.price);
+  const router = useRouter();
+
+  const handleNavigateToDetails = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    router.push(`/books/${book.documentId}`);
+  };
 
   return (
     <article
@@ -42,10 +48,10 @@ export default function BookCard(props: {
       aria-describedby={`book-description-${book.documentId} book-price-${book.documentId}`}
     >
       <Card className="shadow-none rounded-none h-full flex flex-col">
-        <div className="p-0">
+        <div className="p-0 cursor-pointer" onClick={handleNavigateToDetails}>
           <div className="w-full h-[550px] relative overflow-hidden bg-background p-6">
             <div className="w-full h-full relative">
-              <Image
+              <ImageWithFallback
                 data-testid="book-image"
                 alt={`Cover image of ${book.title} book`}
                 src={imageSrc}
@@ -53,9 +59,7 @@ export default function BookCard(props: {
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 priority
-                onError={() => {
-                  setImageSrc("/image-error.png");
-                }}
+                fallbackText="Book Cover"
               />
             </div>
           </div>
@@ -99,7 +103,14 @@ export default function BookCard(props: {
                 />
               </>
             ) : (
-              <AddToCart book={book} variant="order" />
+              <Button
+                variant="secondaryGhost"
+                size="lg"
+                className="w-full"
+                onClick={handleNavigateToDetails}
+              >
+                Order Today
+              </Button>
             )}
           </div>
         </CardFooter>

@@ -3,7 +3,7 @@
 
 import type { InputProps } from "@heroui/react";
 import { Input as HeroInput, extendVariants } from "@heroui/react";
-import { cn } from "@/utils";
+import { cn } from "@/utils/cn";
 
 const StyledInput = extendVariants(HeroInput, {
   defaultVariants: {

@@ -3,9 +3,9 @@
 import { Banner } from "@/components/ui/Banner";
 import { Button } from "@/components/ui/Button";
 import type { Article } from "@/types";
-import Image from "next/image";
 import { createImageUrl } from "@/utils/image";
 import { formatDate } from "@/utils/date";
+import ImageWithFallback from "@/components/ui/ImageWithFallback";
 
 export default function ArticleDetails({ article }: { article: Article }) {
   return (
@@ -19,13 +19,15 @@ export default function ArticleDetails({ article }: { article: Article }) {
             </Button>
           </div>
           <div className="relative w-full aspect-[3/2]">
-            <Image
+            <ImageWithFallback
               src={createImageUrl(article.imageUrl)}
-              alt={`article`}
-              fill
+              alt={`Cover image of ${article.title} article`}
+              width={1200}
+              height={800}
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
               priority
+              fallbackText="Article Image"
             />
           </div>
           <div className="space-y-4 mt-5">

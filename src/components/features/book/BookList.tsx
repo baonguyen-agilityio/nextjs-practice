@@ -14,12 +14,12 @@ import SkeletonList from "@/components/ui/SkeletonList";
 import { PAGE_DEFAULT } from "@/constants";
 import type { Book, Category, MetaResponse } from "@/types";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import BookFilter from "./BookFilter";
 import { LazyCreateBookModal } from "./DynamicModals";
 import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
 import { deleteBookAction, updateBook } from "@/app/actions/book";
 import { addToast } from "@heroui/react";
+import { BooksEmptyState, SearchEmptyState } from "@/components/ui/EmptyState/variants";
 
 const Pagination = lazy(() => import("@/components/ui/Pagination"));
 
@@ -41,6 +41,10 @@ export default function BookList({
   const pathname = usePathname() ?? "";
   const { replace } = useRouter();
   const params = useMemo(() => new URLSearchParams(searchParams), [searchParams]);
+
+  const hasSearchFilters = useMemo(() => {
+    return params.get("search") || params.get("categories");
+  }, [params]);
 
   const handleReplaceURL = useCallback(
     (params: URLSearchParams) => {
@@ -142,36 +146,27 @@ export default function BookList({
       </div>
       {isPending ? (
         <SkeletonList length={6} />
+      ) : books.length === 0 ? (
+        hasSearchFilters ? (
+          <SearchEmptyState searchTerm={params.get("search") || undefined} />
+        ) : (
+          <BooksEmptyState />
+        )
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 items-stretch">
-          {books.map((book: Book) =>
-            isAdmin ? (
-              <BookCard
-                book={book}
-                key={book.id}
-                isAdmin={isAdmin}
-                categories={categories}
-                formAction={formAction}
-                isPendingUpdateBook={isPendingUpdateBook}
-                result={result}
-                formActionDelete={formActionDelete}
-                isPendingDelete={isPendingDelete}
-              />
-            ) : (
-              <Link href={`/books/${book.documentId}`} key={book.id} className="block h-full">
-                <BookCard
-                  book={book}
-                  isAdmin={isAdmin}
-                  categories={categories}
-                  formAction={formAction}
-                  isPendingUpdateBook={isPendingUpdateBook}
-                  result={result}
-                  formActionDelete={formActionDelete}
-                  isPendingDelete={isPendingDelete}
-                />
-              </Link>
-            )
-          )}
+          {books.map((book: Book) => (
+            <BookCard
+              book={book}
+              key={book.id}
+              isAdmin={isAdmin}
+              categories={categories}
+              formAction={formAction}
+              isPendingUpdateBook={isPendingUpdateBook}
+              result={result}
+              formActionDelete={formActionDelete}
+              isPendingDelete={isPendingDelete}
+            />
+          ))}
         </div>
       )}
       {!!pagination && pagination.pageCount > 1 && (

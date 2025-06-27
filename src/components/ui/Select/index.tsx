@@ -3,7 +3,7 @@
 
 import type { SelectProps } from "@heroui/react";
 import { Select as HeroSelect, extendVariants } from "@heroui/react";
-import { cn } from "@/utils";
+import { cn } from "@/utils/cn";
 
 const StyledSelect = extendVariants(HeroSelect, {
   defaultVariants: {

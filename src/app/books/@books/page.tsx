@@ -8,6 +8,9 @@ export const generateMetadata = (): Metadata => ({
 });
 
 export default async function Page({ searchParams }: { searchParams: SearchParams }) {
+  // TEST ERROR - Remove after testing
+  // throw new Error("Testing books error page");
+
   const { page = PAGE_DEFAULT, categories = "", search = "" } = (await searchParams) || {};
   const searchParamsAPI = new URLSearchParams();
   searchParamsAPI.set("pagination[page]", page.toString());

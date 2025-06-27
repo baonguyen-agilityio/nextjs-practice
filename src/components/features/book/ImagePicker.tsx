@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { createImageUrl } from "@/utils/image";
+import ImageWithFallback from "@/components/ui/ImageWithFallback";
 
 export default function ImagePicker({
   imageUrl,
@@ -33,13 +33,14 @@ export default function ImagePicker({
     <div className="flex flex-col gap-2">
       {display && (
         <div className="w-[200px] h-[240px] relative border rounded-lg overflow-hidden bg-gray-50">
-          <Image
+          <ImageWithFallback
             data-testid="preview-image"
             src={display}
             alt="Preview"
             fill
             className="object-contain"
             sizes="200px"
+            fallbackText="Preview"
           />
         </div>
       )}

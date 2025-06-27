@@ -12,8 +12,8 @@ import { createCart } from "@/services/cart";
 import ShoppingCartIcon from "@/components/icons/ShoppingCartIcon";
 import { DeleteItemButton } from "./DeleteItemButton";
 import { createImageUrl } from "@/utils";
-import Image from "next/image";
 import { Modal, useModal } from "@/components/ui/Modal";
+import ImageWithFallback from "@/components/ui/ImageWithFallback";
 
 export default function CartModal() {
   const { cart, updateCartItem } = useCart();
@@ -50,13 +50,13 @@ export default function CartModal() {
         aria-labelledby={`cart-item-title-${item.documentId}`}
         aria-describedby={`cart-item-price-${item.documentId} cart-item-quantity-${item.documentId}`}
       >
-        <Image
+        <ImageWithFallback
           src={imageUrl}
           alt={`Cover of ${item.book?.title}`}
           width={100}
           height={100}
-          role="img"
           className="w-20 h-20 object-contain"
+          fallbackText="Book"
         />
         <div className="flex flex-col gap-1 justify-between">
           <div className="flex flex-col gap-1">

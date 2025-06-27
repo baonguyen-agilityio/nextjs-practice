@@ -4,8 +4,8 @@ import { useActionState, useState, useCallback, useEffect } from "react";
 import { addItem } from "@/app/actions";
 import { formatUSD } from "@/utils/currency";
 import type { Book } from "@/types";
-import Image from "next/image";
 import { useCart } from "@/hooks/useCart";
+import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import MinusIcon from "@/components/icons/MinusIcon";
@@ -100,14 +100,15 @@ export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
       <div className="flex flex-col md:flex-row justify-between gap-10">
         <div className="flex justify-center bg-background p-6 md:p-10">
           <div className="w-full relative overflow-hidden">
-            <Image
-              alt={book.title}
+            <ImageWithFallback
+              alt={`Cover image of ${book.title} book`}
               src={imageUrl}
               className="object-contain"
               sizes="(max-width: 768px) 100vw, 50vw"
               width={480}
               height={640}
               priority
+              fallbackText="Book Cover"
             />
           </div>
         </div>

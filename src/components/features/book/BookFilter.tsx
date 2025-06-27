@@ -79,7 +79,7 @@ export default function BookFilter({
           onChange={(e) => handleCategoryChange(e.target.value)}
           size="lg"
         >
-          {categories.map((category) => (
+          {categories?.map((category) => (
             <SelectItem
               key={category.documentId}
               aria-label={`Filter by ${category.name} category`}

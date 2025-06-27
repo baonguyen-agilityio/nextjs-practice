@@ -9,7 +9,7 @@ describe("Books Layout", () => {
     it("should render all sections with correct content", () => {
       render(<ArchiveLayout books={mockBooks} articles={mockArticles} />);
 
-      expect(screen.getByRole("heading", { level: 1, name: "My Store" })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { level: 1, name: "Our Store" })).toBeInTheDocument();
       expect(screen.getByText(/Looking for your next great read/)).toBeInTheDocument();
 
       expect(screen.getByTestId("books-content")).toBeInTheDocument();
@@ -67,14 +67,14 @@ describe("Books Layout", () => {
     it("should handle null/undefined content", () => {
       render(<ArchiveLayout books={null} articles={undefined} />);
 
-      expect(screen.getByRole("heading", { name: "My Store" })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Our Store" })).toBeInTheDocument();
       expect(screen.getByRole("heading", { name: "Articles & Resources" })).toBeInTheDocument();
     });
 
     it("should handle empty content", () => {
       render(<ArchiveLayout books={<></>} articles={<></>} />);
 
-      expect(screen.getByRole("heading", { name: "My Store" })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Our Store" })).toBeInTheDocument();
       expect(screen.getByRole("heading", { name: "Articles & Resources" })).toBeInTheDocument();
     });
   });

@@ -7,6 +7,7 @@ import SkeletonList from "@/components/ui/SkeletonList";
 import { PAGE_DEFAULT } from "@/constants";
 import type { Article, MetaResponse } from "@/types";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { ArticlesEmptyState, SearchEmptyState } from "@/components/ui/EmptyState/variants";
 
 const Pagination = lazy(() => import("@/components/ui/Pagination"));
 
@@ -24,6 +25,10 @@ export default function ArticleList({
   const pathname = usePathname() ?? "";
   const { replace } = useRouter();
   const params = useMemo(() => new URLSearchParams(searchParams), [searchParams]);
+
+  const hasSearchFilters = useMemo(() => {
+    return params.get("search");
+  }, [params]);
 
   const handleReplaceURL = useCallback(
     (params: URLSearchParams) => {
@@ -56,6 +61,12 @@ export default function ArticleList({
         <div className="container mx-auto px-4 max-w-7xl">
           {isPending ? (
             <SkeletonList length={12} />
+          ) : articles.length === 0 ? (
+            hasSearchFilters ? (
+              <SearchEmptyState searchTerm={params.get("search") || undefined} />
+            ) : (
+              <ArticlesEmptyState />
+            )
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
               {articles.map((article) => (

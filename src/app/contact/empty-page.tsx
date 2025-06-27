@@ -1,11 +1,17 @@
+"use client";
+
 import EmptyState from "@/components/ui/EmptyState";
 
-export default function ServicesPage() {
+export default function ContactEmptyPage() {
+  const handleContact = () => {
+    alert("Contact form would open here");
+  };
+
   return (
     <div className="container mx-auto px-4 py-16">
       <EmptyState
-        title="Services"
-        message="We're working on it! Check back soon for updates."
+        title="Contact Us"
+        message="We'd love to hear from you! Reach out to us with any questions, comments, or feedback."
         icon={
           <svg
             className="w-16 h-16 text-gray-400"
@@ -17,10 +23,14 @@ export default function ServicesPage() {
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.5}
-              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
             />
           </svg>
         }
+        action={{
+          label: "Get in Touch",
+          onClick: handleContact,
+        }}
       />
     </div>
   );

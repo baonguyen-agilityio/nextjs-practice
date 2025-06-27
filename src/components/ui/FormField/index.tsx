@@ -1,6 +1,6 @@
 import React from "react";
 import { Input } from "@/components/ui/Input";
-import { cn } from "@/utils";
+import { cn } from "@/utils/cn";
 
 export interface FormFieldProps extends React.ComponentProps<typeof Input> {
   name: string;
