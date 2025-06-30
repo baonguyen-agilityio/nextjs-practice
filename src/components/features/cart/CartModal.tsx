@@ -140,7 +140,7 @@ export default function CartModal() {
           <div className="flex flex-col gap-4 p-4 pt-0 w-full">
             <div
               className="flex justify-between w-full font-inter"
-              role="contentinfo"
+              role="group"
               aria-label="Cart total"
             >
               <span>Subtotal</span>
@@ -154,7 +154,7 @@ export default function CartModal() {
           </div>
         }
       >
-        <div key={cart?.id} className="flex flex-col gap-2 overflow-y-auto" role="main">
+        <div key={cart?.id} className="flex flex-col gap-2 overflow-y-auto">
           {renderCartItems()}
         </div>
       </Modal>

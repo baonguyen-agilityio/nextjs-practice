@@ -43,7 +43,6 @@ export default function BookCard(props: {
   return (
     <article
       className="shadow-none rounded-none h-full flex flex-col"
-      role="article"
       aria-labelledby={`book-title-${book.documentId}`}
       aria-describedby={`book-description-${book.documentId} book-price-${book.documentId}`}
     >

@@ -16,9 +16,7 @@ export default function CreateBookModal({ categories }: { categories: Category[]
         onOpenChange={onOpenChange}
         title="Add New Book"
         size="5xl"
-        color="secondary"
         scrollBehavior="outside"
-        description="Add a new book to the library"
       >
         <CreateBookForm categories={categories} onClose={onClose} />
       </Modal>

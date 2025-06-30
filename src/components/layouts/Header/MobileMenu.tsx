@@ -10,11 +10,7 @@ export async function MobileMenu() {
 
   return (
     <MobileMenuToggle>
-      <nav
-        className="flex flex-col items-center gap-6"
-        role="navigation"
-        aria-label="Mobile navigation menu"
-      >
+      <nav className="flex flex-col items-center gap-6" aria-label="Mobile navigation menu">
         {siteConfig.navItems.map(({ href, label }) => (
           <Link
             key={href}

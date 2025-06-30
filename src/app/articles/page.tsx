@@ -9,6 +9,29 @@ import { Suspense } from "react";
 
 export const generateMetadata = (): Metadata => ({
   title: "Articles",
+  description:
+    "Explore our collection of articles about books, reading tips, author interviews, and literary insights. Stay updated with the latest in the world of literature.",
+  openGraph: {
+    title: "Articles | BookStore",
+    description:
+      "Explore our collection of articles about books, reading tips, author interviews, and literary insights.",
+    type: "website",
+    images: [
+      {
+        url: "/logo.png",
+        width: 1200,
+        height: 630,
+        alt: "BookStore Articles - Reading Tips and Literary Insights",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Articles | BookStore",
+    description:
+      "Explore our collection of articles about books, reading tips, author interviews, and literary insights.",
+    images: ["/logo.png"],
+  },
 });
 
 export default function ArticlesPageWrapper({ searchParams }: { searchParams: SearchParams }) {

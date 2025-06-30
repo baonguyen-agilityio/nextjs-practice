@@ -45,15 +45,24 @@ export interface ModalProps extends HeroModalProps {
 
 export const Modal: React.FC<ModalProps> = ({ title, children, footer, ...props }) => {
   const { ref, ...restProps } = props;
+  const modalId = `modal-${Math.random().toString(36).substr(2, 9)}`;
+  const titleId = `${modalId}-title`;
+  const descriptionId = `${modalId}-description`;
+
   return (
-    <StyledModal hideCloseButton {...restProps}>
+    <StyledModal
+      hideCloseButton
+      aria-labelledby={title ? titleId : undefined}
+      aria-describedby={descriptionId}
+      {...restProps}
+    >
       <ModalContent>
         {(onClose) => (
           <>
             {title && (
               <ModalHeader className="flex flex-col gap-1 text-lg font-semibold font-cardo bg-secondary text-primary">
                 <div className="flex justify-between items-center">
-                  {title}
+                  <h2 id={titleId}>{title}</h2>
                   <Button
                     variant="text"
                     isIconOnly
@@ -61,14 +70,21 @@ export const Modal: React.FC<ModalProps> = ({ title, children, footer, ...props 
                     size="sm"
                     onPress={onClose}
                     className="data-[hover]:text-primary"
+                    aria-label="Close dialog"
                   >
-                    <CloseIcon />
+                    <CloseIcon aria-hidden="true" />
                   </Button>
                 </div>
               </ModalHeader>
             )}
-            <ModalBody className="p-4 pt-5">{children}</ModalBody>
-            {footer && <ModalFooter>{footer}</ModalFooter>}
+            <ModalBody className="p-4 pt-5">
+              <div id={descriptionId}>{children}</div>
+            </ModalBody>
+            {footer && (
+              <ModalFooter role="group" aria-label="Dialog actions">
+                {footer}
+              </ModalFooter>
+            )}
           </>
         )}
       </ModalContent>

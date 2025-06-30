@@ -8,11 +8,7 @@ import { auth } from "@/lib/auth/auth";
 export async function Header() {
   const session = await auth();
   return (
-    <header
-      className="text-white bg-primary fixed top-0 left-0 right-0 z-50"
-      role="banner"
-      id="navigation"
-    >
+    <header className="text-white bg-primary fixed top-0 left-0 right-0 z-50" id="navigation">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center gap-6">
@@ -39,7 +35,7 @@ export async function Header() {
               ))}
             </div>
           </div>
-          <nav className="flex items-center gap-4" role="navigation" aria-label="Main navigation">
+          <nav className="flex items-center gap-4" aria-label="Main navigation">
             <NavItems session={session} />
             <MobileMenu />
           </nav>
