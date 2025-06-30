@@ -2,67 +2,46 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import DeleteBookModal from "../DeleteBookModal";
 import type { Book } from "@/types";
 
-let mockOnOpenChange: any = null;
-
-jest.mock("@heroui/react", () => ({
-  Button: function MockButton({ children, onPress, size, color, variant, fullWidth }: any) {
+jest.mock("@/components/ui/Button", () => ({
+  Button: function MockButton({ children, onPress, variant, fullWidth, ...props }: any) {
+    const { color, isLoading, isDisabled, size, ...domProps } = props;
     return (
       <button
-        data-testid="trigger-button"
         onClick={onPress}
-        data-size={size}
-        data-color={color}
+        data-testid="delete-button"
         data-variant={variant}
         data-full-width={fullWidth}
+        {...domProps}
       >
         {children}
       </button>
     );
   },
-  Modal: function MockModal({ children, isOpen, placement, onOpenChange }: any) {
-    mockOnOpenChange = onOpenChange;
+}));
+
+jest.mock("@/components/ui/Modal", () => ({
+  Modal: function MockModal({ children, isOpen, title, onOpenChange, ...props }: any) {
+    const { size, onClose, ...domProps } = props;
     return isOpen ? (
-      <div data-testid="modal" data-placement={placement}>
+      <div data-testid="modal" data-title={title} {...domProps}>
         {children}
       </div>
     ) : null;
   },
-  ModalContent: function MockModalContent({ children }: any) {
-    const onClose = () => {
-      if (mockOnOpenChange) {
-        mockOnOpenChange(false);
-      }
-    };
-    return (
-      <div data-testid="modal-content">
-        {typeof children === "function" ? children(onClose) : children}
-      </div>
-    );
-  },
-  ModalHeader: function MockModalHeader({ children, className }: any) {
-    return (
-      <div data-testid="modal-header" className={className}>
-        {children}
-      </div>
-    );
-  },
-  ModalBody: function MockModalBody({ children }: any) {
-    return <div data-testid="modal-body">{children}</div>;
-  },
-  useDisclosure: jest.fn(),
+  useModal: jest.fn(),
 }));
 
 jest.mock("../DeleteBookForm", () => {
   return function MockDeleteBookForm({ book, onClose, formActionDelete, isPendingDelete }: any) {
     return (
-      <div data-testid="delete-book-form">
-        <div data-testid="form-book-id">{book?.documentId}</div>
-        <div data-testid="form-pending-state">{isPendingDelete.toString()}</div>
-        <button data-testid="form-close-button" onClick={onClose}>
-          Form Close
+      <div data-testid="delete-form">
+        <span data-testid="book-id">{book.documentId}</span>
+        <span data-testid="pending">{isPendingDelete.toString()}</span>
+        <button onClick={onClose} data-testid="close-btn">
+          Close
         </button>
-        <button data-testid="form-delete-button" onClick={() => formActionDelete(new FormData())}>
-          Form Delete
+        <button onClick={() => formActionDelete(new FormData())} data-testid="submit-btn">
+          Delete
         </button>
       </div>
     );
@@ -87,6 +66,7 @@ describe("DeleteBookModal", () => {
 
   const mockFormActionDelete = jest.fn();
   const mockOnOpen = jest.fn();
+  const mockOnClose = jest.fn();
   const mockOnOpenChange = jest.fn();
 
   const defaultProps = {
@@ -95,113 +75,77 @@ describe("DeleteBookModal", () => {
     isPendingDelete: false,
   };
 
-  let mockUseDisclosure: jest.Mock;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseDisclosure = require("@heroui/react").useDisclosure;
-  });
-
-  describe("Trigger Button", () => {
-    it("should render trigger button with correct props", () => {
-      mockUseDisclosure.mockReturnValue({
-        isOpen: false,
-        onOpen: mockOnOpen,
-        onOpenChange: mockOnOpenChange,
-      });
-
-      render(<DeleteBookModal {...defaultProps} />);
-
-      const triggerButton = screen.getByTestId("trigger-button");
-      expect(triggerButton).toBeInTheDocument();
-      expect(triggerButton).toHaveTextContent("Delete");
-      expect(triggerButton).toHaveAttribute("data-size", "lg");
-      expect(triggerButton).toHaveAttribute("data-color", "danger");
-      expect(triggerButton).toHaveAttribute("data-variant", "ghost");
-      expect(triggerButton).toHaveAttribute("data-full-width", "true");
-    });
-
-    it("should open modal when trigger button is clicked", () => {
-      mockUseDisclosure.mockReturnValue({
-        isOpen: false,
-        onOpen: mockOnOpen,
-        onOpenChange: mockOnOpenChange,
-      });
-
-      render(<DeleteBookModal {...defaultProps} />);
-
-      fireEvent.click(screen.getByTestId("trigger-button"));
-      expect(mockOnOpen).toHaveBeenCalledTimes(1);
+    const { useModal } = require("@/components/ui/Modal");
+    useModal.mockReturnValue({
+      isOpen: false,
+      onOpen: mockOnOpen,
+      onClose: mockOnClose,
+      onOpenChange: mockOnOpenChange,
     });
   });
 
-  describe("Modal Rendering", () => {
-    it("should not render modal when closed", () => {
-      mockUseDisclosure.mockReturnValue({
-        isOpen: false,
-        onOpen: mockOnOpen,
-        onOpenChange: mockOnOpenChange,
-      });
+  it("renders delete button and opens modal when clicked", () => {
+    render(<DeleteBookModal {...defaultProps} />);
 
-      render(<DeleteBookModal {...defaultProps} />);
+    const button = screen.getByTestId("delete-button");
+    expect(button).toHaveTextContent("Delete");
 
-      expect(screen.queryByTestId("modal")).not.toBeInTheDocument();
-    });
-
-    it("should render modal with correct structure when open", () => {
-      mockUseDisclosure.mockReturnValue({
-        isOpen: true,
-        onOpen: mockOnOpen,
-        onOpenChange: mockOnOpenChange,
-      });
-
-      render(<DeleteBookModal {...defaultProps} />);
-
-      expect(screen.getByTestId("modal")).toBeInTheDocument();
-      expect(screen.getByTestId("modal")).toHaveAttribute("data-placement", "top-center");
-      expect(screen.getByTestId("modal-content")).toBeInTheDocument();
-      expect(screen.getByTestId("modal-header")).toBeInTheDocument();
-      expect(screen.getByTestId("modal-body")).toBeInTheDocument();
-      expect(screen.getByTestId("modal-header")).toHaveTextContent("Delete book");
-    });
+    fireEvent.click(button);
+    expect(mockOnOpen).toHaveBeenCalledTimes(1);
   });
 
-  describe("DeleteBookForm Integration", () => {
-    beforeEach(() => {
-      mockUseDisclosure.mockReturnValue({
-        isOpen: true,
-        onOpen: mockOnOpen,
-        onOpenChange: mockOnOpenChange,
-      });
+  it("shows modal when open with delete form", () => {
+    const { useModal } = require("@/components/ui/Modal");
+    useModal.mockReturnValue({
+      isOpen: true,
+      onOpen: mockOnOpen,
+      onClose: mockOnClose,
+      onOpenChange: mockOnOpenChange,
     });
 
-    it("should render DeleteBookForm with correct props", () => {
-      render(<DeleteBookModal {...defaultProps} />);
+    render(<DeleteBookModal {...defaultProps} isPendingDelete={true} />);
 
-      expect(screen.getByTestId("delete-book-form")).toBeInTheDocument();
-      expect(screen.getByTestId("form-book-id")).toHaveTextContent("doc-123");
-      expect(screen.getByTestId("form-pending-state")).toHaveTextContent("false");
+    expect(screen.getByTestId("modal")).toBeInTheDocument();
+    expect(screen.getByTestId("modal")).toHaveAttribute("data-title", "Delete book");
+    expect(screen.getByTestId("delete-form")).toBeInTheDocument();
+    expect(screen.getByTestId("book-id")).toHaveTextContent("doc-123");
+    expect(screen.getByTestId("pending")).toHaveTextContent("true");
+  });
+
+  it("does not show modal when closed", () => {
+    render(<DeleteBookModal {...defaultProps} />);
+    expect(screen.queryByTestId("modal")).not.toBeInTheDocument();
+  });
+
+  it("handles form close action", () => {
+    const { useModal } = require("@/components/ui/Modal");
+    useModal.mockReturnValue({
+      isOpen: true,
+      onOpen: mockOnOpen,
+      onClose: mockOnClose,
+      onOpenChange: mockOnOpenChange,
     });
 
-    it("should pass isPendingDelete state to form", () => {
-      render(<DeleteBookModal {...defaultProps} isPendingDelete={true} />);
+    render(<DeleteBookModal {...defaultProps} />);
 
-      expect(screen.getByTestId("form-pending-state")).toHaveTextContent("true");
+    fireEvent.click(screen.getByTestId("close-btn"));
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("handles form delete action", () => {
+    const { useModal } = require("@/components/ui/Modal");
+    useModal.mockReturnValue({
+      isOpen: true,
+      onOpen: mockOnOpen,
+      onClose: mockOnClose,
+      onOpenChange: mockOnOpenChange,
     });
 
-    it("should handle form close action", () => {
-      render(<DeleteBookModal {...defaultProps} />);
+    render(<DeleteBookModal {...defaultProps} />);
 
-      fireEvent.click(screen.getByTestId("form-close-button"));
-      expect(mockOnOpenChange).toHaveBeenCalledWith(false);
-    });
-
-    it("should handle form delete action", () => {
-      render(<DeleteBookModal {...defaultProps} />);
-
-      fireEvent.click(screen.getByTestId("form-delete-button"));
-      expect(mockFormActionDelete).toHaveBeenCalledTimes(1);
-      expect(mockFormActionDelete).toHaveBeenCalledWith(expect.any(FormData));
-    });
+    fireEvent.click(screen.getByTestId("submit-btn"));
+    expect(mockFormActionDelete).toHaveBeenCalledWith(expect.any(FormData));
   });
 });

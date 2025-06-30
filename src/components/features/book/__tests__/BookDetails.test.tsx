@@ -112,6 +112,22 @@ jest.mock("@/components/icons/PlusIcon", () => {
   };
 });
 
+jest.mock("@/components/ui/ImageWithFallback", () => {
+  return function MockImageWithFallback({ src, alt, priority, className, width, height }: any) {
+    return (
+      <img
+        src={src}
+        alt={alt}
+        data-priority={priority}
+        className={className}
+        width={width}
+        height={height}
+        data-testid="book-image"
+      />
+    );
+  };
+});
+
 jest.mock("next/image", () => {
   return function MockImage({ src, alt, priority }: any) {
     return <img src={src} alt={alt} data-priority={priority} data-testid="book-image" />;
@@ -172,7 +188,7 @@ describe("BookDetails", () => {
 
       const image = screen.getByTestId("book-image");
       expect(image).toHaveAttribute("src", expect.stringContaining("localhost:1337"));
-      expect(image).toHaveAttribute("alt", "Test Book");
+      expect(image).toHaveAttribute("alt", "Cover image of Test Book book");
       expect(image).toHaveAttribute("data-priority", "true");
     });
 

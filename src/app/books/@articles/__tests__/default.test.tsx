@@ -85,15 +85,18 @@ describe("Articles Page (@articles/default)", () => {
       expect(gridContainer).toHaveClass("grid", "grid-cols-1", "md:grid-cols-3", "gap-8");
     });
 
-    it("should render empty grid when no articles", async () => {
+    it("should render empty state when no articles", async () => {
       mockGetArticles.mockResolvedValue({ articles: [], error: null });
 
       const component = await ArticlesPage();
-      const { container } = render(component);
+      render(component);
 
-      const gridContainer = container.querySelector(".grid");
-      expect(gridContainer).toBeInTheDocument();
-      expect(gridContainer?.children).toHaveLength(0);
+      expect(screen.getByText("No articles found")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "There are no articles to display at the moment. Check back later or try refreshing the page."
+        )
+      ).toBeInTheDocument();
     });
 
     it("should handle single article", async () => {

@@ -14,7 +14,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    name: "username",
+    name: "default-username",
     label: "Username",
     placeholder: "Enter your username",
   },
@@ -22,7 +22,7 @@ export const Default: Story = {
 
 export const Required: Story = {
   args: {
-    name: "email",
+    name: "required-email",
     label: "Email Address",
     type: "email",
     placeholder: "Enter your email",
@@ -32,7 +32,7 @@ export const Required: Story = {
 
 export const WithError: Story = {
   args: {
-    name: "password",
+    name: "error-password",
     label: "Password",
     type: "password",
     placeholder: "Enter your password",
@@ -42,7 +42,7 @@ export const WithError: Story = {
 
 export const WithHelpText: Story = {
   args: {
-    name: "phone",
+    name: "help-phone",
     label: "Phone Number",
     placeholder: "Enter your phone number",
     helpText: "We'll use this to send you important updates",

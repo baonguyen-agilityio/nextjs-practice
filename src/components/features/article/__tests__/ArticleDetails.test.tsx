@@ -19,7 +19,10 @@ jest.mock("@/components/ui/Button", () => ({
 }));
 
 jest.mock("next/image", () => {
-  return function MockImage({ src, alt, fill, className, sizes, priority }: any) {
+  return function MockImage({ src, alt, fill, className, sizes, priority, onLoad }: any) {
+    if (onLoad) {
+      setTimeout(() => onLoad(), 0);
+    }
     return (
       <img
         src={src}
@@ -100,13 +103,16 @@ describe("ArticleDetails", () => {
   });
 
   describe("Image Handling", () => {
-    it("should render image with correct props and environment URL", () => {
+    it("should render image with correct props and environment URL", async () => {
       render(<ArticleDetails article={mockArticle} />);
 
       const image = screen.getByTestId("article-image");
       expect(image).toHaveAttribute("src", "http://localhost:1337/test-image.jpg");
       expect(image).toHaveAttribute("alt", "Cover image of Test Article article");
       expect(image).toHaveAttribute("data-priority", "true");
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
       expect(image).toHaveClass("object-cover");
       expect(image).toHaveAttribute(
         "data-sizes",

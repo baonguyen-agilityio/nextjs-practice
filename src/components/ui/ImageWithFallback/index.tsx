@@ -72,7 +72,11 @@ export default function ImageWithFallback({
         width={width}
         height={height}
         fill={fill}
-        className={cn("transition-opacity duration-300", isLoading ? "opacity-0" : "opacity-100")}
+        className={cn(
+          "transition-opacity duration-300",
+          isLoading ? "opacity-0" : "opacity-100",
+          className
+        )}
         priority={priority}
         sizes={sizes}
         onError={handleError}

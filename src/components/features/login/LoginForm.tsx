@@ -57,7 +57,7 @@ export default function LoginForm() {
         <input type="hidden" name="redirectTo" value={callbackUrl} />
 
         <Button
-          variant="primary"
+          variant="secondary"
           fullWidth
           type="submit"
           isLoading={isPending}

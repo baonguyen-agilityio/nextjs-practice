@@ -116,8 +116,12 @@ describe("ArticleList", () => {
       render(<ArticleList articles={[]} pagination={mockPagination} />);
 
       expect(screen.queryByTestId("article-card")).not.toBeInTheDocument();
-      const grid = document.querySelector(".grid");
-      expect(grid).toBeInTheDocument();
+      expect(screen.getByText("No articles found")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "There are no articles to display at the moment. Check back later or try refreshing the page."
+        )
+      ).toBeInTheDocument();
     });
   });
 

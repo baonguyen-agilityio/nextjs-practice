@@ -51,8 +51,7 @@ describe("ImagePicker", () => {
       const pickButton = screen.getByTestId("pick-button");
       expect(pickButton).toBeInTheDocument();
       expect(pickButton).toHaveTextContent("Pick Image");
-      expect(pickButton).toHaveAttribute("data-variant", "flat");
-      expect(pickButton).toHaveAttribute("data-color", "primary");
+      expect(pickButton).toHaveAttribute("data-variant", "secondary");
 
       const fileInput = getFileInput();
       expect(fileInput).toBeInTheDocument();

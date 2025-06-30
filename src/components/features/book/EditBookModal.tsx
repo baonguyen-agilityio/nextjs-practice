@@ -18,7 +18,6 @@ export default function EditBookModal({
   result: ActionResult | undefined;
 }) {
   const { isOpen, onOpen, onOpenChange, onClose } = useModal();
-  console.log(isOpen);
 
   return (
     <>

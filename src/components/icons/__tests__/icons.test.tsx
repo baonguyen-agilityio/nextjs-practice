@@ -4,6 +4,10 @@ import TwitterIcon from "../twitter-icon";
 import CartIcon from "../cart-icon";
 import FacebookIcon from "../facebook-icon";
 import LinkedinIcon from "../linkedin-icon";
+import CloseIcon from "../close-icon";
+import MinusIcon from "../MinusIcon";
+import PlusIcon from "../PlusIcon";
+import ShoppingCartIcon from "../ShoppingCartIcon";
 
 describe("Icon Components", () => {
   describe("Logo", () => {
@@ -17,6 +21,41 @@ describe("Icon Components", () => {
     it("should render cart icon", () => {
       const { container } = render(<CartIcon />);
       expect(container.firstChild).toBeInTheDocument();
+    });
+  });
+
+  describe("CloseIcon", () => {
+    it("should render close icon", () => {
+      const { container } = render(<CloseIcon />);
+      expect(container.firstChild).toBeInTheDocument();
+      const svg = container.querySelector("svg");
+      expect(svg).toBeInTheDocument();
+      expect(svg).toHaveAttribute("width", "24");
+      expect(svg).toHaveAttribute("height", "24");
+    });
+  });
+
+  describe("MinusIcon", () => {
+    it("should render minus icon", () => {
+      const { container } = render(<MinusIcon />);
+      expect(container.firstChild).toBeInTheDocument();
+      expect(container.firstChild).toHaveAttribute("data-testid", "minus-icon");
+    });
+  });
+
+  describe("PlusIcon", () => {
+    it("should render plus icon", () => {
+      const { container } = render(<PlusIcon />);
+      expect(container.firstChild).toBeInTheDocument();
+      expect(container.firstChild).toHaveAttribute("data-testid", "plus-icon");
+    });
+  });
+
+  describe("ShoppingCartIcon", () => {
+    it("should render shopping cart icon", () => {
+      const { container } = render(<ShoppingCartIcon />);
+      expect(container.firstChild).toBeInTheDocument();
+      expect(container.firstChild).toHaveAttribute("data-testid", "shopping-cart-icon");
     });
   });
 

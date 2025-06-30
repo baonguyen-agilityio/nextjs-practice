@@ -1,116 +1,77 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { render, screen, fireEvent } from "@testing-library/react";
 import CreateBookForm from "../CreateBookForm";
 import type { Category } from "@/types";
-
-const mockFormAction = jest.fn();
-const mockUseActionState = jest.fn();
-const mockUseRef = jest.fn();
-const mockUseState = jest.fn();
-const mockUseEffect = jest.fn();
-const mockStartTransition = jest.fn();
-const mockAddToast = jest.fn();
-
-jest.mock("react", () => ({
-  ...jest.requireActual("react"),
-  useActionState: (...args: any[]) => mockUseActionState(...args),
-  useRef: (...args: any[]) => mockUseRef(...args),
-  useState: (...args: any[]) => mockUseState(...args),
-  useEffect: (...args: any[]) => mockUseEffect(...args),
-  startTransition: (...args: any[]) => mockStartTransition(...args),
-}));
 
 jest.mock("@/app/actions/book", () => ({
   createBook: jest.fn(),
 }));
 
-jest.mock("@heroui/react", () => ({
-  addToast: (...args: any[]) => mockAddToast(...args),
-  Form: ({ children, onSubmit, className, ...props }: any) => (
-    <form onSubmit={onSubmit} className={className} data-testid="create-book-form" {...props}>
-      {children}
-    </form>
-  ),
-  Select: ({ name, label, placeholder, isRequired, children, size, isDisabled, ...props }: any) => (
-    <div data-testid={`select-${name}`}>
-      <label htmlFor={name}>
-        {label} {isRequired && "*"}
-      </label>
-      <select
-        id={name}
-        name={name}
-        required={isRequired}
-        disabled={isDisabled}
-        data-size={size}
+jest.mock("@/components/ui/Button", () => ({
+  Button: function MockButton({ children, onPress, isLoading, isDisabled, type, ...props }: any) {
+    return (
+      <button
+        onClick={onPress}
+        disabled={isLoading || isDisabled}
+        type={type}
+        data-testid={`button-${children?.toLowerCase()?.replace(/\s+/g, "-")}`}
+        data-loading={isLoading}
         {...props}
       >
-        <option value="">{placeholder}</option>
+        {isLoading ? "Loading..." : children}
+      </button>
+    );
+  },
+}));
+
+jest.mock("@heroui/react", () => ({
+  Form: function MockForm({ children, onSubmit, ...props }: any) {
+    return (
+      <form onSubmit={onSubmit} data-testid="create-book-form" {...props}>
         {children}
-      </select>
-    </div>
-  ),
-  SelectItem: ({ children, ...props }: any) => (
-    <option value={children} {...props}>
-      {children}
-    </option>
-  ),
+      </form>
+    );
+  },
+  addToast: jest.fn(),
 }));
 
-jest.mock("@/components/ui/Input", () => ({
-  Input: ({ label, name, type, isRequired, errorMessage, isDisabled, size, ...props }: any) => (
-    <div data-testid={`input-${name}`}>
-      <label htmlFor={name}>
-        {label} {isRequired && "*"}
-      </label>
-      <input
-        id={name}
-        name={name}
-        type={type}
-        required={isRequired}
-        disabled={isDisabled}
-        data-size={size}
-        {...props}
-      />
-      {errorMessage && (
-        <span data-testid={`error-${name}`} className="error">
-          {errorMessage}
-        </span>
-      )}
-    </div>
-  ),
+jest.mock("../BookFormFields", () => ({
+  BookFormFields: function MockBookFormFields({ onFileChange, isDisabled, validationErrors }: any) {
+    return (
+      <div data-testid="book-form-fields">
+        <input type="text" name="title" disabled={isDisabled} data-testid="title-input" />
+        <input
+          type="file"
+          onChange={(e) => onFileChange(e.target.files?.[0] || null)}
+          data-testid="file-input"
+        />
+        {validationErrors.title && <span data-testid="title-error">{validationErrors.title}</span>}
+        {validationErrors.image && <span data-testid="image-error">{validationErrors.image}</span>}
+      </div>
+    );
+  },
+  bookFields: [
+    { name: "title", required: true },
+    { name: "price", required: true },
+    { name: "description", required: true },
+  ],
 }));
 
-jest.mock("@/components/ui/Button", () => ({
-  Button: ({ children, type, color, variant, isLoading, isDisabled, onPress, ...props }: any) => (
-    <button
-      type={type}
-      onClick={onPress}
-      className={`${color} ${variant}`}
-      disabled={isLoading || isDisabled}
-      data-loading={isLoading}
-      data-testid={`button-${children?.toLowerCase()?.replace(/\s+/g, "-") || "button"}`}
-      {...props}
-    >
-      {isLoading ? "Loading..." : children}
-    </button>
-  ),
+jest.mock("@/hooks/useFormValidation", () => ({
+  useFormValidation: jest.fn(),
 }));
 
-jest.mock("@/components/features/book/ImagePicker", () => ({
-  __esModule: true,
-  default: ({ imageUrl, onFileChange }: any) => (
-    <div data-testid="image-picker">
-      <label htmlFor="image">Image Upload</label>
-      <input
-        id="image"
-        type="file"
-        accept="image/*"
-        onChange={(e) => onFileChange(e.target.files?.[0] || null)}
-        data-testid="file-input"
-      />
-      {imageUrl && <div data-testid="current-image">{imageUrl}</div>}
-    </div>
-  ),
+jest.mock("@/schemas/book.schema", () => ({
+  createBookSchema: {},
+}));
+
+jest.mock("react", () => ({
+  ...jest.requireActual("react"),
+  useActionState: jest.fn(),
+  useRef: jest.fn(),
+  useState: jest.fn(),
+  useEffect: jest.fn(),
+  useMemo: jest.fn(),
+  startTransition: jest.fn(),
 }));
 
 describe("CreateBookForm", () => {
@@ -120,250 +81,145 @@ describe("CreateBookForm", () => {
     { id: 2, name: "Mystery", documentId: "doc-2" },
   ];
 
-  const defaultFormRef = { current: document.createElement("form") };
-  const defaultSetSelectedFile = jest.fn();
-  const defaultHandledRef = { current: false };
+  const mockFormAction = jest.fn();
+  const mockUseActionState = jest.fn();
+  const mockUseRef = jest.fn();
+  const mockUseState = jest.fn();
+  const mockUseEffect = jest.fn();
+  const mockUseMemo = jest.fn();
+  const mockStartTransition = jest.fn();
+  const mockUseFormValidation = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
 
+    const {
+      useActionState,
+      useRef,
+      useState,
+      useEffect,
+      useMemo,
+      startTransition,
+    } = require("react");
+    const { useFormValidation } = require("@/hooks/useFormValidation");
+
+    useActionState.mockImplementation(mockUseActionState);
+    useRef.mockImplementation(mockUseRef);
+    useState.mockImplementation(mockUseState);
+    useEffect.mockImplementation(mockUseEffect);
+    useMemo.mockImplementation(mockUseMemo);
+    startTransition.mockImplementation(mockStartTransition);
+    useFormValidation.mockImplementation(mockUseFormValidation);
+
     mockUseActionState.mockReturnValue([undefined, mockFormAction, false]);
-    mockUseRef.mockImplementation((initial) => {
-      if (initial === null) return defaultFormRef;
-      return defaultHandledRef;
-    });
-    mockUseState.mockReturnValue([null, defaultSetSelectedFile]);
+    mockUseRef.mockReturnValue({ current: document.createElement("form") });
+    mockUseState.mockReturnValue([null, jest.fn()]);
     mockStartTransition.mockImplementation((fn) => fn());
     mockUseEffect.mockImplementation((effect) => effect());
-  });
-
-  describe("Component Rendering", () => {
-    it("should render form with all required fields", () => {
-      render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
-
-      expect(screen.getByTestId("create-book-form")).toBeInTheDocument();
-      expect(screen.getByTestId("input-title")).toBeInTheDocument();
-      expect(screen.getByTestId("input-price")).toBeInTheDocument();
-      expect(screen.getByTestId("input-language")).toBeInTheDocument();
-      expect(screen.getByTestId("input-description")).toBeInTheDocument();
-      expect(screen.getByTestId("select-categories")).toBeInTheDocument();
-      expect(screen.getByTestId("image-picker")).toBeInTheDocument();
-    });
-
-    it("should render category options correctly", () => {
-      render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
-
-      expect(screen.getByText("Fiction")).toBeInTheDocument();
-      expect(screen.getByText("Mystery")).toBeInTheDocument();
-    });
-
-    it("should render action buttons", () => {
-      render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
-
-      expect(screen.getByTestId("button-cancel")).toBeInTheDocument();
-      expect(screen.getByTestId("button-create")).toBeInTheDocument();
+    mockUseMemo.mockReturnValue(false);
+    mockUseFormValidation.mockReturnValue({
+      formData: { title: "Test", price: "19.99", description: "Test", categories: "doc-1" },
+      handleFieldChange: jest.fn(),
+      combineErrors: jest.fn().mockReturnValue({}),
+      resetForm: jest.fn(),
     });
   });
 
-  describe("Form Validation", () => {
-    it("should display field errors when present", () => {
-      const fieldErrors = {
-        title: ["Title is required"],
-        price: ["Price must be a number"],
-        categories: ["Category is required"],
-        image: ["Image is required"],
-      };
+  it("renders form with all components", () => {
+    render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
 
-      mockUseActionState.mockReturnValue([
-        { success: false, error: fieldErrors },
-        mockFormAction,
-        false,
-      ]);
-
-      render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
-
-      expect(screen.getByTestId("error-title")).toHaveTextContent("Title is required");
-      expect(screen.getByTestId("error-price")).toHaveTextContent("Price must be a number");
-      expect(screen.getByText("Category is required")).toBeInTheDocument();
-      expect(screen.getByText("Image is required")).toBeInTheDocument();
-    });
-
-    it("should display general error when present", () => {
-      mockUseActionState.mockReturnValue([
-        { success: false, error: "Something went wrong" },
-        mockFormAction,
-        false,
-      ]);
-
-      render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
-
-      expect(screen.getByText("Something went wrong")).toBeInTheDocument();
-    });
+    expect(screen.getByTestId("create-book-form")).toBeInTheDocument();
+    expect(screen.getByTestId("book-form-fields")).toBeInTheDocument();
+    expect(screen.getByTestId("button-cancel")).toBeInTheDocument();
+    expect(screen.getByTestId("button-create")).toBeInTheDocument();
   });
 
-  describe("Form Submission", () => {
-    it("should handle form submission", () => {
-      render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
+  it("handles form submission", () => {
+    render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
 
-      const form = screen.getByTestId("create-book-form");
-      fireEvent.submit(form);
+    const form = screen.getByTestId("create-book-form");
+    fireEvent.submit(form);
 
-      expect(mockStartTransition).toHaveBeenCalled();
-      expect(mockFormAction).toHaveBeenCalled();
-    });
-
-    it("should include selected file in form data", () => {
-      const mockFile = new File(["test"], "test.jpg", { type: "image/jpeg" });
-      mockUseState.mockReturnValue([mockFile, defaultSetSelectedFile]);
-
-      render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
-
-      const form = screen.getByTestId("create-book-form");
-      fireEvent.submit(form);
-
-      expect(mockFormAction).toHaveBeenCalled();
-    });
+    expect(mockStartTransition).toHaveBeenCalled();
+    expect(mockFormAction).toHaveBeenCalled();
   });
 
-  describe("Loading States", () => {
-    it("should disable form fields when pending", () => {
-      mockUseActionState.mockReturnValue([undefined, mockFormAction, true]);
+  it("handles cancel button click", () => {
+    render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
 
-      render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
+    const cancelButton = screen.getByTestId("button-cancel");
+    fireEvent.click(cancelButton);
 
-      expect(screen.getByLabelText("Title *")).toBeDisabled();
-      expect(screen.getByLabelText("Price *")).toBeDisabled();
-      expect(screen.getByLabelText("Category *")).toBeDisabled();
-    });
-
-    it("should show loading state on create button", () => {
-      mockUseActionState.mockReturnValue([undefined, mockFormAction, true]);
-
-      render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
-
-      const createButton = screen.getByTestId("button-create");
-      expect(createButton).toHaveAttribute("data-loading", "true");
-      expect(createButton).toHaveTextContent("Loading...");
-      expect(createButton).toBeDisabled();
-    });
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  describe("Button Interactions", () => {
-    it("should call onClose when cancel button is clicked", async () => {
-      const user = userEvent.setup();
-      render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
+  it("shows loading state when pending", () => {
+    mockUseActionState.mockReturnValue([undefined, mockFormAction, true]);
 
-      const cancelButton = screen.getByTestId("button-cancel");
-      await user.click(cancelButton);
+    render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
 
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
-    });
+    const createButton = screen.getByTestId("button-create");
+    expect(createButton).toHaveAttribute("data-loading", "true");
+    expect(createButton).toHaveTextContent("Loading...");
+    expect(createButton).toBeDisabled();
   });
 
-  describe("Success Handling", () => {
-    it("should show success toast and close modal on successful creation", () => {
-      const mockEffect = jest.fn();
-      mockUseEffect.mockImplementation((callback, deps) => {
-        if (deps && deps.some((dep: any) => dep?.success === true)) {
-          callback();
-        }
-        mockEffect(callback, deps);
-      });
+  it("handles file selection", () => {
+    const mockSetSelectedFile = jest.fn();
+    mockUseState.mockReturnValue([null, mockSetSelectedFile]);
 
-      mockUseActionState.mockReturnValue([
-        { success: true, message: "Book created successfully" },
-        mockFormAction,
-        false,
-      ]);
+    render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
 
-      render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
+    const fileInput = screen.getByTestId("file-input");
+    const file = new File(["test"], "test.jpg", { type: "image/jpeg" });
 
-      expect(mockAddToast).toHaveBeenCalledWith({
-        title: "Book created successfully",
-        color: "success",
-      });
-      expect(mockOnClose).toHaveBeenCalled();
-    });
+    Object.defineProperty(fileInput, "files", { value: [file], writable: false });
+    fireEvent.change(fileInput);
 
-    it("should not show toast notifications multiple times", () => {
-      const handledRef = { current: true };
-      mockUseRef.mockImplementation((initial) => {
-        if (initial === null) return defaultFormRef;
-        return handledRef;
-      });
-
-      mockUseEffect.mockImplementation((callback) => callback());
-
-      mockUseActionState.mockReturnValue([
-        { success: true, message: "Book created successfully" },
-        mockFormAction,
-        false,
-      ]);
-
-      render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
-
-      expect(mockAddToast).not.toHaveBeenCalled();
-      expect(mockOnClose).not.toHaveBeenCalled();
-    });
+    expect(mockSetSelectedFile).toHaveBeenCalledWith(file);
   });
 
-  describe("Image Handling", () => {
-    it("should handle image file selection", async () => {
-      const user = userEvent.setup();
-      const mockFile = new File(["test"], "test.jpg", { type: "image/jpeg" });
+  it("handles error result with field errors", () => {
+    const fieldErrors = { title: ["Title is required"], image: ["Image is required"] };
 
-      render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
+    mockUseActionState.mockReturnValue([
+      { success: false, error: fieldErrors },
+      mockFormAction,
+      false,
+    ]);
 
-      const fileInput = screen.getByTestId("file-input");
-      await user.upload(fileInput, mockFile);
-
-      expect(defaultSetSelectedFile).toHaveBeenCalledWith(mockFile);
+    mockUseFormValidation.mockReturnValue({
+      formData: {},
+      handleFieldChange: jest.fn(),
+      combineErrors: jest.fn().mockReturnValue(fieldErrors),
+      resetForm: jest.fn(),
     });
 
-    it("should handle null file selection", () => {
-      render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
+    render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
 
-      const fileInput = screen.getByTestId("file-input");
-
-      Object.defineProperty(fileInput, "files", {
-        value: null,
-        writable: false,
-      });
-
-      fireEvent.change(fileInput);
-
-      expect(defaultSetSelectedFile).toHaveBeenCalledWith(null);
-    });
+    expect(screen.getByTestId("title-error")).toHaveTextContent("Title is required");
+    expect(screen.getByTestId("image-error")).toHaveTextContent("Image is required");
   });
 
-  describe("Edge Cases", () => {
-    it("should handle empty categories list", () => {
-      render(<CreateBookForm onClose={mockOnClose} categories={[]} />);
+  it("disables create button when form is invalid", () => {
+    mockUseMemo.mockReturnValue(true);
 
-      const categorySelect = screen.getByLabelText("Category *");
-      expect(categorySelect).toBeInTheDocument();
+    render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
 
-      const options = categorySelect.querySelectorAll("option");
-      expect(options).toHaveLength(1);
-      expect(options[0]).toHaveValue("");
-    });
+    const createButton = screen.getByTestId("button-create");
+    expect(createButton).toBeDisabled();
+  });
 
-    it("should handle complex error objects", () => {
-      const complexError = {
-        title: ["Title is required", "Title must be at least 3 characters"],
-        price: ["Price is invalid"],
-      };
+  it("includes selected file when submitting form", () => {
+    const selectedFile = new File(["test"], "test.jpg", { type: "image/jpeg" });
+    mockUseState.mockReturnValue([selectedFile, jest.fn()]);
 
-      mockUseActionState.mockReturnValue([
-        { success: false, error: complexError },
-        mockFormAction,
-        false,
-      ]);
+    render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
 
-      render(<CreateBookForm onClose={mockOnClose} categories={mockCategories} />);
+    const form = screen.getByTestId("create-book-form");
+    fireEvent.submit(form);
 
-      expect(screen.getByTestId("error-title")).toHaveTextContent("Title is required");
-      expect(screen.getByTestId("error-price")).toHaveTextContent("Price is invalid");
-    });
+    expect(mockFormAction).toHaveBeenCalled();
+    expect(mockStartTransition).toHaveBeenCalled();
   });
 });

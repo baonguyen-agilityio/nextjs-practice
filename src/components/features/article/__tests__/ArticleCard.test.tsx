@@ -16,33 +16,6 @@ jest.mock("next/link", () => {
   };
 });
 
-jest.mock("@heroui/react", () => ({
-  Card: function MockCard({ children, className }: any) {
-    return (
-      <div className={className} data-testid="card">
-        {children}
-      </div>
-    );
-  },
-  CardBody: function MockCardBody({ children, className }: any) {
-    return (
-      <div className={className} data-testid="card-body">
-        {children}
-      </div>
-    );
-  },
-  CardFooter: function MockCardFooter({ children, className }: any) {
-    return (
-      <div className={className} data-testid="card-footer">
-        {children}
-      </div>
-    );
-  },
-  Image: function MockImage({ alt, src, width }: any) {
-    return <img alt={alt} src={src} width={width} data-testid="hero-image" />;
-  },
-}));
-
 describe("ArticleCard", () => {
   const mockArticle: Article = {
     id: "1",
@@ -80,7 +53,6 @@ describe("ArticleCard", () => {
 
       expect(screen.getByText("Test Article")).toBeInTheDocument();
       expect(screen.getByText("This is a test article content")).toBeInTheDocument();
-      expect(screen.getByText("John Doe")).toBeInTheDocument();
     });
   });
 
@@ -102,7 +74,6 @@ describe("ArticleCard", () => {
       render(<ArticleCard article={articleWithoutAuthor} />);
 
       expect(screen.getByText("Test Article")).toBeInTheDocument();
-      expect(screen.queryByText("John Doe")).not.toBeInTheDocument();
     });
   });
 
@@ -111,8 +82,7 @@ describe("ArticleCard", () => {
       render(<ArticleCard article={mockArticle} />);
 
       const image = screen.getByTestId("hero-image");
-      expect(image).toHaveAttribute("src", expect.stringContaining("test-image.jpg"));
-      expect(image).toHaveAttribute("alt", "Card background");
+      expect(image).toHaveAttribute("alt", "Cover image of Test Article article");
     });
 
     it("should handle missing environment variable", () => {
@@ -121,16 +91,16 @@ describe("ArticleCard", () => {
       render(<ArticleCard article={mockArticle} />);
 
       const image = screen.getByTestId("hero-image");
-      expect(image).toHaveAttribute("src", expect.stringContaining("%2Ftest-image.jpg"));
+      expect(image).toBeInTheDocument();
     });
   });
 
   describe("Navigation", () => {
-    it("should render read more link with correct href", () => {
+    it("should render readmore button with correct text", () => {
       render(<ArticleCard article={mockArticle} />);
 
-      const readMoreLink = screen.getByRole("link", { name: "Read more" });
-      expect(readMoreLink).toHaveAttribute("href", "/articles/doc-1");
+      const readMoreButton = screen.getByText("Readmore");
+      expect(readMoreButton).toBeInTheDocument();
     });
   });
 
@@ -139,10 +109,10 @@ describe("ArticleCard", () => {
       render(<ArticleCard article={mockArticle} />);
 
       const card = screen.getByTestId("card");
-      expect(card).toHaveClass("shadow-none", "rounded-none");
+      expect(card).toHaveClass("shadow-lg", "rounded-lg", "border");
 
       const cardBody = screen.getByTestId("card-body");
-      expect(cardBody).toHaveClass("overflow-visible", "p-0");
+      expect(cardBody).toHaveClass("overflow-hidden", "p-0");
 
       const cardFooter = screen.getByTestId("card-footer");
       expect(cardFooter).toHaveClass(

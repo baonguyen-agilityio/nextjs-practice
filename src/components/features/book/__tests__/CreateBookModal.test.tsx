@@ -3,74 +3,35 @@ import CreateBookModal from "../CreateBookModal";
 import type { Category } from "@/types";
 
 jest.mock("@/components/ui/Button", () => ({
-  Button: function MockButton({ children, onPress, size, color, variant }: any) {
+  Button: function MockButton({ children, onPress, ...props }: any) {
+    const { variant, ...domProps } = props;
     return (
-      <button
-        onClick={onPress}
-        data-testid="trigger-button"
-        data-size={size}
-        data-color={color}
-        data-variant={variant}
-      >
+      <button onClick={onPress} data-testid="add-button" data-variant={variant} {...domProps}>
         {children}
       </button>
     );
   },
 }));
 
-let currentOnOpenChange: any = null;
-
-jest.mock("@heroui/react", () => ({
-  Modal: function MockModal({ children, isOpen, placement, onOpenChange }: any) {
-    const handleClose = () => onOpenChange(false);
-    currentOnOpenChange = onOpenChange;
-
+jest.mock("@/components/ui/Modal", () => ({
+  Modal: function MockModal({ children, isOpen, title, ...props }: any) {
+    const { size, color, scrollBehavior, description, onOpenChange, ...domProps } = props;
     return isOpen ? (
-      <div data-testid="modal" data-placement={placement}>
+      <div data-testid="modal" data-title={title} {...domProps}>
         {children}
-        <button data-testid="modal-close" onClick={handleClose}>
-          Close Modal
-        </button>
       </div>
     ) : null;
   },
-  ModalContent: function MockModalContent({ children }: any) {
-    const onClose = () => {
-      if (currentOnOpenChange) {
-        currentOnOpenChange(false);
-      }
-    };
-
-    return (
-      <div data-testid="modal-content">
-        {typeof children === "function" ? children(onClose) : children}
-      </div>
-    );
-  },
-  ModalHeader: function MockModalHeader({ children, className }: any) {
-    return (
-      <div data-testid="modal-header" className={className}>
-        {children}
-      </div>
-    );
-  },
-  ModalBody: function MockModalBody({ children }: any) {
-    return <div data-testid="modal-body">{children}</div>;
-  },
-  useDisclosure: jest.fn(() => ({
-    isOpen: false,
-    onOpen: jest.fn(),
-    onOpenChange: jest.fn(),
-  })),
+  useModal: jest.fn(),
 }));
 
 jest.mock("../CreateBookForm", () => {
-  return function MockCreateBookForm({ onClose, categories }: any) {
+  return function MockCreateBookForm({ categories, onClose }: any) {
     return (
-      <div data-testid="create-book-form">
-        <div data-testid="form-categories-count">{categories.length}</div>
-        <button data-testid="form-close-button" onClick={() => onClose && onClose()}>
-          Form Close
+      <div data-testid="create-form">
+        <span data-testid="categories-count">{categories.length}</span>
+        <button onClick={onClose} data-testid="close-btn">
+          Close
         </button>
       </div>
     );
@@ -83,138 +44,79 @@ describe("CreateBookModal", () => {
     { id: 2, documentId: "cat-2", name: "Mystery" },
   ];
 
-  const defaultProps = {
-    categories: mockCategories,
-  };
-
-  let mockUseDisclosure: jest.Mock;
+  const mockOnOpen = jest.fn();
+  const mockOnClose = jest.fn();
+  const mockOnOpenChange = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    mockUseDisclosure = require("@heroui/react").useDisclosure;
-    mockUseDisclosure.mockReturnValue({
+    const { useModal } = require("@/components/ui/Modal");
+    useModal.mockReturnValue({
       isOpen: false,
-      onOpen: jest.fn(),
-      onOpenChange: jest.fn(),
+      onOpen: mockOnOpen,
+      onClose: mockOnClose,
+      onOpenChange: mockOnOpenChange,
     });
   });
 
-  describe("Component Rendering", () => {
-    it("should render trigger button with correct text and props", () => {
-      render(<CreateBookModal {...defaultProps} />);
+  it("renders add button and opens modal when clicked", () => {
+    render(<CreateBookModal categories={mockCategories} />);
 
-      const triggerButton = screen.getByTestId("trigger-button");
-      expect(triggerButton).toBeInTheDocument();
-      expect(triggerButton).toHaveTextContent("Add New Book");
-      expect(triggerButton).toHaveAttribute("data-size", "lg");
-      expect(triggerButton).toHaveAttribute("data-color", "primary");
-      expect(triggerButton).toHaveAttribute("data-variant", "ghost");
-    });
+    const button = screen.getByTestId("add-button");
+    expect(button).toHaveTextContent("Add New Book");
+    expect(button).toHaveAttribute("data-variant", "primary");
 
-    it("should render modal when open", () => {
-      mockUseDisclosure.mockReturnValue({
-        isOpen: true,
-        onOpen: jest.fn(),
-        onOpenChange: jest.fn(),
-      });
-
-      render(<CreateBookModal {...defaultProps} />);
-
-      expect(screen.getByTestId("modal")).toBeInTheDocument();
-      expect(screen.getByTestId("modal-content")).toBeInTheDocument();
-      expect(screen.getByTestId("modal-header")).toBeInTheDocument();
-      expect(screen.getByTestId("modal-body")).toBeInTheDocument();
-      expect(screen.getByTestId("modal")).toHaveAttribute("data-placement", "top-center");
-    });
-
-    it("should not render modal when closed", () => {
-      render(<CreateBookModal {...defaultProps} />);
-
-      expect(screen.queryByTestId("modal")).not.toBeInTheDocument();
-    });
+    fireEvent.click(button);
+    expect(mockOnOpen).toHaveBeenCalledTimes(1);
   });
 
-  describe("Modal Interactions", () => {
-    it("should open modal when trigger button is clicked", () => {
-      const mockOnOpen = jest.fn();
-      mockUseDisclosure.mockReturnValue({
-        isOpen: false,
-        onOpen: mockOnOpen,
-        onOpenChange: jest.fn(),
-      });
-
-      render(<CreateBookModal {...defaultProps} />);
-
-      fireEvent.click(screen.getByTestId("trigger-button"));
-      expect(mockOnOpen).toHaveBeenCalledTimes(1);
+  it("shows modal when open with create form", () => {
+    const { useModal } = require("@/components/ui/Modal");
+    useModal.mockReturnValue({
+      isOpen: true,
+      onOpen: mockOnOpen,
+      onClose: mockOnClose,
+      onOpenChange: mockOnOpenChange,
     });
 
-    it("should close modal when close button is clicked", () => {
-      const mockOnOpenChange = jest.fn();
-      mockUseDisclosure.mockReturnValue({
-        isOpen: true,
-        onOpen: jest.fn(),
-        onOpenChange: mockOnOpenChange,
-      });
+    render(<CreateBookModal categories={mockCategories} />);
 
-      render(<CreateBookModal {...defaultProps} />);
-
-      fireEvent.click(screen.getByTestId("modal-close"));
-      expect(mockOnOpenChange).toHaveBeenCalledWith(false);
-    });
+    expect(screen.getByTestId("modal")).toBeInTheDocument();
+    expect(screen.getByTestId("modal")).toHaveAttribute("data-title", "Add New Book");
+    expect(screen.getByTestId("create-form")).toBeInTheDocument();
+    expect(screen.getByTestId("categories-count")).toHaveTextContent("2");
   });
 
-  describe("Form Integration", () => {
-    beforeEach(() => {
-      mockUseDisclosure.mockReturnValue({
-        isOpen: true,
-        onOpen: jest.fn(),
-        onOpenChange: jest.fn(),
-      });
-    });
-
-    it("should render CreateBookForm with correct props", () => {
-      render(<CreateBookModal {...defaultProps} />);
-
-      expect(screen.getByTestId("create-book-form")).toBeInTheDocument();
-      expect(screen.getByTestId("form-categories-count")).toHaveTextContent("2");
-    });
-
-    it("should close modal when form triggers onClose", () => {
-      const mockOnOpenChange = jest.fn();
-      mockUseDisclosure.mockReturnValue({
-        isOpen: true,
-        onOpen: jest.fn(),
-        onOpenChange: mockOnOpenChange,
-      });
-
-      render(<CreateBookModal {...defaultProps} />);
-
-      fireEvent.click(screen.getByTestId("form-close-button"));
-      expect(mockOnOpenChange).toHaveBeenCalled();
-    });
-
-    it("should render modal header with correct title", () => {
-      render(<CreateBookModal {...defaultProps} />);
-
-      const modalHeader = screen.getByTestId("modal-header");
-      expect(modalHeader).toHaveTextContent("Add New Book");
-      expect(modalHeader).toHaveClass("flex", "flex-col", "gap-1");
-    });
+  it("does not show modal when closed", () => {
+    render(<CreateBookModal categories={mockCategories} />);
+    expect(screen.queryByTestId("modal")).not.toBeInTheDocument();
   });
 
-  describe("Edge Cases", () => {
-    it("should handle empty categories array", () => {
-      mockUseDisclosure.mockReturnValue({
-        isOpen: true,
-        onOpen: jest.fn(),
-        onOpenChange: jest.fn(),
-      });
-
-      render(<CreateBookModal categories={[]} />);
-
-      expect(screen.getByTestId("form-categories-count")).toHaveTextContent("0");
+  it("handles form close action", () => {
+    const { useModal } = require("@/components/ui/Modal");
+    useModal.mockReturnValue({
+      isOpen: true,
+      onOpen: mockOnOpen,
+      onClose: mockOnClose,
+      onOpenChange: mockOnOpenChange,
     });
+
+    render(<CreateBookModal categories={mockCategories} />);
+
+    fireEvent.click(screen.getByTestId("close-btn"));
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("handles empty categories", () => {
+    const { useModal } = require("@/components/ui/Modal");
+    useModal.mockReturnValue({
+      isOpen: true,
+      onOpen: mockOnOpen,
+      onClose: mockOnClose,
+      onOpenChange: mockOnOpenChange,
+    });
+
+    render(<CreateBookModal categories={[]} />);
+    expect(screen.getByTestId("categories-count")).toHaveTextContent("0");
   });
 });

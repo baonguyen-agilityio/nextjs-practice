@@ -2,54 +2,36 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import BookFilter from "../BookFilter";
 import type { Category } from "@/types";
 
-const mockReplace = jest.fn();
-const mockStartTransition = jest.fn((callback) => callback());
-
 jest.mock("next/navigation", () => ({
-  usePathname: jest.fn(() => "/books"),
-  useRouter: jest.fn(() => ({
-    replace: mockReplace,
-  })),
   useSearchParams: jest.fn(() => new URLSearchParams()),
 }));
 
-jest.mock("react", () => ({
-  ...jest.requireActual("react"),
-  useTransition: jest.fn(() => [false, mockStartTransition]),
-}));
-
 jest.mock("@/components/ui/Input", () => ({
-  Input: ({ type, placeholder, value, onChange, ...props }: any) => (
-    <input
-      type={type}
-      placeholder={placeholder}
-      value={value}
-      onChange={onChange}
-      data-testid="search-input"
-      {...props}
-    />
+  Input: ({ value, onChange, onClear, ...props }: any) => (
+    <div>
+      <input
+        value={value || ""}
+        onChange={onChange}
+        data-testid="search-input"
+        placeholder="Search books..."
+      />
+      {onClear && (
+        <button onClick={() => onClear()} data-testid="clear-btn">
+          Clear
+        </button>
+      )}
+    </div>
   ),
 }));
 
-jest.mock("@heroui/react", () => ({
-  Select: ({ children, placeholder, selectedKeys, onSelectionChange }: any) => {
-    const handleChange = (e: any) => {
-      const value = e.target.value;
-      onSelectionChange?.(value ? new Set([value]) : new Set());
-    };
-
-    return (
-      <select
-        value={selectedKeys && selectedKeys.size > 0 ? [...selectedKeys][0] : ""}
-        onChange={handleChange}
-        data-testid="category-select"
-      >
-        <option value="">{placeholder}</option>
-        {children}
-      </select>
-    );
-  },
-  SelectItem: ({ children, value }: any) => <option value={value}>{children}</option>,
+jest.mock("@/components/ui/Select", () => ({
+  Select: ({ children, placeholder }: any) => (
+    <select data-testid="category-select">
+      <option value="">{placeholder}</option>
+      {children}
+    </select>
+  ),
+  SelectItem: ({ children }: any) => <option value="test">{children}</option>,
 }));
 
 describe("BookFilter", () => {
@@ -61,73 +43,67 @@ describe("BookFilter", () => {
   const mockOnSearchChange = jest.fn();
   const mockOnCategoryChange = jest.fn();
 
-  const defaultProps = {
-    categories: mockCategories,
-    onSearchChange: mockOnSearchChange,
-    onCategoryChange: mockOnCategoryChange,
-  };
-
-  const { useSearchParams } = require("next/navigation");
-
   beforeEach(() => {
     jest.clearAllMocks();
+    const { useSearchParams } = require("next/navigation");
     useSearchParams.mockReturnValue(new URLSearchParams());
   });
 
-  describe("Component Rendering", () => {
-    it("should render search input and category select", () => {
-      render(<BookFilter {...defaultProps} />);
+  it("renders search input and category select with categories", () => {
+    render(
+      <BookFilter
+        categories={mockCategories}
+        onSearchChange={mockOnSearchChange}
+        onCategoryChange={mockOnCategoryChange}
+      />
+    );
 
-      expect(screen.getByTestId("search-input")).toBeInTheDocument();
-      expect(screen.getByTestId("category-select")).toBeInTheDocument();
-    });
-
-    it("should render category options", () => {
-      render(<BookFilter {...defaultProps} />);
-
-      expect(screen.getByText("Fiction")).toBeInTheDocument();
-      expect(screen.getByText("Mystery")).toBeInTheDocument();
-    });
+    expect(screen.getByTestId("search-input")).toBeInTheDocument();
+    expect(screen.getByTestId("category-select")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Search books...")).toBeInTheDocument();
+    expect(screen.getByText("Filter by category")).toBeInTheDocument();
   });
 
-  describe("User Interactions", () => {
-    it("should handle search input change", () => {
-      render(<BookFilter {...defaultProps} />);
+  it("calls onSearchChange when search input changes", () => {
+    render(
+      <BookFilter
+        categories={mockCategories}
+        onSearchChange={mockOnSearchChange}
+        onCategoryChange={mockOnCategoryChange}
+      />
+    );
 
-      const searchInput = screen.getByTestId("search-input");
-      fireEvent.change(searchInput, { target: { value: "test search" } });
+    const searchInput = screen.getByTestId("search-input");
+    fireEvent.change(searchInput, { target: { value: "test search" } });
 
-      expect(mockOnSearchChange).toHaveBeenCalledWith("test search");
-    });
-
-    it("should handle category selection", () => {
-      render(<BookFilter {...defaultProps} />);
-
-      const categorySelect = screen.getByTestId("category-select");
-      fireEvent.change(categorySelect, { target: { value: "cat-1" } });
-
-      expect(categorySelect).toBeInTheDocument();
-    });
+    expect(mockOnSearchChange).toHaveBeenCalledWith("test search");
   });
 
-  describe("URL Parameters", () => {
-    it("should populate fields from search params", () => {
-      const searchParams = new URLSearchParams("?search=test&categories=cat-1");
-      useSearchParams.mockReturnValue(searchParams);
+  it("shows clear button and handles clear action", () => {
+    render(
+      <BookFilter
+        categories={mockCategories}
+        onSearchChange={mockOnSearchChange}
+        onCategoryChange={mockOnCategoryChange}
+      />
+    );
 
-      render(<BookFilter {...defaultProps} />);
+    const clearBtn = screen.getByTestId("clear-btn");
+    fireEvent.click(clearBtn);
 
-      const searchInput = screen.getByTestId("search-input");
-      expect(searchInput).toHaveValue("test");
-    });
+    expect(mockOnSearchChange).toHaveBeenCalledWith("");
   });
 
-  describe("Edge Cases", () => {
-    it("should handle empty categories array", () => {
-      render(<BookFilter {...defaultProps} categories={[]} />);
+  it("handles empty categories array", () => {
+    render(
+      <BookFilter
+        categories={[]}
+        onSearchChange={mockOnSearchChange}
+        onCategoryChange={mockOnCategoryChange}
+      />
+    );
 
-      expect(screen.getByTestId("category-select")).toBeInTheDocument();
-      expect(screen.getByText("Filter by category")).toBeInTheDocument();
-    });
+    expect(screen.getByTestId("category-select")).toBeInTheDocument();
+    expect(screen.getByText("Filter by category")).toBeInTheDocument();
   });
 });

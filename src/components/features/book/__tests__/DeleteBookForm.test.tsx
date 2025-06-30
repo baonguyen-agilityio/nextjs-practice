@@ -77,12 +77,10 @@ describe("DeleteBookForm", () => {
       const cancelButton = screen.getByTestId("button-cancel");
       const deleteButton = screen.getByTestId("button-delete");
 
-      expect(cancelButton).toHaveAttribute("data-color", "danger");
-      expect(cancelButton).toHaveAttribute("data-variant", "flat");
+      expect(cancelButton).toHaveAttribute("data-variant", "secondaryGhost");
       expect(cancelButton).toHaveAttribute("type", "button");
 
-      expect(deleteButton).toHaveAttribute("data-color", "danger");
-      expect(deleteButton).toHaveAttribute("data-variant", "flat");
+      expect(deleteButton).toHaveAttribute("data-variant", "secondary");
       expect(deleteButton).toHaveAttribute("type", "submit");
     });
   });
