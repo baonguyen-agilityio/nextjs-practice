@@ -1,6 +1,5 @@
 "use client";
 
-import { Card, CardFooter } from "@heroui/react";
 import { formatUSD } from "@/utils/currency";
 import type { Book, Category } from "@/types";
 import { LazyEditBookModal, LazyDeleteBookModal } from "./DynamicModals";
@@ -9,6 +8,7 @@ import { createImageUrl } from "@/utils/image";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
+import { Card, CardFooter } from "@/components/ui/Card";
 
 export default function BookCard(props: {
   book: Book;
@@ -103,12 +103,7 @@ export default function BookCard(props: {
                 />
               </>
             ) : (
-              <Button
-                variant="secondaryGhost"
-                size="lg"
-                className="w-full"
-                onClick={handleNavigateToDetails}
-              >
+              <Button variant="secondaryGhost" size="lg" onClick={handleNavigateToDetails}>
                 Order Today
               </Button>
             )}

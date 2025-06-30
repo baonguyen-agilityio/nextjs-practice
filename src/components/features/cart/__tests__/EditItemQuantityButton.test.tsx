@@ -111,7 +111,7 @@ describe("EditItemQuantityButton", () => {
       expect(button).toBeInTheDocument();
       expect(button).toHaveAttribute("type", "submit");
       expect(button).toHaveAttribute("data-size", "sm");
-      expect(button).toHaveAttribute("data-variant", "light");
+      expect(button).toHaveAttribute("data-variant", "text");
       expect(button).toHaveAttribute("data-icon-only", "true");
       expect(button).toHaveAttribute("data-radius", "full");
       expect(button).toHaveAttribute("aria-label", "Increase item quantity");

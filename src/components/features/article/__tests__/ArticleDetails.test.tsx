@@ -84,8 +84,7 @@ describe("ArticleDetails", () => {
 
       const backButton = screen.getByTestId("button");
       expect(backButton).toHaveTextContent("← Back to list");
-      expect(backButton).toHaveAttribute("data-variant", "light");
-      expect(backButton).toHaveClass("text-description");
+      expect(backButton).toHaveAttribute("data-variant", "secondaryGhost");
     });
   });
 
@@ -106,9 +105,9 @@ describe("ArticleDetails", () => {
 
       const image = screen.getByTestId("article-image");
       expect(image).toHaveAttribute("src", "http://localhost:1337/test-image.jpg");
-      expect(image).toHaveAttribute("alt", "article");
-      expect(image).toHaveAttribute("data-fill", "true");
-      expect(image).toHaveClass("object-contain");
+      expect(image).toHaveAttribute("alt", "Cover image of Test Article article");
+      expect(image).toHaveAttribute("data-priority", "true");
+      expect(image).toHaveClass("object-cover");
       expect(image).toHaveAttribute(
         "data-sizes",
         "(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
@@ -130,7 +129,7 @@ describe("ArticleDetails", () => {
     it("should display published date and author", () => {
       render(<ArticleDetails article={mockArticle} />);
 
-      expect(screen.getByText("2023-01-01T00:00:00.000Z / Author")).toBeInTheDocument();
+      expect(screen.getByText("January 1, 2023 / John Doe")).toBeInTheDocument();
     });
 
     it("should render content with HTML", () => {

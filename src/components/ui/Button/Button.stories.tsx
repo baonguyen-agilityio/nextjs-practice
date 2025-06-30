@@ -17,23 +17,31 @@ const meta: Meta<typeof Button> = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
-  args: {
-    children: "Default Button",
-  },
-};
-
 export const Primary: Story = {
   args: {
     children: "Primary Button",
-    color: "primary",
+    variant: "primary",
   },
 };
 
 export const Secondary: Story = {
   args: {
     children: "Secondary Button",
-    color: "secondary",
+    variant: "secondary",
+  },
+};
+
+export const Light: Story = {
+  args: {
+    children: "Light Button",
+    variant: "light",
+  },
+};
+
+export const Text: Story = {
+  args: {
+    children: "Text Button",
+    variant: "text",
   },
 };
 
@@ -41,7 +49,7 @@ export const Loading: Story = {
   args: {
     children: "Loading...",
     isLoading: true,
-    color: "primary",
+    variant: "primary",
   },
 };
 
@@ -49,6 +57,6 @@ export const Disabled: Story = {
   args: {
     children: "Disabled Button",
     isDisabled: true,
-    color: "primary",
+    variant: "primary",
   },
 };

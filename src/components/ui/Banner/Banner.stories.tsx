@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Banner } from "./index";
 
 const meta: Meta<typeof Banner> = {
-  title: "Components/Banner",
+  title: "UI Components/Banner",
   component: Banner,
   parameters: {
     layout: "fullscreen",
@@ -10,17 +10,18 @@ const meta: Meta<typeof Banner> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof Banner>;
+type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    title: "Welcome to Our Store",
-    description: "Discover amazing books and start your reading journey today.",
+    title: "Articles",
+    description:
+      "There are many variations of passages of Lorem Ipsum available, have suffered alteration in some form.",
   },
 };
 
-export const WithoutDescription: Story = {
+export const TitleOnly: Story = {
   args: {
-    title: "Books Collection",
+    title: "Significant reading has more info number",
   },
 };

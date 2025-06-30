@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import SkeletonCard from "./index";
 
 const meta: Meta<typeof SkeletonCard> = {
-  title: "Components/SkeletonCard",
+  title: "UI Components/SkeletonCard",
   component: SkeletonCard,
   parameters: {
     layout: "centered",
@@ -10,12 +10,6 @@ const meta: Meta<typeof SkeletonCard> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof SkeletonCard>;
+type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
-  render: () => (
-    <div className="w-[600px]">
-      <SkeletonCard />
-    </div>
-  ),
-};
+export const Default: Story = {};

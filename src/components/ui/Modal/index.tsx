@@ -51,7 +51,7 @@ export const Modal: React.FC<ModalProps> = ({ title, children, footer, ...props 
         {(onClose) => (
           <>
             {title && (
-              <ModalHeader className="flex flex-col gap-1 text-lg font-semibold bg-secondary text-primary">
+              <ModalHeader className="flex flex-col gap-1 text-lg font-semibold font-cardo bg-secondary text-primary">
                 <div className="flex justify-between items-center">
                   {title}
                   <Button

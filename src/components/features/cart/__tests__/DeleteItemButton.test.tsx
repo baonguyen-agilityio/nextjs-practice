@@ -83,8 +83,7 @@ describe("DeleteItemButton", () => {
       expect(button).toBeInTheDocument();
       expect(button).toHaveTextContent("Remove");
       expect(button).toHaveAttribute("type", "submit");
-      expect(button).toHaveAttribute("data-variant", "light");
-      expect(button).toHaveAttribute("data-color", "danger");
+      expect(button).toHaveAttribute("data-variant", "text");
       expect(button).toHaveAttribute("aria-label", "Remove item from cart");
     });
 

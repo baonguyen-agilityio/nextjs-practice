@@ -102,7 +102,7 @@ describe("AddToCart", () => {
       expect(button).toBeInTheDocument();
       expect(button).toHaveTextContent("Add To Cart");
       expect(button).toHaveAttribute("aria-label", "Add to cart");
-      expect(button).toHaveAttribute("data-variant", "solid");
+      expect(button).toHaveAttribute("data-variant", "primary");
       expect(button).toHaveAttribute("type", "submit");
     });
 
@@ -112,8 +112,8 @@ describe("AddToCart", () => {
       const button = screen.getByTestId("button");
       expect(button).toHaveTextContent("Order Today");
       expect(button).toHaveAttribute("aria-label", "Order Today");
-      expect(button).toHaveAttribute("data-variant", "ghost");
-      expect(button).toHaveAttribute("data-color", "primary");
+      expect(button).toHaveAttribute("data-variant", "secondaryGhost");
+      expect(button).toHaveAttribute("type", "submit");
     });
   });
 

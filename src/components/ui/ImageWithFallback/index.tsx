@@ -52,7 +52,7 @@ export default function ImageWithFallback({
       <PlaceholderImage
         className={className}
         width={width || "100%"}
-        height={height || 200}
+        height={height || "100%"}
         text={fallbackText}
       />
     );

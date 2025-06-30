@@ -18,6 +18,9 @@ export default {
         mutedBackground: "#F5F8FC",
         title: "#1B3764",
         description: "#969AA0",
+        primary: "#1B3764",
+        secondary: "#FFCA42",
+        background: "#F6F8FC",
       },
       fontFamily: {
         cardo: ["Cardo", "serif"],

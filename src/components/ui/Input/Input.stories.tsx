@@ -14,22 +14,16 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    placeholder: "Enter text...",
+    placeholder: "Search books...",
+    type: "text",
   },
 };
 
 export const WithLabel: Story = {
   args: {
-    label: "Full Name",
-    placeholder: "Enter your full name",
-  },
-};
-
-export const Required: Story = {
-  args: {
-    label: "Email Address",
-    placeholder: "Enter your email",
+    label: "Email",
     type: "email",
+    placeholder: "Enter your email",
     isRequired: true,
   },
 };
@@ -39,24 +33,23 @@ export const WithError: Story = {
     label: "Username",
     placeholder: "Enter username",
     isInvalid: true,
-    errorMessage: "Username is already taken",
-    value: "invalid-username",
-  },
-};
-
-export const WithDescription: Story = {
-  args: {
-    label: "Password",
-    placeholder: "Enter password",
-    type: "password",
-    description: "Password must be at least 8 characters long",
+    errorMessage: "Username already exists",
   },
 };
 
 export const Disabled: Story = {
   args: {
-    label: "Disabled Input",
-    placeholder: "This input is disabled",
+    label: "Password",
+    type: "password",
+    placeholder: "Enter password",
     isDisabled: true,
+  },
+};
+
+export const Clearable: Story = {
+  args: {
+    placeholder: "Search books...",
+    size: "lg",
+    isClearable: true,
   },
 };

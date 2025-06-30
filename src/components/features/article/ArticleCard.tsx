@@ -2,11 +2,11 @@
 
 import type { Article } from "@/types";
 import { formatDate } from "@/utils/date";
-import { Card, CardBody, CardFooter } from "@heroui/react";
 import { createImageUrl } from "@/utils/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
+import { Card, CardBody, CardFooter } from "@/components/ui/Card";
 
 export function ArticleCard(props: { article: Article }) {
   const { article } = props;
@@ -24,17 +24,18 @@ export function ArticleCard(props: { article: Article }) {
           className="w-full relative overflow-hidden cursor-pointer rounded-t-lg group"
           onClick={handleNavigateToDetails}
         >
-          <ImageWithFallback
-            data-testid="hero-image"
-            alt={`Cover image of ${article.title} article`}
-            src={createImageUrl(article.imageUrl)}
-            width={480}
-            height={580}
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            fallbackText="Article Cover"
-            priority
-          />
+          <div className="w-full h-[230px] relative overflow-hidden">
+            <ImageWithFallback
+              data-testid="hero-image"
+              alt={`Cover image of ${article.title} article`}
+              src={createImageUrl(article.imageUrl)}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              fallbackText="Article Cover"
+              priority
+            />
+          </div>
         </div>
       </CardBody>
       <CardFooter className="flex flex-col gap-5 text-left items-start p-5">
