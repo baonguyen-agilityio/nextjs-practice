@@ -25,6 +25,23 @@ describe("LoginPage", () => {
 
       expect(metadata).toEqual({
         title: "Login",
+        description:
+          "Sign in to your BookStore account to access your wishlist, order history, and personalized book recommendations.",
+        robots: {
+          index: false,
+          follow: true,
+        },
+        openGraph: {
+          title: "Login | BookStore",
+          description:
+            "Sign in to your BookStore account to access your personalized book recommendations and order history.",
+          type: "website",
+        },
+        twitter: {
+          card: "summary",
+          title: "Login | BookStore",
+          description: "Sign in to your BookStore account for personalized book recommendations.",
+        },
       });
     });
   });

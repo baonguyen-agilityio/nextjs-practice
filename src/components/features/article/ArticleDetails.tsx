@@ -1,24 +1,21 @@
-"use client";
-
 import { Banner } from "@/components/ui/Banner";
-import { Button } from "@/components/ui/Button";
-import type { Article } from "@/types";
+import BackButton from "@/components/ui/BackButton";
 import { createImageUrl } from "@/utils/image";
 import { formatDate } from "@/utils/date";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
+import type { Article } from "@/types";
 
-export default function ArticleDetails({ article }: { article: Article }) {
+export function ArticleDetails({ article }: { article: Article }) {
   return (
     <>
       <Banner title="Significant reading has more info number" />
       <section className="container mx-auto px-4 max-w-7xl">
         <div className="py-10 md:p-16 lg:p-20">
           <div className="flex justify-between mb-10">
-            <Button variant="secondaryGhost" onClick={() => window.history.back()}>
-              ← Back to list
-            </Button>
+            <BackButton />
           </div>
-          <div className="relative w-full aspect-[3/2]">
+
+          <div className="relative w-full aspect-[16/9]">
             <ImageWithFallback
               src={createImageUrl(article.imageUrl)}
               alt={`Cover image of ${article.title} article`}
@@ -26,16 +23,22 @@ export default function ArticleDetails({ article }: { article: Article }) {
               height={800}
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
-              priority
               fallbackText="Article Image"
             />
           </div>
-          <div className="space-y-4 mt-5">
-            <p className="text-lg font-semibold text-primary">
-              {formatDate(article.publishedAt)} / {article.author?.name}
-            </p>
-            <p className="text-primary font-inter text-sm">{article.content}</p>
-          </div>
+
+          <article className="space-y-4">
+            <header>
+              <h2 className="text-4xl font-bold text-primary">{article.title}</h2>
+              <p className="text-lg font-semibold text-primary">
+                {formatDate(article.publishedAt)} / {article.author?.name}
+              </p>
+            </header>
+
+            <div className="prose max-w-none mt-6">
+              <p className="text-primary font-inter text-sm leading-relaxed">{article.content}</p>
+            </div>
+          </article>
         </div>
       </section>
     </>

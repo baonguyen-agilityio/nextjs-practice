@@ -1,8 +1,6 @@
 import { getBook } from "@/services/book";
 import { BookDetails } from "@/components/features/book/BookDetails";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
-import SkeletonCard from "@/components/ui/SkeletonCard";
 import type { Metadata } from "next";
 import { createImageUrl } from "@/utils/image";
 import { formatUSD } from "@/utils/currency";
@@ -65,15 +63,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   };
 }
 
-export default function BookDetailWrapper({ params }: { params: Params }) {
-  return (
-    <Suspense fallback={<SkeletonCard />}>
-      <BookDetail params={params} />
-    </Suspense>
-  );
-}
-
-async function BookDetail({ params }: { params: Params }) {
+export default async function BookDetailPage({ params }: { params: Params }) {
   const { id } = await params;
   const { book } = await getBook({ id });
 

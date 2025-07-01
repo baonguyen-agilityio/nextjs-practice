@@ -26,7 +26,7 @@ export function Footer() {
             </div>
           </div>
           <div>
-            <h3 className="font-bold text-2xl mb-4">Keep in Touch</h3>
+            <h2 className="font-bold text-2xl mb-4">Keep in Touch</h2>
             <div className="space-y-2 text-lg">
               <div>
                 <span className="font-semibold">Address: </span>

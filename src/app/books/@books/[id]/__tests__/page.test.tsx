@@ -38,10 +38,10 @@ describe("Book Detail Page (@books/[id])", () => {
   });
 
   describe("Component", () => {
-    it("should export BookDetailWrapper component", async () => {
+    it("should export BookDetailPage component", async () => {
       const pageModule = await import("../page");
       expect(typeof pageModule.default).toBe("function");
-      expect(pageModule.default.name).toBe("BookDetailWrapper");
+      expect(pageModule.default.name).toBe("BookDetailPage");
     });
   });
 

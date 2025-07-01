@@ -13,7 +13,6 @@ export function ArticleCard(props: { article: Article }) {
   const router = useRouter();
 
   const handleNavigateToDetails = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
     router.push(`/articles/${article.documentId}`);
   };
 

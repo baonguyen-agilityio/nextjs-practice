@@ -17,7 +17,32 @@ describe("Books Page (@books)", () => {
   describe("generateMetadata", () => {
     it("should return correct metadata", () => {
       const metadata = generateMetadata();
-      expect(metadata).toEqual({ title: "Books" });
+      expect(metadata).toEqual({
+        title: "Books",
+        description:
+          "Browse our extensive collection of books across all genres. Find fiction, non-fiction, classics, bestsellers, and new releases at competitive prices with fast shipping.",
+        openGraph: {
+          title: "Books | BookStore",
+          description:
+            "Browse our extensive collection of books across all genres. Find your next great read with competitive prices and fast shipping.",
+          type: "website",
+          images: [
+            {
+              url: "/logo.png",
+              width: 1200,
+              height: 630,
+              alt: "BookStore - Browse Our Book Collection",
+            },
+          ],
+        },
+        twitter: {
+          card: "summary_large_image",
+          title: "Books | BookStore",
+          description:
+            "Browse our extensive collection of books across all genres. Find your next great read with competitive prices.",
+          images: ["/logo.png"],
+        },
+      });
     });
   });
 

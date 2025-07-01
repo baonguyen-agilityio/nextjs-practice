@@ -115,7 +115,7 @@ export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
 
         <div className="flex flex-col gap-8 w-full md:w-1/2">
           <div className="flex flex-col gap-6">
-            <p className="text-title text-5xl">{book.title}</p>
+            <h1 className="text-title text-5xl">{book.title}</h1>
             <p className="text-secondary font-inter text-lg font-bold">{formattedPrice}</p>
             <p className="text-description font-inter text-xs">{book.description}</p>
           </div>

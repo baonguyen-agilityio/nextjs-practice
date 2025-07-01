@@ -60,9 +60,9 @@ export default function CartModal() {
         />
         <div className="flex flex-col gap-1 justify-between">
           <div className="flex flex-col gap-1">
-            <h4 id={`cart-item-title-${item.documentId}`} className="text-sm font-bold font-inter">
+            <h3 id={`cart-item-title-${item.documentId}`} className="text-sm font-bold font-inter">
               {item.book?.title}
-            </h4>
+            </h3>
             <span
               id={`cart-item-price-${item.documentId}`}
               className="font-inter font-bold text-[12px] text-gray-500"

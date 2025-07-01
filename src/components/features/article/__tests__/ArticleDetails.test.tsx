@@ -1,46 +1,49 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import ArticleDetails from "../ArticleDetails";
+import { ArticleDetails } from "../ArticleDetails";
 import type { Article } from "@/types";
 
+// Mock components and utilities
 jest.mock("@/components/ui/Banner", () => ({
-  Banner: function MockBanner({ title }: any) {
-    return <div data-testid="banner">{title}</div>;
-  },
+  Banner: ({ title }: { title: string }) => <div data-testid="banner">{title}</div>,
 }));
 
-jest.mock("@/components/ui/Button", () => ({
-  Button: function MockButton({ children, variant, onClick, className }: any) {
+jest.mock("@/components/ui/BackButton", () => {
+  return function MockBackButton() {
     return (
-      <button onClick={onClick} data-variant={variant} className={className} data-testid="button">
-        {children}
+      <button onClick={() => window.history.back()} data-testid="back-button">
+        ← Back to list
       </button>
-    );
-  },
-}));
-
-jest.mock("next/image", () => {
-  return function MockImage({ src, alt, fill, className, sizes, priority, onLoad }: any) {
-    if (onLoad) {
-      setTimeout(() => onLoad(), 0);
-    }
-    return (
-      <img
-        src={src}
-        alt={alt}
-        data-fill={fill}
-        className={className}
-        data-sizes={sizes}
-        data-priority={priority}
-        data-testid="article-image"
-      />
     );
   };
 });
 
-Object.defineProperty(window, "history", {
-  value: {
-    back: jest.fn(),
+jest.mock("@/components/ui/ImageWithFallback", () => {
+  return function MockImageWithFallback({ src, alt, fallbackText }: any) {
+    return <img src={src} alt={alt} data-fallback={fallbackText} data-testid="article-image" />;
+  };
+});
+
+jest.mock("@/utils/image", () => ({
+  createImageUrl: (url: string) => {
+    const baseUrl = process.env.NEXT_PUBLIC_STRAPI_URL;
+    if (!baseUrl || url.startsWith("http")) return url;
+    return `${baseUrl}${url}`;
   },
+}));
+
+jest.mock("@/utils/date", () => ({
+  formatDate: (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  },
+}));
+
+// Mock window.history.back
+Object.defineProperty(window, "history", {
+  value: { back: jest.fn() },
   writable: true,
 });
 
@@ -51,77 +54,58 @@ describe("ArticleDetails", () => {
     slug: "test-article",
     title: "Test Article",
     description: "Test description",
-    content: "<p>This is a test article content with <strong>HTML</strong> formatting.</p>",
+    content: "This is a test article content with formatting.",
     imageUrl: "/test-image.jpg",
     createdAt: "2023-01-01T00:00:00.000Z",
     updatedAt: "2023-01-01T00:00:00.000Z",
     publishedAt: "2023-01-01T00:00:00.000Z",
-    author: {
-      name: "John Doe",
-    },
+    author: { name: "John Doe" },
   };
 
   beforeEach(() => {
-    process.env.NEXT_PUBLIC_STRAPI_URL = "http://localhost:1337";
     jest.clearAllMocks();
+    process.env.NEXT_PUBLIC_STRAPI_URL = "http://localhost:1337";
   });
 
-  describe("Component Rendering", () => {
-    it("should render all main elements", () => {
+  describe("Rendering", () => {
+    it("renders all main components", () => {
       render(<ArticleDetails article={mockArticle} />);
 
       expect(screen.getByTestId("banner")).toBeInTheDocument();
-      expect(screen.getByTestId("button")).toBeInTheDocument();
+      expect(screen.getByTestId("back-button")).toBeInTheDocument();
       expect(screen.getByTestId("article-image")).toBeInTheDocument();
     });
 
-    it("should render banner with correct title", () => {
+    it("displays banner with correct title", () => {
       render(<ArticleDetails article={mockArticle} />);
 
-      const banner = screen.getByTestId("banner");
-      expect(banner).toHaveTextContent("Significant reading has more info number");
+      expect(screen.getByTestId("banner")).toHaveTextContent(
+        "Significant reading has more info number"
+      );
     });
 
-    it("should render back button with correct props", () => {
+    it("displays article information", () => {
       render(<ArticleDetails article={mockArticle} />);
 
-      const backButton = screen.getByTestId("button");
-      expect(backButton).toHaveTextContent("← Back to list");
-      expect(backButton).toHaveAttribute("data-variant", "secondaryGhost");
-    });
-  });
-
-  describe("User Interactions", () => {
-    it("should handle back button click", () => {
-      render(<ArticleDetails article={mockArticle} />);
-
-      const backButton = screen.getByTestId("button");
-      fireEvent.click(backButton);
-
-      expect(window.history.back).toHaveBeenCalled();
+      expect(screen.getByText("Test Article")).toBeInTheDocument();
+      expect(screen.getByText("January 1, 2023 / John Doe")).toBeInTheDocument();
+      expect(
+        screen.getByText("This is a test article content with formatting.")
+      ).toBeInTheDocument();
     });
   });
 
-  describe("Image Handling", () => {
-    it("should render image with correct props and environment URL", async () => {
+  describe("Image handling", () => {
+    it("renders image with environment URL", () => {
       render(<ArticleDetails article={mockArticle} />);
 
       const image = screen.getByTestId("article-image");
       expect(image).toHaveAttribute("src", "http://localhost:1337/test-image.jpg");
       expect(image).toHaveAttribute("alt", "Cover image of Test Article article");
-      expect(image).toHaveAttribute("data-priority", "true");
-
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      expect(image).toHaveClass("object-cover");
-      expect(image).toHaveAttribute(
-        "data-sizes",
-        "(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
-      );
-      expect(image).toHaveAttribute("data-priority", "true");
+      expect(image).toHaveAttribute("data-fallback", "Article Image");
     });
 
-    it("should handle missing environment variable", () => {
+    it("handles missing environment variable", () => {
       delete process.env.NEXT_PUBLIC_STRAPI_URL;
 
       render(<ArticleDetails article={mockArticle} />);
@@ -129,46 +113,78 @@ describe("ArticleDetails", () => {
       const image = screen.getByTestId("article-image");
       expect(image).toHaveAttribute("src", "/test-image.jpg");
     });
-  });
 
-  describe("Content Display", () => {
-    it("should display published date and author", () => {
-      render(<ArticleDetails article={mockArticle} />);
-
-      expect(screen.getByText("January 1, 2023 / John Doe")).toBeInTheDocument();
-    });
-
-    it("should render content with HTML", () => {
-      const { container } = render(<ArticleDetails article={mockArticle} />);
-
-      expect(container.textContent).toContain("This is a test article content");
-      expect(container.textContent).toContain("HTML");
-    });
-
-    it("should handle empty content", () => {
-      const articleWithEmptyContent = {
+    it("handles absolute URLs", () => {
+      const articleWithAbsoluteUrl = {
         ...mockArticle,
-        content: "",
+        imageUrl: "https://example.com/image.jpg",
       };
 
-      const { container } = render(<ArticleDetails article={articleWithEmptyContent} />);
+      render(<ArticleDetails article={articleWithAbsoluteUrl} />);
 
-      expect(container.querySelector(".space-y-4")).toBeInTheDocument();
+      const image = screen.getByTestId("article-image");
+      expect(image).toHaveAttribute("src", "https://example.com/image.jpg");
     });
   });
 
-  describe("Layout Structure", () => {
-    it("should have correct container structure", () => {
+  describe("User interactions", () => {
+    it("handles back button click", () => {
+      render(<ArticleDetails article={mockArticle} />);
+
+      fireEvent.click(screen.getByTestId("back-button"));
+
+      expect(window.history.back).toHaveBeenCalled();
+    });
+  });
+
+  describe("Content display", () => {
+    it("displays author when available", () => {
+      render(<ArticleDetails article={mockArticle} />);
+
+      expect(screen.getByText(/John Doe/)).toBeInTheDocument();
+    });
+
+    it("handles missing author gracefully", () => {
+      const articleWithoutAuthor = {
+        ...mockArticle,
+        author: { name: "" },
+      };
+
+      render(<ArticleDetails article={articleWithoutAuthor} />);
+
+      // Should still render the date part
+      expect(screen.getByText(/January 1, 2023/)).toBeInTheDocument();
+    });
+
+    it("displays article content", () => {
+      const articleWithComplexContent = {
+        ...mockArticle,
+        content: "Complex content with special characters & symbols!",
+      };
+
+      render(<ArticleDetails article={articleWithComplexContent} />);
+
+      expect(
+        screen.getByText("Complex content with special characters & symbols!")
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe("Layout structure", () => {
+    it("has correct CSS classes and structure", () => {
       const { container } = render(<ArticleDetails article={mockArticle} />);
 
+      // Check main container
       const section = container.querySelector("section");
       expect(section).toHaveClass("container", "mx-auto", "px-4", "max-w-7xl");
 
-      const paddingDiv = container.querySelector(".py-10");
-      expect(paddingDiv).toHaveClass("py-10", "md:p-16", "lg:p-20");
+      // Check article element
+      const article = container.querySelector("article");
+      expect(article).toHaveClass("space-y-4");
 
-      const spacingDiv = container.querySelector(".space-y-4");
-      expect(spacingDiv).toHaveClass("space-y-4", "mt-5");
+      // Check header structure
+      const header = container.querySelector("header");
+      expect(header).toBeInTheDocument();
     });
   });
 });

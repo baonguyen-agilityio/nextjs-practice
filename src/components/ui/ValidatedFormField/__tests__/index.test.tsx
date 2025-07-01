@@ -3,44 +3,58 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { ValidatedFormField } from "../index";
 import type { FieldConfig } from "@/hooks/useFormValidation";
 
-const MockFormField = React.forwardRef<HTMLInputElement, any>(
-  (
-    { id, name, label, type, required, value, onChange, errorMessage, isDisabled, size, ...props },
-    ref
-  ) => (
-    <div data-testid="form-field">
-      <label htmlFor={id} data-testid="field-label">
-        {label}
-        {required && <span data-testid="required-indicator">*</span>}
-      </label>
-      <input
-        ref={ref}
-        id={id}
-        name={name}
-        type={type}
-        value={value}
-        onChange={onChange}
-        disabled={isDisabled}
-        required={required}
-        data-testid="field-input"
-        data-size={size}
-        {...props}
-      />
-      {errorMessage && <span data-testid="error-message">{errorMessage}</span>}
-    </div>
-  )
-);
+// Mock FormField component
+jest.mock("@/components/ui/FormField", () => {
+  const MockFormField = React.forwardRef<HTMLInputElement, any>(
+    (
+      {
+        id,
+        name,
+        label,
+        type,
+        required,
+        value,
+        onChange,
+        errorMessage,
+        isDisabled,
+        size,
+        ...props
+      },
+      ref
+    ) => (
+      <div data-testid="form-field">
+        <label htmlFor={id} data-testid="field-label">
+          {label}
+          {required && <span data-testid="required-indicator">*</span>}
+        </label>
+        <input
+          ref={ref}
+          id={id}
+          name={name}
+          type={type}
+          value={value}
+          onChange={onChange}
+          disabled={isDisabled}
+          required={required}
+          data-testid="field-input"
+          data-size={size}
+          {...props}
+        />
+        {errorMessage && <span data-testid="error-message">{errorMessage}</span>}
+      </div>
+    )
+  );
+  MockFormField.displayName = "MockFormField";
 
-MockFormField.displayName = "MockFormField";
-
-jest.mock("@/components/ui/FormField", () => ({
-  FormField: MockFormField,
-}));
+  return {
+    FormField: MockFormField,
+  };
+});
 
 describe("ValidatedFormField", () => {
   const mockOnChange = jest.fn();
 
-  const defaultField: FieldConfig = {
+  const basicField: FieldConfig = {
     name: "testField",
     label: "Test Field",
     type: "text",
@@ -51,134 +65,121 @@ describe("ValidatedFormField", () => {
     mockOnChange.mockClear();
   });
 
-  it("renders with basic props", () => {
-    render(<ValidatedFormField field={defaultField} value="" onChange={mockOnChange} />);
+  describe("Basic functionality", () => {
+    it("renders with basic props", () => {
+      render(<ValidatedFormField field={basicField} value="" onChange={mockOnChange} />);
 
-    expect(screen.getByTestId("form-field")).toBeInTheDocument();
-    expect(screen.getByTestId("field-label")).toHaveTextContent("Test Field");
-    expect(screen.getByTestId("field-input")).toHaveAttribute("name", "testField");
-    expect(screen.getByTestId("field-input")).toHaveAttribute("type", "text");
+      expect(screen.getByTestId("form-field")).toBeInTheDocument();
+      expect(screen.getByTestId("field-label")).toHaveTextContent("Test Field");
+      expect(screen.getByTestId("field-input")).toHaveAttribute("name", "testField");
+      expect(screen.getByTestId("field-input")).toHaveAttribute("type", "text");
+      expect(screen.getByTestId("field-input")).toHaveAttribute("id", "testField");
+    });
+
+    it("displays the current value", () => {
+      render(<ValidatedFormField field={basicField} value="test value" onChange={mockOnChange} />);
+
+      expect(screen.getByTestId("field-input")).toHaveValue("test value");
+    });
+
+    it("calls onChange with field name and value", () => {
+      render(<ValidatedFormField field={basicField} value="" onChange={mockOnChange} />);
+
+      fireEvent.change(screen.getByTestId("field-input"), { target: { value: "new value" } });
+
+      expect(mockOnChange).toHaveBeenCalledWith("testField", "new value");
+    });
   });
 
-  it("renders with required field", () => {
-    const requiredField: FieldConfig = {
-      ...defaultField,
-      required: true,
-    };
+  describe("Field configuration", () => {
+    it("renders required field", () => {
+      const requiredField: FieldConfig = { ...basicField, required: true };
 
-    render(<ValidatedFormField field={requiredField} value="" onChange={mockOnChange} />);
+      render(<ValidatedFormField field={requiredField} value="" onChange={mockOnChange} />);
 
-    expect(screen.getByTestId("required-indicator")).toBeInTheDocument();
-    expect(screen.getByTestId("field-input")).toHaveAttribute("required");
+      expect(screen.getByTestId("required-indicator")).toBeInTheDocument();
+      expect(screen.getByTestId("field-input")).toHaveAttribute("required");
+    });
+
+    it("renders different field types", () => {
+      const emailField: FieldConfig = { ...basicField, type: "email" };
+
+      render(<ValidatedFormField field={emailField} value="" onChange={mockOnChange} />);
+
+      expect(screen.getByTestId("field-input")).toHaveAttribute("type", "email");
+    });
   });
 
-  it("renders with value", () => {
-    render(<ValidatedFormField field={defaultField} value="test value" onChange={mockOnChange} />);
+  describe("Optional props", () => {
+    it("renders with error message", () => {
+      render(
+        <ValidatedFormField
+          field={basicField}
+          value=""
+          onChange={mockOnChange}
+          errorMessage="This field is required"
+        />
+      );
 
-    expect(screen.getByTestId("field-input")).toHaveValue("test value");
+      expect(screen.getByTestId("error-message")).toHaveTextContent("This field is required");
+    });
+
+    it("renders disabled state", () => {
+      render(
+        <ValidatedFormField field={basicField} value="" onChange={mockOnChange} isDisabled={true} />
+      );
+
+      expect(screen.getByTestId("field-input")).toBeDisabled();
+    });
+
+    it("uses default size (lg)", () => {
+      render(<ValidatedFormField field={basicField} value="" onChange={mockOnChange} />);
+
+      expect(screen.getByTestId("field-input")).toHaveAttribute("data-size", "lg");
+    });
+
+    it("renders with custom size sm", () => {
+      render(<ValidatedFormField field={basicField} value="" onChange={mockOnChange} size="sm" />);
+
+      expect(screen.getByTestId("field-input")).toHaveAttribute("data-size", "sm");
+    });
+
+    it("renders with custom size md", () => {
+      render(<ValidatedFormField field={basicField} value="" onChange={mockOnChange} size="md" />);
+
+      expect(screen.getByTestId("field-input")).toHaveAttribute("data-size", "md");
+    });
   });
 
-  it("handles onChange event", () => {
-    render(<ValidatedFormField field={defaultField} value="" onChange={mockOnChange} />);
+  describe("Ref forwarding and additional props", () => {
+    it("forwards ref correctly", () => {
+      const ref = React.createRef<HTMLInputElement>();
 
-    const input = screen.getByTestId("field-input");
-    fireEvent.change(input, { target: { value: "new value" } });
+      render(<ValidatedFormField ref={ref} field={basicField} value="" onChange={mockOnChange} />);
 
-    expect(mockOnChange).toHaveBeenCalledWith("testField", "new value");
+      expect(ref.current).toBeInstanceOf(HTMLInputElement);
+    });
+
+    it("passes additional props to FormField", () => {
+      render(
+        <ValidatedFormField
+          field={basicField}
+          value=""
+          onChange={mockOnChange}
+          placeholder="Enter text"
+          data-custom="test"
+        />
+      );
+
+      const input = screen.getByTestId("field-input");
+      expect(input).toHaveAttribute("placeholder", "Enter text");
+      expect(input).toHaveAttribute("data-custom", "test");
+    });
   });
 
-  it("renders with error message", () => {
-    render(
-      <ValidatedFormField
-        field={defaultField}
-        value=""
-        onChange={mockOnChange}
-        errorMessage="This field is required"
-      />
-    );
-
-    expect(screen.getByTestId("error-message")).toHaveTextContent("This field is required");
-  });
-
-  it("renders with disabled state", () => {
-    render(
-      <ValidatedFormField field={defaultField} value="" onChange={mockOnChange} isDisabled={true} />
-    );
-
-    expect(screen.getByTestId("field-input")).toBeDisabled();
-  });
-
-  it("renders with default size (lg)", () => {
-    render(<ValidatedFormField field={defaultField} value="" onChange={mockOnChange} />);
-
-    expect(screen.getByTestId("field-input")).toHaveAttribute("data-size", "lg");
-  });
-
-  it("renders with custom size", () => {
-    render(<ValidatedFormField field={defaultField} value="" onChange={mockOnChange} size="sm" />);
-
-    expect(screen.getByTestId("field-input")).toHaveAttribute("data-size", "sm");
-  });
-
-  it("renders with medium size", () => {
-    render(<ValidatedFormField field={defaultField} value="" onChange={mockOnChange} size="md" />);
-
-    expect(screen.getByTestId("field-input")).toHaveAttribute("data-size", "md");
-  });
-
-  it("renders with different field types", () => {
-    const emailField: FieldConfig = {
-      ...defaultField,
-      type: "email",
-    };
-
-    render(<ValidatedFormField field={emailField} value="" onChange={mockOnChange} />);
-
-    expect(screen.getByTestId("field-input")).toHaveAttribute("type", "email");
-  });
-
-  it("forwards ref correctly", () => {
-    const ref = React.createRef<HTMLInputElement>();
-
-    render(<ValidatedFormField ref={ref} field={defaultField} value="" onChange={mockOnChange} />);
-
-    expect(ref.current).toBeInstanceOf(HTMLInputElement);
-  });
-
-  it("passes additional props to FormField", () => {
-    render(
-      <ValidatedFormField
-        field={defaultField}
-        value=""
-        onChange={mockOnChange}
-        placeholder="Enter text here"
-        data-custom="custom-value"
-      />
-    );
-
-    const input = screen.getByTestId("field-input");
-    expect(input).toHaveAttribute("placeholder", "Enter text here");
-    expect(input).toHaveAttribute("data-custom", "custom-value");
-  });
-
-  it("has correct displayName", () => {
-    expect(ValidatedFormField.displayName).toBe("ValidatedFormField");
-  });
-
-  it("renders without error message when not provided", () => {
-    render(<ValidatedFormField field={defaultField} value="" onChange={mockOnChange} />);
-
-    expect(screen.queryByTestId("error-message")).not.toBeInTheDocument();
-  });
-
-  it("renders with non-required field", () => {
-    const nonRequiredField: FieldConfig = {
-      ...defaultField,
-      required: false,
-    };
-
-    render(<ValidatedFormField field={nonRequiredField} value="" onChange={mockOnChange} />);
-
-    expect(screen.queryByTestId("required-indicator")).not.toBeInTheDocument();
+  describe("Component metadata", () => {
+    it("has correct displayName", () => {
+      expect(ValidatedFormField.displayName).toBe("ValidatedFormField");
+    });
   });
 });

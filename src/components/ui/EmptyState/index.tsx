@@ -9,6 +9,7 @@ interface EmptyStateProps {
     onClick: () => void;
   };
   className?: string;
+  headingLevel?: 1 | 2 | 3 | 4 | 5 | 6;
 }
 
 const DefaultIcon = () => (
@@ -28,14 +29,39 @@ export default function EmptyState({
   icon,
   action,
   className = "",
+  headingLevel = 1,
 }: EmptyStateProps) {
+  const getHeadingElement = () => {
+    const headingProps = {
+      className: "text-xl font-semibold text-gray-900 dark:text-white mb-3",
+      children: title,
+    };
+
+    switch (headingLevel) {
+      case 1:
+        return <h1 {...headingProps} />;
+      case 2:
+        return <h2 {...headingProps} />;
+      case 3:
+        return <h3 {...headingProps} />;
+      case 4:
+        return <h4 {...headingProps} />;
+      case 5:
+        return <h5 {...headingProps} />;
+      case 6:
+        return <h6 {...headingProps} />;
+      default:
+        return <h1 {...headingProps} />;
+    }
+  };
+
   return (
     <div
       className={`flex flex-col items-center justify-center text-center py-16 px-4 ${className}`}
     >
       <div className="mb-6">{icon || <DefaultIcon />}</div>
 
-      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">{title}</h3>
+      {getHeadingElement()}
 
       <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-md">{message}</p>
 

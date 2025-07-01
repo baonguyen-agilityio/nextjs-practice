@@ -1,8 +1,6 @@
 import { getArticle } from "@/services/article";
+import { ArticleDetails } from "@/components/features/article/ArticleDetails";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
-import ArticleDetails from "@/components/features/article/ArticleDetails";
-import ArticleSkeleton from "@/components/features/article/ArticleSkeleton";
 import type { Metadata } from "next";
 import { createImageUrl } from "@/utils/image";
 import { formatDate } from "@/utils/date";
@@ -21,44 +19,44 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   }
 
   const imageUrl = createImageUrl(article.imageUrl);
-  const publishDate = formatDate(article.publishedAt);
+  const publishedDate = formatDate(article.publishedAt);
 
   return {
     title: article.title,
     description:
       article.description ||
-      `${article.title} - Read our latest article about books, literature, and reading insights published on ${publishDate}.`,
+      `${article.title} - Published on ${publishedDate} by ${article.author?.name}. Read this insightful article at BookStore.`,
     keywords: [article.title, "article", "blog", "books", "literature", "reading", "BookStore"],
     authors: [{ name: article.author?.name || "BookStore Team" }],
     openGraph: {
       title: `${article.title} | BookStore Articles`,
       description:
         article.description ||
-        `Read "${article.title}" - our latest insights about books and literature.`,
+        `Read "${article.title}" by ${article.author?.name}. Published on ${publishedDate}.`,
       type: "article",
       images: [
         {
           url: imageUrl,
-          width: 1200,
-          height: 630,
-          alt: `Article image for ${article.title}`,
+          width: 800,
+          height: 600,
+          alt: `Cover of ${article.title}`,
           type: "image/jpeg",
         },
       ],
-      authors: [article.author?.name || "BookStore Team"],
+      authors: [`${article.author?.name || "BookStore Team"}`],
       publishedTime: article.publishedAt,
       modifiedTime: article.updatedAt,
       section: "Literature & Books",
-      tags: ["books", "literature", "reading"],
+      tags: ["books", "literature", "reading", article.title],
     },
     twitter: {
       card: "summary_large_image",
       title: `${article.title} | BookStore Articles`,
-      description: `Read "${article.title}" - insights about books and literature from BookStore.`,
+      description: `Read "${article.title}" by ${article.author?.name}. Published on ${publishedDate}.`,
       images: [
         {
           url: imageUrl,
-          alt: `Article image for ${article.title}`,
+          alt: `Cover of ${article.title}`,
         },
       ],
     },
@@ -68,15 +66,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   };
 }
 
-export default function ArticleDetailWrapper({ params }: { params: Params }) {
-  return (
-    <Suspense fallback={<ArticleSkeleton />}>
-      <ArticleDetail params={params} />
-    </Suspense>
-  );
-}
-
-async function ArticleDetail({ params }: { params: Params }) {
+export default async function ArticleDetailPage({ params }: { params: Params }) {
   const { id } = await params;
   const { article } = await getArticle({ id });
 
