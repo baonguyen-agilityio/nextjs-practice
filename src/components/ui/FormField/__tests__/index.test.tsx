@@ -4,7 +4,7 @@ import { FormField } from "../index";
 
 jest.mock("@/components/ui/Input", () => {
   const MockInput = React.forwardRef<any, any>(
-    ({ label, isRequired, isInvalid, id, name, ...props }, ref) => (
+    ({ label, isRequired, isInvalid, id, name, errorMessage, ...props }, ref) => (
       <div data-testid="input-wrapper">
         <label data-testid="input-label">
           {label}
@@ -18,6 +18,7 @@ jest.mock("@/components/ui/Input", () => {
           name={name}
           {...props}
         />
+        {errorMessage && <div data-testid="input-error">{errorMessage}</div>}
       </div>
     )
   );
@@ -51,7 +52,7 @@ describe("FormField", () => {
   it("displays error message", () => {
     render(<FormField {...defaultProps} errorMessage="This field is required" />);
 
-    expect(screen.getByText("This field is required")).toBeInTheDocument();
+    expect(screen.getByTestId("input-error")).toHaveTextContent("This field is required");
     expect(screen.getByTestId("input-field")).toHaveAttribute("data-invalid", "true");
   });
 
@@ -59,12 +60,13 @@ describe("FormField", () => {
     render(<FormField {...defaultProps} helpText="This is help text" />);
 
     expect(screen.getByText("This is help text")).toBeInTheDocument();
+    expect(screen.queryByTestId("input-error")).not.toBeInTheDocument();
   });
 
   it("hides help text when there is an error", () => {
     render(<FormField {...defaultProps} errorMessage="Error message" helpText="Help text" />);
 
-    expect(screen.getByText("Error message")).toBeInTheDocument();
+    expect(screen.getByTestId("input-error")).toHaveTextContent("Error message");
     expect(screen.queryByText("Help text")).not.toBeInTheDocument();
   });
 

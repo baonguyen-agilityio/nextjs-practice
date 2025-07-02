@@ -23,7 +23,7 @@ interface ValidatedSelectFieldProps {
 export const ValidatedSelectField: React.FC<ValidatedSelectFieldProps> = ({
   name,
   label,
-  placeholder = "Select an option",
+  placeholder,
   required = false,
   value,
   onChange,
@@ -32,8 +32,7 @@ export const ValidatedSelectField: React.FC<ValidatedSelectFieldProps> = ({
   isDisabled = false,
   size = "lg",
 }) => {
-  const hasError = Boolean(errorMessage);
-  const errorId = `${name}-error`;
+  const hasError = !!errorMessage;
 
   return (
     <div className="w-full">
@@ -50,8 +49,7 @@ export const ValidatedSelectField: React.FC<ValidatedSelectFieldProps> = ({
           onChange(selectedValue || "");
         }}
         errorMessage={errorMessage}
-        aria-invalid={hasError}
-        aria-describedby={hasError ? errorId : undefined}
+        isInvalid={hasError}
       >
         {options.map((option) => (
           <SelectItem key={option.key} aria-label={option.label}>
@@ -59,11 +57,6 @@ export const ValidatedSelectField: React.FC<ValidatedSelectFieldProps> = ({
           </SelectItem>
         ))}
       </Select>
-      {hasError && (
-        <p id={errorId} className="text-small text-danger mt-1" role="alert" aria-live="polite">
-          {errorMessage}
-        </p>
-      )}
     </div>
   );
 };

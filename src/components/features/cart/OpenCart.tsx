@@ -10,12 +10,12 @@ export function OpenCart({ quantity }: { quantity?: number }) {
             absolute -top-3 -right-3
             bg-secondary text-primary   
             rounded-full
-            w-5 h-5 flex items-center justify-center
+            w-6 h-6 flex items-center justify-center
             font-bold text-[10px] font-inter
             shadow
             "
         >
-          {quantity}
+          {quantity > 99 ? "99+" : quantity}
         </span>
       ) : null}
     </div>

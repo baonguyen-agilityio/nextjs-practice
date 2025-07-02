@@ -61,8 +61,8 @@ describe("OpenCart", () => {
       "bg-secondary",
       "text-primary",
       "rounded-full",
-      "w-5",
-      "h-5",
+      "w-6",
+      "h-6",
       "flex",
       "items-center",
       "justify-center",
@@ -85,10 +85,16 @@ describe("OpenCart", () => {
     expect(screen.getByText("99")).toBeInTheDocument();
   });
 
-  it("should handle large quantities", () => {
+  it("should handle large quantities by showing 99+", () => {
     render(<OpenCart quantity={999} />);
 
-    expect(screen.getByText("999")).toBeInTheDocument();
+    expect(screen.getByText("99+")).toBeInTheDocument();
+  });
+
+  it("should show 99+ for quantities over 99", () => {
+    render(<OpenCart quantity={100} />);
+
+    expect(screen.getByText("99+")).toBeInTheDocument();
   });
 
   it("should position badge correctly", () => {

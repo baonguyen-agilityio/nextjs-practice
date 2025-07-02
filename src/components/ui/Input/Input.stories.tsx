@@ -37,6 +37,17 @@ export const WithError: Story = {
   },
 };
 
+export const ErrorWithDefaultBackground: Story = {
+  args: {
+    label: "Email Address",
+    type: "email",
+    placeholder: "name@example.com",
+    isInvalid: true,
+    errorMessage: "Please enter a valid email address",
+    description: "Error styling with default background and label - only error text is red",
+  },
+};
+
 export const Disabled: Story = {
   args: {
     label: "Password",

@@ -9,6 +9,21 @@ const StyledSelect = extendVariants(HeroSelect, {
   defaultVariants: {
     size: "md",
     radius: "none",
+    color: "default",
+  },
+  variants: {
+    isInvalid: {
+      true: {
+        trigger: [
+          "!bg-default-100",
+          "data-[hover=true]:!bg-default-100",
+          "data-[focus=true]:!bg-default-100",
+          "data-[open=true]:!bg-default-100",
+          "data-[invalid=true]:!bg-default-100",
+        ],
+        label: ["!text-default-500", "data-[invalid=true]:!text-default-500"],
+      },
+    },
   },
 });
 

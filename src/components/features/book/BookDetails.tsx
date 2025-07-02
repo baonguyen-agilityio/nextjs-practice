@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useCallback, useEffect } from "react";
+import { useActionState, useState, useCallback, useEffect, useMemo } from "react";
 import { addItem } from "@/app/actions";
 import { formatUSD } from "@/utils/currency";
 import type { Book } from "@/types";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import MinusIcon from "@/components/icons/MinusIcon";
 import PlusIcon from "@/components/icons/PlusIcon";
-import { createImageUrl, validateQuantity } from "@/utils";
+import { createImageUrl, validateQuantity, sanitizeQuantityInput } from "@/utils";
 import { MIN_QUANTITY } from "@/constants";
 import { addToast } from "@heroui/react";
 import { useRouter } from "next/navigation";
@@ -30,40 +30,72 @@ interface BookDetailsProps {
 
 export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
   const [quantity, setQuantity] = useState(MIN_QUANTITY);
+  const [inputValue, setInputValue] = useState(MIN_QUANTITY.toString());
   const { addCartItem } = useCart();
   const [result, formAction, isPending] = useActionState(addItem, {
     success: null,
     message: "",
   });
   const router = useRouter();
+
+  const imageUrl = useMemo(() => createImageUrl(book.imageUrl), [book.imageUrl]);
+  const formattedPrice = useMemo(() => `${formatUSD(book.price)} USD`, [book.price]);
+  const isMinQuantity = quantity <= MIN_QUANTITY;
+
   const handleButtonQuantityChange = useCallback((type: "plus" | "minus") => {
     setQuantity((prev) => {
       const newValue = type === "plus" ? prev + 1 : prev - 1;
-      return validateQuantity(newValue);
+      const validatedValue = validateQuantity(newValue);
+      setInputValue(validatedValue.toString());
+      return validatedValue;
     });
   }, []);
 
-  const handleQuantityChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number(e.target.value);
-    setQuantity(validateQuantity(value));
+  const handleQuantityInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value;
+
+    if (rawValue === "") {
+      setInputValue("");
+      return;
+    }
+
+    const sanitizedValue = sanitizeQuantityInput(rawValue);
+
+    setInputValue(sanitizedValue);
+
+    const numericValue = parseInt(sanitizedValue, 10);
+    if (!isNaN(numericValue)) {
+      const validatedQuantity = validateQuantity(numericValue);
+      setQuantity(validatedQuantity);
+    }
   }, []);
 
+  const handleQuantityInputBlur = useCallback(() => {
+    if (inputValue === "" || parseInt(inputValue, 10) !== quantity) {
+      setInputValue(quantity.toString());
+    }
+  }, [inputValue, quantity]);
+
   const handleFormSubmit = useCallback(async () => {
-    addCartItem(book, quantity);
-    const payload = {
-      bookId: book.id,
-      quantity: quantity,
-    };
-    const updateItemQuantityAction = formAction.bind(null, payload);
-    updateItemQuantityAction();
+    try {
+      addCartItem(book, quantity);
+      const payload = {
+        bookId: book.id,
+        quantity: quantity,
+      };
+      const updateItemQuantityAction = formAction.bind(null, payload);
+      updateItemQuantityAction();
+    } catch (error) {
+      addToast({
+        title: error instanceof Error ? error.message : "Failed to add item to cart",
+        color: "danger",
+      });
+    }
   }, [addCartItem, book, quantity, formAction]);
 
   const handleBackClick = useCallback(() => {
     handleNavigation(onNavigateBack);
   }, [onNavigateBack]);
-
-  const imageUrl = createImageUrl(book.imageUrl);
-  const formattedPrice = `${formatUSD(book.price)} USD`;
 
   useEffect(() => {
     if (result?.message === "UNAUTHORIZED") {
@@ -72,23 +104,21 @@ export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
         color: "danger",
       });
       router.push("/login");
+      return;
     }
-  }, [result, router]);
 
-  useEffect(() => {
     if (result?.success) {
       addToast({
         title: result.message,
         color: "success",
       });
-    }
-    if (result?.success === false && result?.message !== "UNAUTHORIZED") {
+    } else if (result?.success === false) {
       addToast({
         title: "Failed to add item to cart",
         color: "danger",
       });
     }
-  }, [result]);
+  }, [result, router]);
 
   return (
     <section>
@@ -97,6 +127,7 @@ export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
           ← Back to list
         </Button>
       </div>
+
       <div className="flex flex-col md:flex-row justify-between gap-10">
         <div className="flex justify-center bg-background p-6 md:p-10">
           <div className="w-full relative overflow-hidden">
@@ -119,28 +150,36 @@ export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
             <p className="text-secondary font-inter text-lg font-bold">{formattedPrice}</p>
             <p className="text-description font-inter text-xs">{book.description}</p>
           </div>
+
           <form action={handleFormSubmit} className="flex gap-2">
             <div className="ml-auto flex h-15 flex-row items-center border border-secondary">
               <Button
                 variant="text"
                 isIconOnly
                 aria-label="Decrease quantity"
+                disabled={isMinQuantity}
                 onClick={() => handleButtonQuantityChange("minus")}
+                className={isMinQuantity ? "opacity-50 cursor-not-allowed" : ""}
               >
                 <MinusIcon className="h-4 w-4" />
               </Button>
+
               <Input
                 type="text"
                 inputMode="numeric"
                 aria-label="Book quantity"
+                min={MIN_QUANTITY}
                 classNames={{
                   input: "text-center text-lg",
                   inputWrapper: "bg-transparent shadow-none outline-none",
                 }}
                 disableAnimation
-                value={`${quantity}`}
-                onChange={handleQuantityChange}
+                value={inputValue}
+                onChange={handleQuantityInputChange}
+                onBlur={handleQuantityInputBlur}
+                placeholder={MIN_QUANTITY.toString()}
               />
+
               <Button
                 variant="text"
                 isIconOnly
@@ -150,13 +189,8 @@ export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
                 <PlusIcon className="h-4 w-4" />
               </Button>
             </div>
-            <Button
-              isLoading={isPending}
-              isDisabled={quantity === 0}
-              type="submit"
-              fullWidth
-              variant="secondary"
-            >
+
+            <Button isLoading={isPending} type="submit" fullWidth variant="secondary">
               Add to Cart
             </Button>
           </form>

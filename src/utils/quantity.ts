@@ -1,5 +1,14 @@
-import { MIN_QUANTITY, MAX_QUANTITY } from "@/constants";
+import { MIN_QUANTITY } from "@/constants";
 
 export const validateQuantity = (value: number): number => {
-  return Math.max(MIN_QUANTITY, Math.min(value, MAX_QUANTITY));
+  if (isNaN(value) || !isFinite(value) || value < 0) {
+    return MIN_QUANTITY;
+  }
+
+  const intValue = Math.floor(value);
+  return Math.max(MIN_QUANTITY, intValue);
+};
+
+export const sanitizeQuantityInput = (value: string): string => {
+  return value.replace(/[^\d]/g, "");
 };

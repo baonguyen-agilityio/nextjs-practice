@@ -60,7 +60,6 @@ export const BookFormFields: React.FC<BookFormFieldsProps> = ({
       <ValidatedSelectField
         name="categories"
         label="Category"
-        placeholder="Select a category"
         required
         value={formData.categories || ""}
         onChange={onCategoryChange}

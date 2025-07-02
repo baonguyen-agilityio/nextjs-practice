@@ -1,10 +1,9 @@
 "use client";
 
 import type { CartItem } from "@/types";
-import { useActionState, useCallback, useEffect } from "react";
+import { useActionState, useCallback } from "react";
 import { removeItem } from "@/app/actions";
 import { Button } from "@/components/ui/Button";
-import { addToast } from "@heroui/react";
 
 interface DeleteItemButtonProps {
   item: CartItem;
@@ -12,7 +11,7 @@ interface DeleteItemButtonProps {
 }
 
 export function DeleteItemButton({ item, optimisticUpdate }: DeleteItemButtonProps) {
-  const [result, formAction, isPending] = useActionState(removeItem, {
+  const [_, formAction, isPending] = useActionState(removeItem, {
     success: null,
     message: "",
   });
@@ -26,21 +25,6 @@ export function DeleteItemButton({ item, optimisticUpdate }: DeleteItemButtonPro
     removeItemAction();
   }, [optimisticUpdate, bookId, removeItemAction]);
 
-  useEffect(() => {
-    if (result?.success) {
-      addToast({
-        title: result.message,
-        color: "success",
-      });
-    }
-    if (result?.success === false) {
-      addToast({
-        title: result.message,
-        color: "danger",
-      });
-    }
-  }, [result]);
-
   return (
     <form action={handleFormSubmit}>
       <Button
@@ -49,6 +33,7 @@ export function DeleteItemButton({ item, optimisticUpdate }: DeleteItemButtonPro
         isLoading={isPending}
         type="submit"
         variant="text"
+        className="min-w-fit p-0"
       >
         Remove
       </Button>

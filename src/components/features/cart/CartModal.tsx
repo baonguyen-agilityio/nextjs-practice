@@ -23,7 +23,7 @@ export default function CartModal() {
     if (!cart || cart.cartItems.length === 0) {
       createCart();
     }
-  }, [cart, createCart]);
+  }, [cart]);
 
   const totalAmount = cart?.cost?.totalAmount || 0;
   const formattedTotal = formatUSD(totalAmount);
@@ -39,25 +39,27 @@ export default function CartModal() {
     </div>
   );
 
-  const renderCartItem = (item: CartItem) => {
+  const renderCartItem = (item: CartItem, index: number) => {
     const imageUrl = createImageUrl(item.book?.imageUrl || "");
     const itemPrice = formatUSD(item.book?.price || 0);
 
     return (
       <article
-        key={item.documentId}
+        key={item.documentId || `cart-item-${index}`}
         className="flex gap-2"
         aria-labelledby={`cart-item-title-${item.documentId}`}
         aria-describedby={`cart-item-price-${item.documentId} cart-item-quantity-${item.documentId}`}
       >
-        <ImageWithFallback
-          src={imageUrl}
-          alt={`Cover of ${item.book?.title}`}
-          width={100}
-          height={100}
-          className="w-20 h-20 object-contain"
-          fallbackText="Book"
-        />
+        <div className="flex-shrink-0 w-[80px] h-[120px] flex items-center justify-center">
+          <ImageWithFallback
+            src={imageUrl}
+            alt={`Cover of ${item.book?.title}`}
+            width={80}
+            height={120}
+            className="max-w-full max-h-full object-contain"
+            fallbackText="Book"
+          />
+        </div>
         <div className="flex flex-col gap-1 justify-between">
           <div className="flex flex-col gap-1">
             <h3 id={`cart-item-title-${item.documentId}`} className="text-sm font-bold font-inter">
@@ -102,7 +104,7 @@ export default function CartModal() {
     return (
       <div role="region" aria-label="Shopping cart items">
         <div className="flex flex-col gap-2 border-b border-neutral-200 dark:border-neutral-700 pb-4">
-          {cart!.cartItems.map((item) => renderCartItem(item))}
+          {cart!.cartItems.map((item, index) => renderCartItem(item, index))}
         </div>
       </div>
     );

@@ -48,7 +48,7 @@ export default function BookCard(props: {
     >
       <Card className="shadow-none rounded-none h-full flex flex-col">
         <div className="p-0 cursor-pointer" onClick={handleNavigateToDetails}>
-          <div className="w-full h-[550px] relative overflow-hidden bg-background p-6">
+          <div className="w-full h-[550px] relative overflow-hidden bg-background p-10">
             <div className="w-full h-full relative">
               <ImageWithFallback
                 data-testid="book-image"

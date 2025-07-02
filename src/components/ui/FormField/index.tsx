@@ -19,11 +19,9 @@ export const FormField = React.forwardRef<React.ComponentRef<typeof Input>, Form
     const error = Array.isArray(errorMessage) ? errorMessage.join(", ") : errorMessage;
     const hasError = Boolean(error);
     const helpTextId = `${name}-help`;
-    const errorId = `${name}-error`;
 
     const describedByIds = [];
     if (helpText && !hasError) describedByIds.push(helpTextId);
-    if (hasError) describedByIds.push(errorId);
     const ariaDescribedBy = describedByIds.length > 0 ? describedByIds.join(" ") : undefined;
 
     return (
@@ -44,11 +42,6 @@ export const FormField = React.forwardRef<React.ComponentRef<typeof Input>, Form
         {!hasError && helpText && (
           <p id={helpTextId} className="text-small text-default-500 mt-1" role="note">
             {helpText}
-          </p>
-        )}
-        {hasError && (
-          <p id={errorId} className="text-small text-danger mt-1" role="alert" aria-live="polite">
-            {error}
           </p>
         )}
       </div>
