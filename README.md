@@ -168,7 +168,6 @@ Visit [http://localhost:6006](http://localhost:6006) to view the component libra
 Authentication is handled by NextAuth.js with support for:
 
 - Email/Password authentication
-- OAuth providers (configurable)
 - Session management
 - Protected routes
 
@@ -201,52 +200,11 @@ Authentication is handled by NextAuth.js with support for:
 - **Jest**: Testing framework
 - **Storybook**: Component development
 
-## 🚀 Deployment
+### Account to test
 
-### Vercel (Recommended)
-
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Configure environment variables
-4. Deploy automatically on push
-
-### Other Platforms
-
-The application can be deployed to any platform that supports Node.js:
-
-- Netlify
-- Railway
-- DigitalOcean App Platform
-- AWS Amplify
-
-### Build for Production
-
-```bash
-npm run build
-npm run start
-```
-
-### Commit Guidelines
-
-We follow conventional commits:
-
-- `feat:` New features
-- `fix:` Bug fixes
-- `docs:` Documentation changes
-- `style:` Code style changes
-- `refactor:` Code refactoring
-- `test:` Test additions or changes
-- `chore:` Maintenance tasks
-
-## 🆘 Support
-
-- **Documentation**: Check this README and inline code comments
-- **Issues**: Open a GitHub issue for bug reports
-- **Discussions**: Use GitHub Discussions for questions and ideas
-
-## 🔄 Recent Updates
-
-- ✅ Fixed TypeScript type safety issues
-- ✅ Improved React Hook dependencies
-- ✅ Enhanced error handling
-- ✅ Updated documentation
+- **Admin**
+  - **Email**: `admin.test@gmail.com`
+  - **Password**: `admin@test`
+- **User**
+  - **Email**: `user.test@gmail.com`
+  - **Password**: `user@test`

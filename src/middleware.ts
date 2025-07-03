@@ -16,6 +16,7 @@ export default auth((_req) => {
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     img-src 'self' blob: data: https:;
     font-src 'self' data: https://fonts.gstatic.com;
+    frame-src 'self' https://vercel.live;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
