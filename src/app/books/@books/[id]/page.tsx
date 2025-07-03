@@ -3,6 +3,7 @@ import { BookDetails } from "@/components/features/book/BookDetails";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { formatUSD } from "@/utils/currency";
+import { auth } from "@/lib/auth/auth";
 
 type Params = Promise<{ id: string }>;
 
@@ -42,10 +43,11 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 export default async function BookDetailPage({ params }: { params: Params }) {
   const { id } = await params;
   const { book } = await getBook({ id });
+  const session = await auth();
 
   if (!book) {
     return notFound();
   }
 
-  return <BookDetails book={book} />;
+  return <BookDetails book={book} isAdmin={session?.user.role === "admin"} />;
 }

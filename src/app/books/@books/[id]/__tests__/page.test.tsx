@@ -1,21 +1,37 @@
 import { notFound } from "next/navigation";
+import React from "react";
+import { render } from "@testing-library/react";
+import BookDetailPage, { generateMetadata } from "../page";
 
 jest.mock("@/services/book", () => ({
   getBook: jest.fn(),
 }));
 
 jest.mock("@/components/features/book/BookDetails", () => ({
-  BookDetails: jest.fn(),
+  BookDetails: jest.fn(({ book, isAdmin }) => (
+    <div data-testid="book-details">
+      <span data-testid="book-title">{book.title}</span>
+      <span data-testid="is-admin">{isAdmin ? "admin" : "user"}</span>
+    </div>
+  )),
 }));
 
-jest.mock("@/components/ui/SkeletonCard", () => jest.fn());
+jest.mock("@/utils/currency", () => ({
+  formatUSD: jest.fn((price: number) => `$${price.toFixed(2)}`),
+}));
+
+jest.mock("@/lib/auth/auth", () => ({
+  auth: jest.fn(),
+}));
 
 jest.mock("next/navigation", () => ({
   notFound: jest.fn(),
 }));
 
 const mockGetBook = require("@/services/book").getBook;
+const mockAuth = require("@/lib/auth/auth").auth;
 const mockNotFound = notFound as jest.MockedFunction<typeof notFound>;
+const mockFormatUSD = require("@/utils/currency").formatUSD;
 
 const mockBook = {
   id: "1",
@@ -25,41 +41,104 @@ const mockBook = {
   slug: "test-book",
   language: "en",
   imageUrl: "https://example.com/image.jpg",
-  categories: [],
+  categories: [
+    { id: "1", name: "Fiction", documentId: "cat-1" },
+    { id: "2", name: "Adventure", documentId: "cat-2" },
+  ],
   createdAt: "2024-01-01T00:00:00.000Z",
   updatedAt: "2024-01-01T00:00:00.000Z",
   publishedAt: "2024-01-01T00:00:00.000Z",
   documentId: "doc-1",
 };
 
+const mockSession = {
+  user: {
+    id: "user-1",
+    email: "test@example.com",
+    role: "admin" as const,
+  },
+};
+
 describe("Book Detail Page (@books/[id])", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFormatUSD.mockImplementation((price: number) => `$${price.toFixed(2)}`);
   });
 
   describe("Component", () => {
-    it("should export BookDetailPage component", async () => {
-      const pageModule = await import("../page");
-      expect(typeof pageModule.default).toBe("function");
-      expect(pageModule.default.name).toBe("BookDetailPage");
+    it("should render BookDetails with book data and admin role", async () => {
+      mockGetBook.mockResolvedValue({
+        book: mockBook,
+        error: null,
+        pagination: { page: 1, pageSize: 1, pageCount: 1, total: 1 },
+      });
+
+      mockAuth.mockResolvedValue(mockSession);
+
+      const params = Promise.resolve({ id: "1" });
+      const component = await BookDetailPage({ params });
+
+      expect(mockGetBook).toHaveBeenCalledWith({ id: "1" });
+      expect(mockAuth).toHaveBeenCalled();
+      expect(component).toBeDefined();
+    });
+
+    it("should render BookDetails with book data and user role", async () => {
+      mockGetBook.mockResolvedValue({
+        book: mockBook,
+        error: null,
+        pagination: { page: 1, pageSize: 1, pageCount: 1, total: 1 },
+      });
+
+      mockAuth.mockResolvedValue({
+        user: { ...mockSession.user, role: "user" },
+      });
+
+      const params = Promise.resolve({ id: "1" });
+      const component = await BookDetailPage({ params });
+
+      expect(mockGetBook).toHaveBeenCalledWith({ id: "1" });
+      expect(mockAuth).toHaveBeenCalled();
+      expect(component).toBeDefined();
+    });
+
+    it("should call notFound when book is not found", async () => {
+      mockGetBook.mockResolvedValue({
+        book: null,
+        error: null,
+        pagination: { page: 1, pageSize: 1, pageCount: 1, total: 1 },
+      });
+
+      mockAuth.mockResolvedValue(mockSession);
+
+      const params = Promise.resolve({ id: "not-found" });
+      const result = await BookDetailPage({ params });
+
+      expect(mockGetBook).toHaveBeenCalledWith({ id: "not-found" });
+      expect(mockNotFound).toHaveBeenCalled();
+      expect(result).toBeUndefined();
+    });
+
+    it("should handle null session", async () => {
+      mockGetBook.mockResolvedValue({
+        book: mockBook,
+        error: null,
+        pagination: { page: 1, pageSize: 1, pageCount: 1, total: 1 },
+      });
+
+      mockAuth.mockResolvedValue(null);
+
+      const params = Promise.resolve({ id: "1" });
+      const component = await BookDetailPage({ params });
+
+      expect(mockGetBook).toHaveBeenCalledWith({ id: "1" });
+      expect(mockAuth).toHaveBeenCalled();
+      expect(component).toBeDefined();
     });
   });
 
-  describe("Core Functionality", () => {
-    const simulateComponentLogic = async (params: Promise<{ id: string }>) => {
-      const { id } = await params;
-      const result = await mockGetBook({ id });
-      const book = result.book;
-
-      if (!book) {
-        notFound();
-        return null;
-      }
-
-      return book;
-    };
-
-    it("should handle successful book fetch", async () => {
+  describe("generateMetadata", () => {
+    it("should generate metadata for existing book", async () => {
       mockGetBook.mockResolvedValue({
         book: mockBook,
         error: null,
@@ -67,14 +146,45 @@ describe("Book Detail Page (@books/[id])", () => {
       });
 
       const params = Promise.resolve({ id: "1" });
-      const result = await simulateComponentLogic(params);
+      const metadata = await generateMetadata({ params });
 
       expect(mockGetBook).toHaveBeenCalledWith({ id: "1" });
-      expect(result).toEqual(mockBook);
-      expect(mockNotFound).not.toHaveBeenCalled();
+      expect(mockFormatUSD).toHaveBeenCalledWith(19.99);
+      expect(metadata).toEqual({
+        title: "Test Book",
+        description: "A test book description",
+        keywords: ["Test Book", "Fiction", "Adventure", "books", "buy online"],
+        openGraph: {
+          title: "Test Book | BookStore",
+          description: "A test book description",
+          type: "article",
+        },
+        alternates: {
+          canonical: "/books/1",
+        },
+      });
     });
 
-    it("should call notFound when book is null", async () => {
+    it("should generate metadata for book without description", async () => {
+      const bookWithoutDescription = { ...mockBook, description: null };
+      mockGetBook.mockResolvedValue({
+        book: bookWithoutDescription,
+        error: null,
+        pagination: { page: 1, pageSize: 1, pageCount: 1, total: 1 },
+      });
+
+      const params = Promise.resolve({ id: "1" });
+      const metadata = await generateMetadata({ params });
+
+      expect(metadata.description).toBe(
+        "Test Book - Available for $19.99 at BookStore. Order your copy today with fast shipping."
+      );
+      expect(metadata.openGraph?.description).toBe(
+        "Get Test Book at BookStore for $19.99. Fast shipping and excellent customer service."
+      );
+    });
+
+    it("should generate not found metadata when book is null", async () => {
       mockGetBook.mockResolvedValue({
         book: null,
         error: null,
@@ -82,26 +192,12 @@ describe("Book Detail Page (@books/[id])", () => {
       });
 
       const params = Promise.resolve({ id: "not-found" });
-      const result = await simulateComponentLogic(params);
+      const metadata = await generateMetadata({ params });
 
-      expect(mockGetBook).toHaveBeenCalledWith({ id: "not-found" });
-      expect(mockNotFound).toHaveBeenCalled();
-      expect(result).toBeNull();
-    });
-
-    it("should call notFound when book is undefined", async () => {
-      mockGetBook.mockResolvedValue({
-        book: undefined as any,
-        error: null,
-        pagination: { page: 1, pageSize: 1, pageCount: 1, total: 1 },
+      expect(metadata).toEqual({
+        title: "Book Not Found",
+        description: "The requested book could not be found.",
       });
-
-      const params = Promise.resolve({ id: "undefined" });
-      const result = await simulateComponentLogic(params);
-
-      expect(mockGetBook).toHaveBeenCalledWith({ id: "undefined" });
-      expect(mockNotFound).toHaveBeenCalled();
-      expect(result).toBeNull();
     });
   });
 
@@ -138,27 +234,6 @@ describe("Book Detail Page (@books/[id])", () => {
 
       const result = await mockGetBook({ id: "test" });
       expect(result).toBeNull();
-    });
-  });
-
-  describe("Integration", () => {
-    it("should work with service and notFound", async () => {
-      mockGetBook.mockResolvedValue({
-        book: mockBook,
-        error: null,
-        pagination: { page: 1, pageSize: 1, pageCount: 1, total: 1 },
-      });
-
-      const params = Promise.resolve({ id: "integration-test" });
-      const { id } = await params;
-      const serviceResponse = await mockGetBook({ id });
-      const book = serviceResponse.book;
-
-      expect(id).toBe("integration-test");
-      expect(mockGetBook).toHaveBeenCalledWith({ id: "integration-test" });
-      expect(book).toEqual(mockBook);
-      expect(book?.title).toBe("Test Book");
-      expect(mockNotFound).not.toHaveBeenCalled();
     });
   });
 });

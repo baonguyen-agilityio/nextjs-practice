@@ -26,9 +26,10 @@ export const handleNavigation = (onNavigate?: () => void) => {
 interface BookDetailsProps {
   book: Book;
   onNavigateBack?: () => void;
+  isAdmin: boolean;
 }
 
-export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
+export function BookDetails({ book, onNavigateBack, isAdmin }: BookDetailsProps) {
   const [quantity, setQuantity] = useState(MIN_QUANTITY);
   const [inputValue, setInputValue] = useState(MIN_QUANTITY.toString());
   const { addCartItem } = useCart();
@@ -152,49 +153,51 @@ export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
             <p className="text-description font-inter text-xs">{book.description}</p>
           </div>
 
-          <form action={handleFormSubmit} className="flex gap-2">
-            <div className="ml-auto flex h-15 flex-row items-center border border-secondary">
-              <Button
-                variant="text"
-                isIconOnly
-                aria-label="Decrease quantity"
-                disabled={isMinQuantity}
-                onClick={() => handleButtonQuantityChange("minus")}
-                className={isMinQuantity ? "opacity-50 cursor-not-allowed" : ""}
-              >
-                <MinusIcon className="h-4 w-4" />
+          {!isAdmin && (
+            <form action={handleFormSubmit} className="flex gap-2">
+              <div className="ml-auto flex h-15 flex-row items-center border border-secondary">
+                <Button
+                  variant="text"
+                  isIconOnly
+                  aria-label="Decrease quantity"
+                  disabled={isMinQuantity}
+                  onClick={() => handleButtonQuantityChange("minus")}
+                  className={isMinQuantity ? "opacity-50 cursor-not-allowed" : ""}
+                >
+                  <MinusIcon className="h-4 w-4" />
+                </Button>
+
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  aria-label="Book quantity"
+                  min={MIN_QUANTITY}
+                  classNames={{
+                    input: "text-center text-lg",
+                    inputWrapper: "bg-transparent shadow-none outline-none",
+                  }}
+                  disableAnimation
+                  value={inputValue}
+                  onChange={handleQuantityInputChange}
+                  onBlur={handleQuantityInputBlur}
+                  placeholder={MIN_QUANTITY.toString()}
+                />
+
+                <Button
+                  variant="text"
+                  isIconOnly
+                  aria-label="Increase quantity"
+                  onClick={() => handleButtonQuantityChange("plus")}
+                >
+                  <PlusIcon className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <Button isLoading={isPending} type="submit" fullWidth variant="secondary">
+                Add to Cart
               </Button>
-
-              <Input
-                type="text"
-                inputMode="numeric"
-                aria-label="Book quantity"
-                min={MIN_QUANTITY}
-                classNames={{
-                  input: "text-center text-lg",
-                  inputWrapper: "bg-transparent shadow-none outline-none",
-                }}
-                disableAnimation
-                value={inputValue}
-                onChange={handleQuantityInputChange}
-                onBlur={handleQuantityInputBlur}
-                placeholder={MIN_QUANTITY.toString()}
-              />
-
-              <Button
-                variant="text"
-                isIconOnly
-                aria-label="Increase quantity"
-                onClick={() => handleButtonQuantityChange("plus")}
-              >
-                <PlusIcon className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <Button isLoading={isPending} type="submit" fullWidth variant="secondary">
-              Add to Cart
-            </Button>
-          </form>
+            </form>
+          )}
 
           <div className="space-y-2" />
         </div>

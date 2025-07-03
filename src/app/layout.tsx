@@ -64,12 +64,6 @@ export default async function RootLayout({
 
   return (
     <html suppressHydrationWarning lang="en" className="myTheme">
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-        <meta name="format-detection" content="telephone=no" />
-        <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
-      </head>
       <body className={`${fontCardo.variable} ${fontInter.variable} font-cardo`}>
         <a
           href="#main-content"
