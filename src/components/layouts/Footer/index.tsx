@@ -12,13 +12,15 @@ export function Footer() {
               <Logo />
               <span className="ml-1 font-inter font-bold text-3xl">Pages</span>
             </div>
-            <div className="flex gap-2">
-              {siteConfig.socialLinks.map(({ icon: Icon, href }) => (
+            <div className="flex gap-2" aria-label="Social media links">
+              {siteConfig.socialLinks.map(({ icon: Icon, href, label }) => (
                 <Link
                   target="_blank"
                   key={href}
                   href={href}
                   className="border border-secondary w-10 h-10 flex items-center justify-center hover:bg-secondary hover:text-primary transition-colors"
+                  aria-label={`Visit our ${label} page (opens in new window)`}
+                  rel="noopener noreferrer"
                 >
                   <Icon />
                 </Link>
@@ -34,11 +36,23 @@ export function Footer() {
               </div>
               <div>
                 <span className="font-semibold">Mail: </span>
-                <span className="font-inter">support@doctors.com</span>
+                <a
+                  href="mailto:support@doctors.com"
+                  className="font-inter"
+                  aria-label="Send email to support@doctors.com"
+                >
+                  support@doctors.com
+                </a>
               </div>
               <div>
                 <span className="font-semibold">Phone: </span>
-                <span className="font-inter">(+22) 123 - 4567 - 900</span>
+                <a
+                  href="tel:+22123-4567-900"
+                  className="font-inter"
+                  aria-label="Call us at +22 123-4567-900"
+                >
+                  (+22) 123 - 4567 - 900
+                </a>
               </div>
             </div>
           </div>

@@ -2,7 +2,6 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { ArticleDetails } from "../ArticleDetails";
 import type { Article } from "@/types";
 
-// Mock components and utilities
 jest.mock("@/components/ui/Banner", () => ({
   Banner: ({ title }: { title: string }) => <div data-testid="banner">{title}</div>,
 }));
@@ -29,6 +28,12 @@ jest.mock("@/utils/image", () => ({
     if (!baseUrl || url.startsWith("http")) return url;
     return `${baseUrl}${url}`;
   },
+  ImageQuality: {
+    HIGH: 90,
+    STANDARD: 85,
+    THUMBNAIL: 75,
+    PLACEHOLDER: 30,
+  },
 }));
 
 jest.mock("@/utils/date", () => ({
@@ -41,7 +46,6 @@ jest.mock("@/utils/date", () => ({
   },
 }));
 
-// Mock window.history.back
 Object.defineProperty(window, "history", {
   value: { back: jest.fn() },
   writable: true,
@@ -152,7 +156,6 @@ describe("ArticleDetails", () => {
 
       render(<ArticleDetails article={articleWithoutAuthor} />);
 
-      // Should still render the date part
       expect(screen.getByText(/January 1, 2023/)).toBeInTheDocument();
     });
 
@@ -174,15 +177,12 @@ describe("ArticleDetails", () => {
     it("has correct CSS classes and structure", () => {
       const { container } = render(<ArticleDetails article={mockArticle} />);
 
-      // Check main container
       const section = container.querySelector("section");
       expect(section).toHaveClass("container", "mx-auto", "px-4", "max-w-7xl");
 
-      // Check article element
       const article = container.querySelector("article");
       expect(article).toHaveClass("space-y-4");
 
-      // Check header structure
       const header = container.querySelector("header");
       expect(header).toBeInTheDocument();
     });

@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import MinusIcon from "@/components/icons/MinusIcon";
 import PlusIcon from "@/components/icons/PlusIcon";
-import { createImageUrl, validateQuantity, sanitizeQuantityInput } from "@/utils";
+import { createImageUrl, validateQuantity, sanitizeQuantityInput, ImageQuality } from "@/utils";
 import { MIN_QUANTITY } from "@/constants";
 import { addToast } from "@heroui/react";
 import { useRouter } from "next/navigation";
@@ -138,6 +138,7 @@ export function BookDetails({ book, onNavigateBack }: BookDetailsProps) {
               sizes="(max-width: 768px) 100vw, 50vw"
               width={480}
               height={640}
+              quality={ImageQuality.HIGH}
               priority
               fallbackText="Book Cover"
             />

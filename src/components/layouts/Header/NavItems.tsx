@@ -17,6 +17,7 @@ export function NavItems({ session }: { session: Session | null }) {
           key={href}
           href={href}
           className={`hover:text-secondary transition-colors ${pathname === href ? "text-secondary" : "text-white"}`}
+          aria-label={`Navigate to ${label} page`}
         >
           {label}
         </Link>
@@ -35,7 +36,11 @@ export function NavItems({ session }: { session: Session | null }) {
           {session.user.role !== "admin" && <CartModal />}
         </>
       ) : (
-        <Link href="/login" className="hover:text-secondary transition-colors">
+        <Link
+          href="/login"
+          className="hover:text-secondary transition-colors"
+          aria-label="Sign in to your account"
+        >
           Login
         </Link>
       )}

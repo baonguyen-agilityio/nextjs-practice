@@ -46,6 +46,6 @@ describe("NotFound", () => {
     const { container } = render(<NotFound />);
     const notFoundContainer = container.firstChild as HTMLElement;
 
-    expect(notFoundContainer).toHaveClass("flex", "items-center", "justify-center", "px-4");
+    expect(notFoundContainer).toHaveClass("bg-primary", "text-white", "py-16");
   });
 });

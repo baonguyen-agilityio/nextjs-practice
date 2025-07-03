@@ -30,11 +30,11 @@ export default function CartModal() {
 
   const renderEmptyCart = () => (
     <div
-      className="mt-20 flex w-full flex-col items-center justify-center overflow-hidden"
+      className="p-20 flex w-full flex-col items-center justify-center overflow-hidden"
       role="status"
       aria-live="polite"
     >
-      <ShoppingCartIcon className="w-10 h-10" aria-hidden="true" />
+      <ShoppingCartIcon className="w-20 h-20" aria-hidden="true" />
       <p className="mt-6 text-center text-lg font-bold">Your cart is empty.</p>
     </div>
   );
@@ -139,21 +139,26 @@ export default function CartModal() {
         aria-describedby="cart-modal-description"
         title="Your Cart"
         footer={
-          <div className="flex flex-col gap-4 p-4 pt-0 w-full">
-            <div
-              className="flex justify-between w-full font-inter"
-              role="group"
-              aria-label="Cart total"
-            >
-              <span>Subtotal</span>
-              <span className="font-bold font-inter" aria-label={`Total amount: ${formattedTotal}`}>
-                {formattedTotal} USD
-              </span>
+          cart?.cartItems.length ? (
+            <div className="flex flex-col gap-4 p-4 pt-0 w-full">
+              <div
+                className="flex justify-between w-full font-inter"
+                role="group"
+                aria-label="Cart total"
+              >
+                <span>Subtotal</span>
+                <span
+                  className="font-bold font-inter"
+                  aria-label={`Total amount: ${formattedTotal}`}
+                >
+                  {formattedTotal} USD
+                </span>
+              </div>
+              <Button fullWidth variant="secondary" onPress={onClose} aria-label="Checkout">
+                Continue To Checkout
+              </Button>
             </div>
-            <Button fullWidth variant="secondary" onPress={onClose} aria-label="Checkout">
-              Continue To Checkout
-            </Button>
-          </div>
+          ) : null
         }
       >
         <div key={cart?.id} className="flex flex-col gap-2 overflow-y-auto">

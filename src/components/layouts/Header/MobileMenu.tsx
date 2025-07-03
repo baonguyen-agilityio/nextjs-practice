@@ -16,6 +16,7 @@ export async function MobileMenu() {
             key={href}
             href={href}
             className="text-xl hover:text-accent transition-colors font-inter focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary rounded-sm px-2 py-1"
+            aria-label={`Navigate to ${label} page`}
           >
             {label}
           </Link>
@@ -41,6 +42,7 @@ export async function MobileMenu() {
           <Link
             href="/login"
             className="text-xl hover:text-accent transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary rounded-sm px-2 py-1"
+            aria-label="Sign in to your account"
           >
             Login
           </Link>

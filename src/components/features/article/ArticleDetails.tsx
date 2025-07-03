@@ -1,6 +1,6 @@
 import { Banner } from "@/components/ui/Banner";
 import BackButton from "@/components/ui/BackButton";
-import { createImageUrl } from "@/utils/image";
+import { createImageUrl, ImageQuality } from "@/utils/image";
 import { formatDate } from "@/utils/date";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import type { Article } from "@/types";
@@ -22,8 +22,11 @@ export function ArticleDetails({ article }: { article: Article }) {
               width={1200}
               height={800}
               className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+              responsive="hero"
+              quality={ImageQuality.HIGH}
               fallbackText="Article Image"
+              priority={true}
+              placeholder="blur"
             />
           </div>
 

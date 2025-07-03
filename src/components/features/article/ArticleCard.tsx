@@ -2,7 +2,7 @@
 
 import type { Article } from "@/types";
 import { formatDate } from "@/utils/date";
-import { createImageUrl } from "@/utils/image";
+import { createImageUrl, ImageQuality } from "@/utils/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
@@ -30,9 +30,11 @@ export function ArticleCard(props: { article: Article }) {
               src={createImageUrl(article.imageUrl)}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              responsive="cardGrid"
+              quality={ImageQuality.STANDARD}
               fallbackText="Article Cover"
-              priority
+              priority={false}
+              placeholder="blur"
             />
           </div>
         </div>
@@ -50,6 +52,7 @@ export function ArticleCard(props: { article: Article }) {
             size="lg"
             className="font-cardo font-bold text-primary underline underline-offset-4 decoration-[1.5px] decoration-primary min-w-fit p-0"
             onClick={handleNavigateToDetails}
+            aria-label={`Read more about ${article.title}`}
           >
             <p className="text-md">Readmore</p>
           </Button>

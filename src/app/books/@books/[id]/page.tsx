@@ -2,7 +2,6 @@ import { getBook } from "@/services/book";
 import { BookDetails } from "@/components/features/book/BookDetails";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { createImageUrl } from "@/utils/image";
 import { formatUSD } from "@/utils/currency";
 
 type Params = Promise<{ id: string }>;
@@ -18,7 +17,6 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     };
   }
 
-  const imageUrl = createImageUrl(book.imageUrl);
   const price = formatUSD(book.price);
 
   return {
@@ -33,30 +31,8 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
         book.description ||
         `Get ${book.title} at BookStore for ${price}. Fast shipping and excellent customer service.`,
       type: "article",
-      images: [
-        {
-          url: imageUrl,
-          width: 800,
-          height: 600,
-          alt: `Cover of ${book.title}`,
-          type: "image/jpeg",
-        },
-      ],
-      authors: [`BookStore`],
-      publishedTime: book.publishedAt,
-      modifiedTime: book.updatedAt,
     },
-    twitter: {
-      card: "summary_large_image",
-      title: `${book.title} | BookStore`,
-      description: `Get ${book.title} for ${price} at BookStore. Order now!`,
-      images: [
-        {
-          url: imageUrl,
-          alt: `Cover of ${book.title}`,
-        },
-      ],
-    },
+
     alternates: {
       canonical: `/books/${id}`,
     },

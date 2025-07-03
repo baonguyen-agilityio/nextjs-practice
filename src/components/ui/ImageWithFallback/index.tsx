@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import PlaceholderImage from "../PlaceholderImage";
 import { cn } from "@/utils/cn";
+import { ImageQuality, ResponsiveSizes } from "@/utils/image";
 
 interface ImageWithFallbackProps {
   src: string;
@@ -15,8 +16,13 @@ interface ImageWithFallbackProps {
   fallbackText?: string;
   priority?: boolean;
   sizes?: string;
+  quality?: number;
   onError?: () => void;
   onLoad?: () => void;
+  responsive?: keyof typeof ResponsiveSizes;
+  loading?: "lazy" | "eager";
+  placeholder?: "blur" | "empty";
+  blurDataURL?: string;
 }
 
 export default function ImageWithFallback({
@@ -27,10 +33,15 @@ export default function ImageWithFallback({
   fill,
   className,
   fallbackText = "Image not available",
-  priority,
+  priority = false,
   sizes,
+  quality = ImageQuality.STANDARD,
   onError,
   onLoad,
+  responsive,
+  loading = "lazy",
+  placeholder = "empty",
+  blurDataURL,
   ...props
 }: ImageWithFallbackProps) {
   const [imageError, setImageError] = useState(false);
@@ -58,6 +69,13 @@ export default function ImageWithFallback({
     );
   }
 
+  const optimizedSizes = responsive ? ResponsiveSizes[responsive] : sizes;
+
+  const placeholderDataURL =
+    placeholder === "blur" && !blurDataURL
+      ? "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkrHB0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyEhknzNcABJBlpR2dDHq5ZQBgdSqOl0YJNXhG1hCxK3sATYzNhNUJAQAAAA=="
+      : blurDataURL;
+
   return (
     <>
       {isLoading && (
@@ -78,7 +96,11 @@ export default function ImageWithFallback({
           className
         )}
         priority={priority}
-        sizes={sizes}
+        sizes={optimizedSizes}
+        quality={quality}
+        loading={priority ? "eager" : loading}
+        placeholder={placeholder}
+        blurDataURL={placeholderDataURL}
         onError={handleError}
         onLoad={handleLoad}
         {...props}

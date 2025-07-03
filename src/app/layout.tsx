@@ -26,22 +26,9 @@ export const metadata: Metadata = {
     "literature",
     "reading",
   ],
-  authors: [{ name: "BookStore Team" }],
-  creator: "BookStore",
-  publisher: "BookStore",
   metadataBase: new URL("https://nextjs-practice-nine-tan.vercel.app"),
   alternates: {
-    canonical: "/",
-  },
-  other: {
-    "color-scheme": "light dark",
-    "theme-color": "#ffffff",
-    "apple-mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-status-bar-style": "default",
-    "format-detection": "telephone=no",
-    "accessibility-features": "ARIA, keyboard-navigation, high-contrast-display",
-    "accessibility-hazards": "none",
-    "accessibility-summary": "This site is optimized for screen readers and keyboard navigation",
+    canonical: "https://nextjs-practice-nine-tan.vercel.app",
   },
   openGraph: {
     type: "website",
@@ -53,7 +40,7 @@ export const metadata: Metadata = {
       "Discover thousands of books at BookStore. Browse fiction, non-fiction, classics, and new releases. Fast shipping, competitive prices, and excellent customer service.",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "https://nextjs-practice-nine-tan.vercel.app/logo.jpg",
         width: 1200,
         height: 630,
         alt: "BookStore - Your Premier Online Book Destination",
@@ -61,30 +48,9 @@ export const metadata: Metadata = {
       },
     ],
   },
-  twitter: {
-    card: "summary_large_image",
-    site: "@bookstore",
-    creator: "@bookstore",
-    title: "BookStore - Your Premier Online Book Destination",
-    description:
-      "Discover thousands of books at BookStore. Browse fiction, non-fiction, classics, and new releases.",
-    images: [
-      {
-        url: "/twitter-image.jpg",
-        alt: "BookStore - Your Premier Online Book Destination",
-      },
-    ],
-  },
   robots: {
     index: true,
     follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
   },
 };
 

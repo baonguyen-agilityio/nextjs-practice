@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import EmptyState from "./index";
 
 const BookIcon = () => (
@@ -20,17 +21,6 @@ const SearchIcon = () => (
       strokeLinejoin="round"
       strokeWidth={1.5}
       d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-    />
-  </svg>
-);
-
-const HomeIcon = () => (
-  <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={1.5}
-      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
     />
   </svg>
 );
@@ -73,9 +63,9 @@ export function NotFoundEmptyState({ onGoHome }: { onGoHome?: () => void }) {
     <EmptyState
       headingLevel={1}
       title="Page Not Found"
-      message="The page you're looking for doesn't exist or has been moved."
-      icon={<HomeIcon />}
-      action={onGoHome ? { label: "Go Home", onClick: onGoHome } : undefined}
+      message="The page you are looking for doesn't exist. Please try searching for some other page, or return to the website's homepage to find what you're looking for."
+      icon={<Image src="/404.png" alt="Not Found" width={500} height={100} />}
+      action={onGoHome ? { label: "Back to Home", onClick: onGoHome } : undefined}
     />
   );
 }

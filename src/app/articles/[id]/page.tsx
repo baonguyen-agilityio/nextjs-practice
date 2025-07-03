@@ -2,7 +2,6 @@ import { getArticle } from "@/services/article";
 import { ArticleDetails } from "@/components/features/article/ArticleDetails";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { createImageUrl } from "@/utils/image";
 import { formatDate } from "@/utils/date";
 
 type Params = Promise<{ id: string }>;
@@ -18,7 +17,6 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     };
   }
 
-  const imageUrl = createImageUrl(article.imageUrl);
   const publishedDate = formatDate(article.publishedAt);
 
   return {
@@ -34,31 +32,8 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
         article.description ||
         `Read "${article.title}" by ${article.author?.name}. Published on ${publishedDate}.`,
       type: "article",
-      images: [
-        {
-          url: imageUrl,
-          width: 800,
-          height: 600,
-          alt: `Cover of ${article.title}`,
-          type: "image/jpeg",
-        },
-      ],
-      authors: [`${article.author?.name || "BookStore Team"}`],
-      publishedTime: article.publishedAt,
-      modifiedTime: article.updatedAt,
       section: "Literature & Books",
       tags: ["books", "literature", "reading", article.title],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: `${article.title} | BookStore Articles`,
-      description: `Read "${article.title}" by ${article.author?.name}. Published on ${publishedDate}.`,
-      images: [
-        {
-          url: imageUrl,
-          alt: `Cover of ${article.title}`,
-        },
-      ],
     },
     alternates: {
       canonical: `/articles/${id}`,

@@ -3,7 +3,6 @@ import { useRouter } from "next/navigation";
 import BookCard from "../BookCard";
 import type { Book, Category } from "@/types";
 
-// Mock next/navigation
 const mockPush = jest.fn();
 const mockRouter = {
   push: mockPush,
@@ -18,7 +17,6 @@ jest.mock("next/navigation", () => ({
   useRouter: jest.fn(() => mockRouter),
 }));
 
-// Mock HeroUI components
 jest.mock("@heroui/react", () => ({
   Card: function MockCard({ children, className, ...props }: any) {
     return (
@@ -43,16 +41,20 @@ jest.mock("@heroui/react", () => ({
   },
 }));
 
-// Mock utility functions
 jest.mock("@/utils/currency", () => ({
   formatUSD: jest.fn((price) => `$${price.toFixed(2)}`),
 }));
 
 jest.mock("@/utils/image", () => ({
   createImageUrl: jest.fn((url) => `https://example.com${url}`),
+  ImageQuality: {
+    HIGH: 90,
+    STANDARD: 85,
+    THUMBNAIL: 75,
+    PLACEHOLDER: 30,
+  },
 }));
 
-// Mock ImageWithFallback component
 jest.mock("@/components/ui/ImageWithFallback", () => {
   return function MockImageWithFallback({
     alt,
@@ -73,7 +75,6 @@ jest.mock("@/components/ui/ImageWithFallback", () => {
   };
 });
 
-// Mock DynamicModals
 jest.mock("../DynamicModals", () => ({
   LazyEditBookModal: function MockLazyEditBookModal({
     formAction,
@@ -117,7 +118,6 @@ jest.mock("../DynamicModals", () => ({
   },
 }));
 
-// Mock Button component
 jest.mock("@/components/ui/Button", () => ({
   Button: function MockButton({ children, onClick, variant, size, disabled, ...props }: any) {
     return (
@@ -173,7 +173,6 @@ describe("BookCard", () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_STRAPI_URL = "http://localhost:1337";
     jest.clearAllMocks();
-    // Mock window.scrollTo
     window.scrollTo = jest.fn();
   });
 

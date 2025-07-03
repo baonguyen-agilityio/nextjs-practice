@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
+import { useId } from "react";
 import type { ModalProps as HeroModalProps } from "@heroui/react";
 import {
   Modal as HeroModal,
@@ -45,7 +46,7 @@ export interface ModalProps extends HeroModalProps {
 
 export const Modal: React.FC<ModalProps> = ({ title, children, footer, ...props }) => {
   const { ref, ...restProps } = props;
-  const modalId = `modal-${Math.random().toString(36).substr(2, 9)}`;
+  const modalId = useId();
   const titleId = `${modalId}-title`;
   const descriptionId = `${modalId}-description`;
 

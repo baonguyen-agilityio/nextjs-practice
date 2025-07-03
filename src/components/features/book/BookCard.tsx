@@ -4,7 +4,7 @@ import { formatUSD } from "@/utils/currency";
 import type { Book, Category } from "@/types";
 import { LazyEditBookModal, LazyDeleteBookModal } from "./DynamicModals";
 import type { ActionResult } from "@/app/actions/book";
-import { createImageUrl } from "@/utils/image";
+import { createImageUrl, ImageQuality } from "@/utils/image";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
@@ -56,9 +56,11 @@ export default function BookCard(props: {
                 src={imageSrc}
                 className="object-cover"
                 fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                priority
+                responsive="bookCover"
+                quality={ImageQuality.STANDARD}
+                priority={false}
                 fallbackText="Book Cover"
+                placeholder="blur"
               />
             </div>
           </div>
@@ -102,7 +104,12 @@ export default function BookCard(props: {
                 />
               </>
             ) : (
-              <Button variant="secondaryGhost" size="lg" onClick={handleNavigateToDetails}>
+              <Button
+                variant="secondaryGhost"
+                size="lg"
+                onClick={handleNavigateToDetails}
+                aria-label={`Order ${book.title} today`}
+              >
                 Order Today
               </Button>
             )}

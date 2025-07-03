@@ -37,11 +37,6 @@ describe("LoginPage", () => {
             "Sign in to your BookStore account to access your personalized book recommendations and order history.",
           type: "website",
         },
-        twitter: {
-          card: "summary",
-          title: "Login | BookStore",
-          description: "Sign in to your BookStore account for personalized book recommendations.",
-        },
       });
     });
   });

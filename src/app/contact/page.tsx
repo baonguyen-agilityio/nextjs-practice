@@ -1,6 +1,7 @@
 import EmptyState from "@/components/ui/EmptyState";
 
 export default function ContactPage() {
+  // throw new Error("Server-side error occurred");
   return (
     <div className="container mx-auto px-4 py-16">
       <EmptyState

@@ -4,17 +4,12 @@ import { getArticle } from "@/services/article";
 import ArticleDetailPage, { generateMetadata } from "../page";
 import type { Article } from "@/types";
 
-// Mock dependencies
 jest.mock("@/services/article", () => ({
   getArticle: jest.fn(),
 }));
 
 jest.mock("next/navigation", () => ({
   notFound: jest.fn(),
-}));
-
-jest.mock("@/utils/image", () => ({
-  createImageUrl: jest.fn((url: string) => url || "/default-image.jpg"),
 }));
 
 jest.mock("@/utils/date", () => ({
@@ -78,31 +73,8 @@ describe("Article Detail Page", () => {
           title: "Test Article | BookStore Articles",
           description: "Test description",
           type: "article",
-          images: [
-            {
-              url: "/test.jpg",
-              width: 800,
-              height: 600,
-              alt: "Cover of Test Article",
-              type: "image/jpeg",
-            },
-          ],
-          authors: ["Test Author"],
-          publishedTime: "2024-01-01T00:00:00.000Z",
-          modifiedTime: "2024-01-01T00:00:00.000Z",
           section: "Literature & Books",
           tags: ["books", "literature", "reading", "Test Article"],
-        },
-        twitter: {
-          card: "summary_large_image",
-          title: "Test Article | BookStore Articles",
-          description: 'Read "Test Article" by Test Author. Published on January 1, 2024.',
-          images: [
-            {
-              url: "/test.jpg",
-              alt: "Cover of Test Article",
-            },
-          ],
         },
         alternates: {
           canonical: "/articles/test-article",
